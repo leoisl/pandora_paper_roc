@@ -47,9 +47,11 @@ Results
      - For inferred gene sequences, how many bases away from reference genome is it?
      - Overall inferred gene sequence accuracy
      - Method:
-       1. Take reference GFA and for each annotated gene, query if it is in the pangenome graphs
-       2. For each coverage, run pandora
-       3. Plot number of 
+       1. Only work with annotated genes which we have checked exist exactly in the graph
+       2. For each 10x coverage, run pandora
+       3. Plot number of annotated genes found and number of genes which did not map back to reference vs coverage
+       4. Plot % GT correct for snps, indels, all vs coverage
+       5. Supplementary plot for frequency distribution of number of mismatch bases in genes
    - TB - accuracy from nanopore/novel detection
    - Cardio - comparison with other tools
      - To describe outbreak, want a multisample vcf showing how samples differ and a tree
