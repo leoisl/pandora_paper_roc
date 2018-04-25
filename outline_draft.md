@@ -99,3 +99,16 @@ Thoughts about comparitors
 5. ARIBA?
 6. GROOT - variation aware reference graphs for resistome typing
    -ve doesn't look like it does anything other than type
+
+
+Comments from Zam which need to be integrated by Rachel:
+- There is a market for understanding bacterial genomes in general, not just in a healthcare setting. e.g. understanding why phenotypes are different, or how species evolve.
+- It is self evident that looking at SNPs accross ALL genes is better and in this context we make a gain as a result
+- Main demonstrated use case - the prospective illumina dataset of Nicole's would be ideal provided that Nicole or someone else who knows about the dataset could look over the results with us. Want to see if clustering based on pandora SNPs is closed to epi data than alternative method
+- Demonstration of accuracy - cardio may be better than TB as have more nanopore samples with truth
+- Definitely need to include TB accuracy if it turns out that there is a different error bias
+- MSA doesn't scall and not robust to rearrangements, difficult to do
+- wgMLST more like what we do, but it is a pain to relate all the different barcodes
+- We can in theory with multisample output info about there being 2 refs with 80% samples close to the first
+- We should aim to output a fastq with low qual where we are unsure, rather than a fasta of gene sequences
+- When using cardio to demonstrate can make accurate cakks, compare with samtoools or snappy, not clockwork
