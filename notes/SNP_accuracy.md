@@ -295,27 +295,27 @@ In both cases, one sample had odd coverage (GC00000211_4):
 
 For nbin:
 
-![image-20180425095332118](/var/folders/cd/51mnfbls3g5dy7fdsxnp3shw0000gn/T/abnerworks.Typora/image-20180425095332118.png)
+![image-20180425095332118](images/image-20180425095332118.png)
 
 For bin:
 
-![image-20180425095353716](/var/folders/cd/51mnfbls3g5dy7fdsxnp3shw0000gn/T/abnerworks.Typora/image-20180425095353716.png)
+![image-20180425095353716](images/image-20180425095353716.png)
 
 For nbin:
 
-![image-20180425095458322](/var/folders/cd/51mnfbls3g5dy7fdsxnp3shw0000gn/T/abnerworks.Typora/image-20180425095458322.png)
+![image-20180425095458322](images/image-20180425095458322.png)
 
 For bin:
 
-![image-20180425095434298](/var/folders/cd/51mnfbls3g5dy7fdsxnp3shw0000gn/T/abnerworks.Typora/image-20180425095434298.png)
+![image-20180425095434298](images/image-20180425095434298.png)
 
 For nbin:
 
-![image-20180425095515971](/var/folders/cd/51mnfbls3g5dy7fdsxnp3shw0000gn/T/abnerworks.Typora/image-20180425095515971.png)
+![image-20180425095515971](images/image-20180425095515971.png)
 
 For bin:
 
-![image-20180425095527947](/var/folders/cd/51mnfbls3g5dy7fdsxnp3shw0000gn/T/abnerworks.Typora/image-20180425095527947.png)
+![image-20180425095527947](images/image-20180425095527947.png)
 
 ```python
 wrong_df = snp_df.loc[snp_df['GT'] == '1']
