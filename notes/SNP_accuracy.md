@@ -1,4 +1,18 @@
-__ Aim: evaluate accuracy calling SNPs with pandora when we know the truth __
+__Aim: evaluate accuracy calling SNPs with pandora when we know the truth__
+
+Pandora outputs two things per gene
+1. A mosaic of the gene inferred by dynamic programming
+2. A VCF, currently directly implied by the above
+
+We used K12 as a positive control, in the knowledge (I, Rachel have checked) that it lies in the PRG,
+and that we have a reference-quality assembly of another K12 strain (which may differ by some amount of evolution).
+
+Therefore I ran pandora, asking it to output a VCF with respect to the "truth" (K12 assembly), so that
+all non-0 genotypes would be errors (except those that are not, caused by evolution).
+
+The goal of this was to see whether coverage alone was enough to guarantee correct calls.
+We also tested whether a negative binomial model improved results over Poisson
+
 
 
 
