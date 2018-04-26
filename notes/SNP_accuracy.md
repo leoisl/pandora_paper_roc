@@ -1,4 +1,4 @@
-__Aim: evaluate accuracy calling SNPs with pandora when we know the truth __
+__ Aim: evaluate accuracy calling SNPs with pandora when we know the truth __
 
 
 
