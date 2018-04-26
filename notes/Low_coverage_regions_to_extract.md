@@ -58,19 +58,19 @@ In the following plots, the x-axis has coverages, and the y-axis the frequency a
 
 50X: 5th percentile at 1X coverage, 95th at 31X
 
-![image-20180426142846908](/Users/rmnorris/Work/Typora Notes/image-20180426142846908.png)
+![image-20180426142846908](images/image-20180426142846908.png)
 
 80X: 5th percentile at 2X coverage, 95th at 48X
 
-![image-20180426142942447](/Users/rmnorris/Work/Typora Notes/image-20180426142942447.png)
+![image-20180426142942447](images/image-20180426142942447.png)
 
 300X: 5th percentile at 2X coverage, 95th at 167X
 
-![image-20180426143023824](/Users/rmnorris/Work/Typora Notes/image-20180426143023824.png)
+![image-20180426143023824](images/image-20180426143023824.png)
 
 Full 960X: 5th percentile at 9X coverage, 95th at 526X
 
-![image-20180426143033135](/Users/rmnorris/Work/Typora Notes/image-20180426143033135.png)
+![image-20180426143033135](images/image-20180426143033135.png)
 
 
 
@@ -86,7 +86,7 @@ sns.distplot([i for i in lengths if 30 < i <= 100], kde=False, ax=ax[1])
 sns.distplot([i for i in lengths if 100 < i], kde=False, ax=ax[2])
 ```
 
-![image-20180426150155411](/Users/rmnorris/Work/Typora Notes/image-20180426150155411.png)
+![image-20180426150155411](images/image-20180426150155411.png)
 
 It looks like there is a sharp threshold at around 15 bases long, and that most gaps are of less than this length.
 
