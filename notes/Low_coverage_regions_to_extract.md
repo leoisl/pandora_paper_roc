@@ -1,9 +1,4 @@
-Want to extract short regions 
-
-__<clarification: regions of what? truth? mosaic? graph? >__
-
-
-of low coverage to allow de-novo assembly. The question is, what counts as low coverage and how long to regions of low coverage tend to be?
+Want to extract short regions of the inferred gene mosaic sequence (and the reads which overlap these regions) where there is low coverage (defined for each base as the maximum kmer coverage for minikmers which overlap that base) to allow de-novo assembly in the region. The question is, what counts as low coverage and how long to regions of low coverage tend to be?
 
 ```
 import glob
@@ -59,20 +54,8 @@ for c in range(50,960,10):
 
 Some example outputs:
 
-In the following plots, the x-axis has coverages, 
-
-
-__<coverages of what? what have you done? mini kmer covg counts? remapped reads to truth and got depth?>__
-
-
-
-
-
-
-
-
-
-and the y-axis the frequency at which that coverage was seen in the data. I have split the data into 3 windows because I want to see the left hand peak, and the long right tail otherwise dominates.
+For each base in the mosaic sequences, we have defined the coverage as the maximum coverage of any minikmer which covers that base.
+In the following plots, the x-axis has coverage values, and the y-axis the frequency at which that coverage was seen in the data. I have split the data into 3 windows because I want to see the left hand peak, and the long right tail otherwise dominates.
 
 50X: 5th percentile at 1X coverage, 95th at 31X
 
