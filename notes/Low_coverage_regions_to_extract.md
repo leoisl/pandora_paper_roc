@@ -1,4 +1,9 @@
-Want to extract short regions of low coverage to allow de-novo assembly. The question is, what counts as low coverage and how long to regions of low coverage tend to be?
+Want to extract short regions 
+
+<clarification: regions of what? truth? mosaic? graph? >
+
+
+of low coverage to allow de-novo assembly. The question is, what counts as low coverage and how long to regions of low coverage tend to be?
 
 ```
 import glob
@@ -54,7 +59,20 @@ for c in range(50,960,10):
 
 Some example outputs:
 
-In the following plots, the x-axis has coverages, and the y-axis the frequency at which that coverage was seen in the data. I have split the data into 3 windows because I want to see the left hand peak, and the long right tail otherwise dominates.
+In the following plots, the x-axis has coverages, 
+
+
+<coverages of what? what have you done? mini kmer covg counts? remapped reads to truth and got depth?>
+
+
+
+
+
+
+
+
+
+and the y-axis the frequency at which that coverage was seen in the data. I have split the data into 3 windows because I want to see the left hand peak, and the long right tail otherwise dominates.
 
 50X: 5th percentile at 1X coverage, 95th at 31X
 
