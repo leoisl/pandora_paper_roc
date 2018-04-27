@@ -1,4 +1,4 @@
-Want to extract short regions of the inferred gene mosaic sequence (and the reads which overlap these regions) where there is low coverage (defined for each base as the maximum kmer coverage for minikmers which overlap that base) to allow de-novo assembly in the region. The question is, what counts as low coverage and how long to regions of low coverage tend to be?
+Want to extract short regions of the inferred gene mosaic sequence (and the reads which overlap these regions) where there is low coverage (defined for each base as the maximum kmer coverage for minikmers which overlap that base) to allow de-novo assembly in the region. The question is, what counts as low coverage and how long to regions of low coverage tend to be? To do this we looked at results of applying pandora to the E coli K12 whale dataset
 
 ```
 import glob
