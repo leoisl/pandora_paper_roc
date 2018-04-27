@@ -1,6 +1,6 @@
 Want to extract short regions 
 
-<clarification: regions of what? truth? mosaic? graph? >
+__<clarification: regions of what? truth? mosaic? graph? >__
 
 
 of low coverage to allow de-novo assembly. The question is, what counts as low coverage and how long to regions of low coverage tend to be?
@@ -62,7 +62,7 @@ Some example outputs:
 In the following plots, the x-axis has coverages, 
 
 
-<coverages of what? what have you done? mini kmer covg counts? remapped reads to truth and got depth?>
+__<coverages of what? what have you done? mini kmer covg counts? remapped reads to truth and got depth?>__
 
 
 
