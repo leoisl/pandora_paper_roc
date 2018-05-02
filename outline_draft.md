@@ -10,22 +10,28 @@ Intro
    - Non-homologous recombination results in a genome with a large degree of structural and content variability
 2. This underlying biology and the availability of sequenced genomes context ideal for pangenome graphs which explicitly infer new sequences as a mosaic of a panel of reference sequences
 3. What do we want to use genome sequence data for?
-   - AMR prediction - both presence and version of gene important
-   - Outbreak tracking
+   - Understanding genetic evolution of a species
+   - Investigating why different strains of a species may have different phenotypes
+   - In a clinical setting, for outbreak tracking and AMR prediction
 4. What to current methods allow us to infer from sequence data and what do are their limitations?
-   - Gene presence/absence (AMR prediction) e.g. 
-     For Illumina data, downstream analysis can then allow variation detection in specific genes of interest
+   - Gene presence/absence (AMR prediction, investigating recombination) e.g. 
+     For Illumina data, downstream analysis can then allow variation detection in specific genes of interest (phenotype deconvolution, AMR classification)
    - Variation detection in the core genome from Illumina (outbreak tracking)
+   - Whole genome MSA (doesn't scale, not robust to rearrangements)
+   - wgMLST - does allow classification as a series of barcodes, but doesn't allow relatedness between barcodes to be easily defined
+   - clairvoyant only tool for snv typing from nanopore, but designed for human and requires close reference
    - None provide a framework to combine these and to describe variation in both the core and accessory genome
-   - None allow variation detection from nanopore
+   - None allow variation detection from nanopore in bacteria
 5. What do we do?
    - We introduce a novel graph structure and inference method which allows simul-
-   taneous  identification  of  pangenome  elements  which  are  present  and  genotyping
-   within them
+     taneous  identification  of  pangenome  elements  which  are  present  and  genotyping
+     within them
+   - This enables SNP and indel calling in all pangenome genes
    - We handle long read sequence data, and  is  backward  compatible  with  illumina.  
-   - We  are  able  to make  accurate  calls  from  nanopore  data  (TB)  
+   - We  are  able  to make  accurate  calls  from  nanopore  data  (cardio) and note that this is not species specific (tb)
    - We  add  resolution  in  the  context  of  an  E.  coli  outbreak  by  considering  the  whole
-   pangenome.
+     pangenome.
+   - We demonstrate usefullness in a clinical setting by allowing comparison of isolates which are environmentally linked but may not be genetically related (nicole illumina prospective).
 
 Results
 
@@ -100,8 +106,8 @@ Thoughts about comparitors
 6. GROOT - variation aware reference graphs for resistome typing
    -ve doesn't look like it does anything other than type
 
-
 Comments from Zam which need to be integrated by Rachel:
+
 - There is a market for understanding bacterial genomes in general, not just in a healthcare setting. e.g. understanding why phenotypes are different, or how species evolve.
 - It is self evident that looking at SNPs accross ALL genes is better and in this context we make a gain as a result
 - Main demonstrated use case - the prospective illumina dataset of Nicole's would be ideal provided that Nicole or someone else who knows about the dataset could look over the results with us. Want to see if clustering based on pandora SNPs is closed to epi data than alternative method
