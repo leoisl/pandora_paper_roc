@@ -1,4 +1,4 @@
-__Bacterial pan-genome analysis with population graphs__
+__Nucleotide-resolution bacterial pan-genomics with reference  graphs__
 
 
 __Intro__
