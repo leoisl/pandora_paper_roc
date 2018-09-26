@@ -1,0 +1,37 @@
+Results:
+1. Novel Pangenome Reference Graph structure
+   - Figure: Cartoon showing how we break up pangenome into bits, and with reads infer presence/absence. 
+             For nanopore also order, but not illumina.
+   - for details see methods
+2. Pandora:
+   - Figure: Workflow including indexing, quasi-mapping, sequence inference, genotyping, de novo 
+   - for details see methods
+3. Sensitivity/specificity and proportion of genome accessed results
+   - For 1 cardio, run pandora, snippy and nanopolish (270 RefSeq references, subset 10 showing range)
+   - Figure: a) y-axis proportion of compatible vcf sites genotyped, x-axis proportion of genotyped sites FP, 
+                point for each confidence threshold
+             b) y-axis fraction of truth assembly aligned against by updated reference for a single given gt_confidence,
+                x-axis number of SNPs/gSNPS/indel/gindels (or a point for each) in mummer report in aligned region
+   - For remaining 4 cardio, evaluate pandora performance, generate plots/a table summerizing for supplemental results
+4. Comparing samples and adding value
+   - For 15 cardio, run pandora compare
+   - Figure: 2 facing trees, 1 based on SNPs in core genes, the other showing tree from old methods
+   - Figure: 2 facing trees, 1 based on (the same) SNPs in core genes, the other based on accessory genes
+   - NB this could be done instead for the prospective cardio dataset or kleb dataset if we get results in time
+   
+Possible Results/Supplemental Results:
+1. Look at TB/E.coli error profiles and show similar/different
+2. Before and after de novo genotyping
+
+Methods:
+
+1. Construction of PRG from MSA
+2. Indexing with minimizers
+3. Finding clusters on reads
+4. Consensus sequence inference
+5. Genotyping method
+6. De novo method
+7. How cardio collected/sequenced
+8. How we did cardio analyses
+9. How TB collected/sequenced
+10. How we did TB analyses
