@@ -6,17 +6,23 @@ Results:
 2. Pandora:
    - Figure: Workflow including indexing, quasi-mapping, sequence inference, genotyping, de novo 
    - for details see methods
-3. Sensitivity/specificity and proportion of genome accessed results
-   - For 1 cardio, run pandora, snippy and nanopolish (270 RefSeq references, subset 10 showing range)
-   - Figure: a) y-axis proportion of compatible vcf sites genotyped, x-axis proportion of genotyped sites FP, 
-                point for each confidence threshold
-             b) y-axis fraction of truth assembly aligned against by updated reference for a single given gt_confidence,
-                x-axis number of SNPs/gSNPS/indel/gindels (or a point for each) in mummer report in aligned region
-   - For remaining 4 cardio, evaluate pandora performance, generate plots/a table summerizing for supplemental results
+3. Precision/Recall 
+   - For 2 cardio, run pandora, snippy and nanopolish (270 RefSeq references, subset 10 showing range) and output single sample VCFs
+   - Estimate TP/FP (by GT_CONF) for each vcf using minos
+   - For same pair of cardio, run dnadiff to get a panel of SNPs
+   - Estimate the fraction of these sites which are covered by the VCFs. 
+     To do this, take each row in dnadiff snps, and add flanks to alleles (A). 
+     Similarly create sample allele+flank lists for each sample VCF (B).
+     For each row in (A) search for the two strings as substrings of things in two (B) lists and in the vcfref file.
+     If there we have 2 B hits, or 1 B hit and a vcfref hit, call it a TP', otherwise FN (GT_CONF is the max of the two sample GT_CONFs).
+   - Figure: a) y-axis Recall TP'/(TP'+FN)
+                Fraction of (a panel of) differences between the two samples which would be captured by a method
+             b) x-axis 1-Precision FP/(TP+FP)
+                Fraction of sites genotyped incorrectly (sum over both sample VCFs)
 4. Comparing samples and adding value
    - For 15 cardio, run pandora compare
-   - Figure: 2 facing trees, 1 based on SNPs in core genes, the other showing tree from old methods
-   - Figure: 2 facing trees, 1 based on (the same) SNPs in core genes, the other based on accessory genes
+   - Figure: 2 facing trees, 1 based on (the same) SNPs in core genes, the other taking clusters (defined by core genes) 
+      and drawing a tree based on accessory genes
    - NB this could be done instead for the prospective cardio dataset or kleb dataset if we get results in time
    
 Possible Results/Supplemental Results:
