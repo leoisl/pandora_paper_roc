@@ -10,14 +10,9 @@ name = "pypi"
 seaborn = "*"
 jupyter = "*"
 pandas = "*"
-jupyterthemes = "*"
 pysam = "*"
 
 
 [dev-packages]
 
 
-
-[requires]
-
-python_version = "3.6"
