@@ -43,9 +43,7 @@ class Nucmer:
 
 
 class DeltaFilter:
-    def __init__(
-        self, deltafile: Path, extra_params: str = ""
-    ):
+    def __init__(self, deltafile: Path, extra_params: str = ""):
         if not deltafile.is_file():
             raise FileNotFoundError(f"deltafile {str(deltafile)} does not exist.")
 
@@ -71,4 +69,51 @@ class DeltaFilter:
 
         return subprocess.run(
             deltafilter_command, stderr=subprocess.PIPE, stdout=subprocess.PIPE
+        )
+
+
+class ShowSnps:
+    def __init__(
+        self,
+        deltafile: Path,
+        context: int = 0,
+        print_header: bool = True,
+        indels: bool = True,
+        extra_params: str = "",
+    ):
+        if not deltafile.is_file():
+            raise FileNotFoundError(f"deltafile {str(deltafile)} does not exist.")
+
+        self.deltafile = str(deltafile)
+        self.context = context
+        self.print_header = print_header
+        self.indels = indels
+        self.extra_params = extra_params
+
+    def generate_command(self) -> List[str]:
+        command = ["show-snps", self.deltafile]
+
+        if not self.indels:
+            command.insert(1, "-I")
+
+        if not self.print_header:
+            command.insert(1, "-H")
+
+        if self.context > 0:
+            command.insert(1, f"-x {self.context}")
+
+        if self.extra_params:
+            command.insert(1, self.extra_params)
+
+        return command
+
+    def run(self) -> subprocess.CompletedProcess:
+        """The output file can be found in the stdout of the returned
+        CompletedProcess."""
+        showsnps_command = self.generate_command()
+
+        logging.info(f"Running show-snps with command:\n{' '.join(showsnps_command)}")
+
+        return subprocess.run(
+            showsnps_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE
         )
