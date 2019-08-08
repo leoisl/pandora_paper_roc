@@ -124,6 +124,8 @@ def cli() -> argparse.Namespace:
             )
         args.output = p.open("w")
 
+    args.temp.mkdir(exist_ok=True)
+
     logging.debug(args)
 
     return args
