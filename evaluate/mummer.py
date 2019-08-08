@@ -5,18 +5,28 @@ import subprocess
 from typing import List
 
 
+class NucmerError(Exception):
+    pass
+
+
+class DeltaFilterError(Exception):
+    pass
+
+
+class ShowSnpsError(Exception):
+    pass
+
+
 class Nucmer:
     def __init__(
         self, reference: Path, query: Path, prefix: str = "out", extra_params: str = ""
     ):
         if not reference.is_file():
-            raise FileNotFoundError(f"Reference file {str(reference)} does not exist.")
+            raise NucmerError(f"Reference file {str(reference)} does not exist.")
         elif not query.is_file():
-            raise FileNotFoundError(f"Query file {str(query)} does not exist.")
+            raise NucmerError(f"Query file {str(query)} does not exist.")
         if not Path(prefix).parent.is_dir():
-            raise NotADirectoryError(
-                f"Prefix {str(Path(prefix))} parent does not exist."
-            )
+            raise NucmerError(f"Prefix {str(Path(prefix))} parent does not exist.")
 
         self.reference = str(reference)
         self.query = str(query)
@@ -45,7 +55,7 @@ class Nucmer:
 class DeltaFilter:
     def __init__(self, deltafile: Path, extra_params: str = ""):
         if not deltafile.is_file():
-            raise FileNotFoundError(f"deltafile {str(deltafile)} does not exist.")
+            raise DeltaFilterError(f"deltafile {str(deltafile)} does not exist.")
 
         self.deltafile = str(deltafile)
         self.extra_params = extra_params
@@ -82,7 +92,7 @@ class ShowSnps:
         extra_params: str = "",
     ):
         if not deltafile.is_file():
-            raise FileNotFoundError(f"deltafile {str(deltafile)} does not exist.")
+            raise ShowSnpsError(f"deltafile {str(deltafile)} does not exist.")
 
         self.deltafile = str(deltafile)
         self.context = context

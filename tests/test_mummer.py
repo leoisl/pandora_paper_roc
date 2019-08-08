@@ -1,7 +1,7 @@
 import pytest
 import uuid
 from pathlib import Path
-from evaluate.mummer import Nucmer, DeltaFilter, ShowSnps
+from evaluate.mummer import *
 
 cft = Path("tests/test_cases/CFT073.ref.fa")
 h13 = Path("tests/test_cases/H131800734.ref.pilon.fa")
@@ -13,7 +13,7 @@ class TestNucmer:
     def test_init_withFakeFileRaisesFileNotFoundError(self):
         reference = Path("foo")
         query = Path("bar")
-        with pytest.raises(FileNotFoundError):
+        with pytest.raises(NucmerError):
             nucmer = Nucmer(reference, query)
 
     def test_generateCommand_defaultArgsHasNoExtraParamsAndHasOutAsPrefix(self):
@@ -65,7 +65,7 @@ class TestDeltaFilter:
     def test_init_withFakeFileRaisesFileNotFoundError(self):
         deltafile = Path("foo")
 
-        with pytest.raises(FileNotFoundError):
+        with pytest.raises(DeltaFilterError):
             deltafilter = DeltaFilter(deltafile)
 
     def test_generateCommand_defaultArgsHasNoExtraParamsAndHasOutAsPrefix(self):
@@ -111,7 +111,7 @@ class TestShowSnps:
     def test_init_withFakeFileRaisesFileNotFoundError(self):
         deltafile = Path("foo")
 
-        with pytest.raises(FileNotFoundError):
+        with pytest.raises(ShowSnpsError):
             showsnps = ShowSnps(deltafile)
 
     def test_generateCommand_defaultArgsHasNoExtraParams(self):
