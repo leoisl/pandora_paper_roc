@@ -184,28 +184,32 @@ NUCMER
             ShowSnps.to_dataframe(snps)
 
     def test_toDataFrame_validInputReturnCorrectDataframe(self):
-        snps = StringIO("""/home/michael/Projects/pandora1_paper/tests/test_cases/ref.fa /home/michael/Projects/pandora1_paper/tests/test_cases/query.fa
+        snps = StringIO(
+            """/home/michael/Projects/pandora1_paper/tests/test_cases/ref.fa /home/michael/Projects/pandora1_paper/tests/test_cases/query.fa
 NUCMER
 
 [P1]\t[SUB]\t[SUB]\t[P2]\t[BUFF]\t[DIST]\t[LEN R]\t[LEN Q]\t[CTX R]\t[CTX Q]\t[FRM]\t[TAGS]
 39\tG\t.\t38\t34\t38\t85\t84\tGTAGTAG\tGTA.TAG\t1\t1\tref\tquery
 73\tT\tA\t72\t13\t13\t85\t84\tGGATTGA\tGGAATGA\t1\t1\tref\tquery
-""")
+"""
+        )
 
         actual = ShowSnps.to_dataframe(snps)
-        expected = pd.DataFrame({
-            "ref_pos": [39, 73],
-            "ref_sub": ["G", "T"],
-            "query_sub": [".", "A"],
-            "query_pos": [38, 72],
-            "nearest_mismatch": [34, 13],
-            "nearest_end": [38, 13],
-            "ref_len": [85, 85],
-            "query_len": [84, 84],
-            "ref_context": ["GTAGTAG", "GGATTGA"],
-            "query_context": ["GTA.TAG", "GGAATGA"],
-            "ref_chrom": ["ref", "ref"],
-            "query_chrom": ["query", "query"],
-        })
+        expected = pd.DataFrame(
+            {
+                "ref_pos": [39, 73],
+                "ref_sub": ["G", "T"],
+                "query_sub": [".", "A"],
+                "query_pos": [38, 72],
+                "nearest_mismatch": [34, 13],
+                "nearest_end": [38, 13],
+                "ref_len": [85, 85],
+                "query_len": [84, 84],
+                "ref_context": ["GTAGTAG", "GGATTGA"],
+                "query_context": ["GTA.TAG", "GGAATGA"],
+                "ref_chrom": ["ref", "ref"],
+                "query_chrom": ["query", "query"],
+            }
+        )
 
         assert actual.equals(expected)

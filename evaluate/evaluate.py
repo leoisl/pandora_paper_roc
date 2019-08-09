@@ -4,6 +4,8 @@ from evaluate.utils import strip_extensions
 from io import StringIO
 from pathlib import Path
 import logging
+import pandas as pd
+from typing import Tuple
 
 
 def generate_mummer_snps(
@@ -41,17 +43,51 @@ def generate_mummer_snps(
     return StringIO(showsnps_content)
 
 
+def make_truth_panels_from_snps_dataframe(snps_df: pd.DataFrame) -> Tuple[str, str]:
+
+    ref_probes = ""
+    query_probes = ""
+
+    for index, row in snps_df.iterrows():
+        ref_name = f">{row.ref_chrom}_POS={row.ref_pos}_SUB={row.ref_sub}"
+        ref_probe = row.ref_context.replace(".", "").replace("-", "")
+        ref_probes += f"{ref_name}\n{ref_probe}\n"
+        query_name = f">{row.query_chrom}_POS={row.query_pos}_SUB={row.query_sub}"
+        query_probe = row.query_context.replace(".", "").replace("-", "")
+        query_probes += f"{query_name}\n{query_probe}\n"
+
+    return ref_probes, query_probes
+
+
 def main():
     args = cli()
+
     reference: Path = args.query1
     reference_name: str = strip_extensions(reference).name
     query: Path = args.query2
     query_name: str = strip_extensions(query).name
     prefix: Path = args.temp / f"{reference_name}_{query_name}"
+
     mummer_snps: StringIO = generate_mummer_snps(
         reference, query, prefix, args.truth_flank
     )
     snps_df = ShowSnps.to_dataframe(mummer_snps)
+
+    logging.info("Making truth probesets.")
+    ref_truth_probes, query_truth_probes = make_truth_panels_from_snps_dataframe(
+        snps_df
+    )
+
+    ref_truth_probes_path: Path = args.temp / f"{reference_name}.truth_probes.fa"
+    query_truth_probes_path: Path = args.temp / f"{query_name}.truth_probes.fa"
+    ref_truth_probes_path.write_text(ref_truth_probes)
+    logging.info(
+        f"{reference_name} truth probes written to: {str(ref_truth_probes_path)}"
+    )
+    query_truth_probes_path.write_text(query_truth_probes)
+    logging.info(
+        f"{query_name} truth probes written to: {str(query_truth_probes_path)}"
+    )
 
 
 if __name__ == "__main__":
