@@ -7,7 +7,6 @@ cft = Path("tests/test_cases/CFT073.ref.fa")
 
 
 def test_getMummerSnps_invalidQueryFileRaisesNucmerError():
-    #todo: make test pass
     reference = cft
     query = Path("foo")
     with pytest.raises(NucmerError):
