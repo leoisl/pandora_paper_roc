@@ -10,4 +10,10 @@ def test_getMummerSnps_invalidQueryFileRaisesNucmerError():
     reference = cft
     query = Path("foo")
     with pytest.raises(NucmerError):
-        result = generate_mummer_snps(reference, query)
+        generate_mummer_snps(reference, query)
+
+def test_getMummerSnps_invalidQueryFileRaisesNucmerError():
+    reference = cft
+    query = Path("foo")
+    with pytest.raises(NucmerError):
+        generate_mummer_snps(reference, query)

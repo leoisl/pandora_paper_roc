@@ -3,10 +3,10 @@ import uuid
 from pathlib import Path
 from evaluate.mummer import *
 
-cft = Path("tests/test_cases/CFT073.ref.fa")
-h13 = Path("tests/test_cases/H131800734.ref.pilon.fa")
-delta = Path("tests/test_cases/out.delta")
-delta1 = Path("tests/test_cases/out.delta1")
+REF = Path("tests/test_cases/ref.fa")
+QUERY = Path("tests/test_cases/query.fa")
+DELTA = Path("tests/test_cases/out.delta")
+DELTA1 = Path("tests/test_cases/out.delta1")
 
 
 class TestNucmer:
@@ -17,8 +17,8 @@ class TestNucmer:
             nucmer = Nucmer(reference, query)
 
     def test_generateCommand_defaultArgsHasNoExtraParamsAndHasOutAsPrefix(self):
-        reference = cft
-        query = h13
+        reference = REF
+        query = QUERY
         nucmer = Nucmer(reference, query)
 
         actual = nucmer.generate_command()
@@ -27,8 +27,8 @@ class TestNucmer:
         assert actual == expected
 
     def test_generateCommand_extraParamsIncluded(self):
-        reference = cft
-        query = h13
+        reference = REF
+        query = QUERY
         extra_params = "--maxmatch --forward"
         nucmer = Nucmer(reference, query, extra_params=extra_params)
 
@@ -44,10 +44,9 @@ class TestNucmer:
 
         assert actual == expected
 
-    @pytest.mark.skip(reason="Takes a while to run so don't want to run all the time.")
     def test_run_twoTestCases_returnsOkExitCode(self):
-        reference = cft
-        query = h13
+        reference = REF
+        query = QUERY
         prefix = f"/tmp/{str(uuid.uuid4())}"
         extra_params = "--maxmatch"
         nucmer = Nucmer(reference, query, prefix=prefix, extra_params=extra_params)
@@ -69,7 +68,7 @@ class TestDeltaFilter:
             deltafilter = DeltaFilter(deltafile)
 
     def test_generateCommand_defaultArgsHasNoExtraParamsAndHasOutAsPrefix(self):
-        deltafile = delta
+        deltafile = DELTA
         deltafilter = DeltaFilter(deltafile)
 
         actual = deltafilter.generate_command()
@@ -78,7 +77,7 @@ class TestDeltaFilter:
         assert actual == expected
 
     def test_generateCommand_extraParamsIncluded(self):
-        deltafile = delta
+        deltafile = DELTA
         extra_params = "-1"
         deltafilter = DeltaFilter(deltafile, extra_params=extra_params)
 
@@ -88,7 +87,7 @@ class TestDeltaFilter:
         assert actual == expected
 
     def test_run_realDeltaFileReturnsOkExitCode(self):
-        deltafile = delta
+        deltafile = DELTA
         extra_params = "-1"
         deltafilter = DeltaFilter(deltafile, extra_params=extra_params)
         result = deltafilter.run()
@@ -98,11 +97,14 @@ class TestDeltaFilter:
 
         assert actual == expected
 
-        actual = result.stdout.decode().split("\n")[2:4]
-        expected = [
-            ">1 1_pilon_pilon_pilon_pilon_pilon_pilon 5155066 4725092",
-            "1238 2091 273232 274082 62 62 0",
-        ]
+        actual = result.stdout.decode()
+        expected = """/home/michael/Projects/pandora1_paper/tests/test_cases/ref.fa /home/michael/Projects/pandora1_paper/tests/test_cases/query.fa
+NUCMER
+>ref query 85 84
+1 85 1 84 2 2 0
+39
+0
+"""
 
         assert actual == expected
 
@@ -115,7 +117,7 @@ class TestShowSnps:
             showsnps = ShowSnps(deltafile)
 
     def test_generateCommand_defaultArgsHasNoExtraParams(self):
-        deltafile = delta1
+        deltafile = DELTA1
         showsnps = ShowSnps(deltafile)
 
         actual = showsnps.generate_command()
@@ -124,7 +126,7 @@ class TestShowSnps:
         assert actual == expected
 
     def test_generateCommand_oppositeDefaultArgsAndAmbiguousMappingExtraParam(self):
-        deltafile = delta1
+        deltafile = DELTA1
         print_header = False
         indels = False
         context = 3
@@ -143,7 +145,7 @@ class TestShowSnps:
         assert actual == expected
 
     def test_run_realDeltaFileReturnsOkExitCodeAndExpectedOutput(self):
-        deltafile = delta1
+        deltafile = DELTA1
         context = 3
         extra_params = "-rlTC"
         showsnps = ShowSnps(deltafile, context=context, extra_params=extra_params)
@@ -154,11 +156,13 @@ class TestShowSnps:
 
         assert actual == expected
 
-        actual = result.stdout.decode().split("\n")[3:6]
-        expected = [
-            "[P1]\t[SUB]\t[SUB]\t[P2]\t[BUFF]\t[DIST]\t[LEN R]\t[LEN Q]\t[CTX R]\t[CTX Q]\t[FRM]\t[TAGS]",
-            "1246\t.\tT\t273241\t2\t1246\t5155066\t4725092\tACA.CGG\tACATCAG\t1\t1\t1\t1_pilon_pilon_pilon_pilon_pilon_pilon",
-            "1248\tG\tA\t273243\t2\t1248\t5155066\t4725092\tCACGGCC\tATCAGCC\t1\t1\t1\t1_pilon_pilon_pilon_pilon_pilon_pilon",
-        ]
+        actual = result.stdout.decode()
+        expected = """/home/michael/Projects/pandora1_paper/tests/test_cases/ref.fa /home/michael/Projects/pandora1_paper/tests/test_cases/query.fa
+NUCMER
+
+[P1]\t[SUB]\t[SUB]\t[P2]\t[BUFF]\t[DIST]\t[LEN R]\t[LEN Q]\t[CTX R]\t[CTX Q]\t[FRM]\t[TAGS]
+39\tG\t.\t38\t34\t38\t85\t84\tGTAGTAG\tGTA.TAG\t1\t1\tref\tquery
+73\tT\tA\t72\t13\t13\t85\t84\tGGATTGA\tGGAATGA\t1\t1\tref\tquery
+"""
 
         assert actual == expected
