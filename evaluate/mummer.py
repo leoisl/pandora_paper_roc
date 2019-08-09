@@ -2,7 +2,8 @@
 from pathlib import Path
 import logging
 import subprocess
-from typing import List
+from typing import List, TextIO
+import pandas as pd
 
 
 class NucmerError(Exception):
@@ -126,4 +127,34 @@ class ShowSnps:
 
         return subprocess.run(
             showsnps_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+        )
+
+    @staticmethod
+    def to_dataframe(snps: TextIO) -> pd.DataFrame:
+        """Note: this method is not general. i.e it is only setup at the moment to
+        parse a show-snps file where the options used were -rlTC and -x"""
+        cols = {
+            "ref_pos": int,  #  P1,
+            "ref_sub": str,  #  SUB,
+            "query_sub": str,  #  SUB
+            "query_pos": int,  #  P2
+            "nearest_mismatch": int,  #  BUFF
+            "nearest_end": int,  #  DIST
+            "ref_len": int,  #  LEN R
+            "query_len": int,  #  LEN Q
+            "ref_context": str,  # CTX R
+            "query_context": str,  #  CTX Q
+            "ref_chrom": str,
+            "query_chrom": str,
+        }
+        names = list(cols.keys())
+        usecols = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 12, 13]
+        return pd.read_csv(
+            snps,
+            sep="\t",
+            skiprows=4,
+            index_col=False,
+            usecols=usecols,
+            names=names,
+            dtype=cols,
         )

@@ -5,6 +5,7 @@ from io import StringIO
 from pathlib import Path
 import logging
 
+
 def generate_mummer_snps(
     reference: Path, query: Path, prefix: Path = Path("out"), flank_width: int = 0
 ) -> StringIO:
@@ -30,10 +31,14 @@ def generate_mummer_snps(
     )
     showsnps_result = showsnps.run()
     showsnps_result.check_returncode()
+    showsnps_content = showsnps_result.stdout.decode()
+
+    snpsfile = prefix.with_suffix(".snps")
+    _ = snpsfile.write_text(showsnps_content)
 
     logging.info("Finished generating MUMmer SNPs file.")
 
-    return StringIO(showsnps_result.stdout.decode())
+    return StringIO(showsnps_content)
 
 
 def main():
@@ -43,7 +48,10 @@ def main():
     query: Path = args.query2
     query_name: str = strip_extensions(query).name
     prefix: Path = args.temp / f"{reference_name}_{query_name}"
-    mummer_snps = generate_mummer_snps(reference, query, prefix, args.truth_flank)
+    mummer_snps: StringIO = generate_mummer_snps(
+        reference, query, prefix, args.truth_flank
+    )
+    snps_df = ShowSnps.to_dataframe(mummer_snps)
 
 
 if __name__ == "__main__":
