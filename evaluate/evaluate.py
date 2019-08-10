@@ -1,6 +1,7 @@
-from evaluate.cli import cli
-from evaluate.mummer import Nucmer, DeltaFilter, ShowSnps
-from evaluate.utils import strip_extensions
+from mummer import Nucmer, DeltaFilter, ShowSnps
+from cli import cli
+from utils import strip_extensions
+from query import Query
 from io import StringIO
 from pathlib import Path
 import logging
@@ -59,6 +60,13 @@ def make_truth_panels_from_snps_dataframe(snps_df: pd.DataFrame) -> Tuple[str, s
     return ref_probes, query_probes
 
 
+def write_vcf_probes_to_file(vcf: Path, probes: str, tempdir: Path):
+    vcf_name: str = strip_extensions(vcf).name
+    vcf_probes_path: Path = tempdir / f"{vcf_name}.probes.fa"
+    vcf_probes_path.write_text(probes)
+    logging.info(f"VCF probes written to file: {vcf_probes_path}")
+
+
 def main():
     args = cli()
 
@@ -72,7 +80,7 @@ def main():
         reference, query, prefix, args.truth_flank
     )
     snps_df = ShowSnps.to_dataframe(mummer_snps)
-
+    # todo: merge consecutive positions
     logging.info("Making truth probesets.")
     ref_truth_probes, query_truth_probes = make_truth_panels_from_snps_dataframe(
         snps_df
@@ -88,6 +96,11 @@ def main():
     logging.info(
         f"{query_name} truth probes written to: {str(query_truth_probes_path)}"
     )
+
+    logging.info("Making probes for VCF")
+    query_vcf = Query(args.vcf, args.vcf_ref, flank_width=args.query_flank)
+    vcf_probes: str = query_vcf.make_probes()
+    write_vcf_probes_to_file(args.vcf, vcf_probes, args.temp)
 
 
 if __name__ == "__main__":
