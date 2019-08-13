@@ -1,12 +1,12 @@
-from mummer import Nucmer, DeltaFilter, ShowSnps
-from cli import cli
-from utils import strip_extensions
-from query import Query
+from evaluate.mummer import Nucmer, DeltaFilter, ShowSnps
+from evaluate.cli import cli
+from evaluate.utils import strip_extensions
+from evaluate.query import Query
 from io import StringIO
 from pathlib import Path
 import logging
 import pandas as pd
-from typing import Tuple
+from typing import Tuple, Dict
 
 
 def generate_mummer_snps(
@@ -60,9 +60,8 @@ def make_truth_panels_from_snps_dataframe(snps_df: pd.DataFrame) -> Tuple[str, s
     return ref_probes, query_probes
 
 
-def write_vcf_probes_to_file(vcf: Path, probes: str, tempdir: Path):
-    vcf_name: str = strip_extensions(vcf).name
-    vcf_probes_path: Path = tempdir / f"{vcf_name}.probes.fa"
+def write_vcf_probes_to_file(sample: str, probes: str, tempdir: Path):
+    vcf_probes_path: Path = tempdir / f"{sample}.query.probes.fa"
     vcf_probes_path.write_text(probes)
     logging.info(f"VCF probes written to file: {vcf_probes_path}")
 
@@ -99,8 +98,10 @@ def main():
 
     logging.info("Making probes for VCF")
     query_vcf = Query(args.vcf, args.vcf_ref, flank_width=args.query_flank)
-    vcf_probes: str = query_vcf.make_probes()
-    write_vcf_probes_to_file(args.vcf, vcf_probes, args.temp)
+    vcf_probes: Dict[str, str] = query_vcf.make_probes()
+    for sample, probes in vcf_probes.items():
+        if probes:
+            write_vcf_probes_to_file(sample, probes, args.temp)
 
 
 if __name__ == "__main__":

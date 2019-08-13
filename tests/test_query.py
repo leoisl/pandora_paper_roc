@@ -39,7 +39,8 @@ class TestQuery:
         self
     ):
         flank_width = 10
-        query = Query(TEST_QUERY_VCF, TEST_PANEL, flank_width=flank_width)
+        sample = "sample"
+        query = Query(TEST_QUERY_VCF, TEST_PANEL, [sample], flank_width=flank_width)
         variant = retrieve_entry_from_test_query_vcf(1)
 
         expected = (9, 32)
@@ -51,7 +52,8 @@ class TestQuery:
         self
     ):
         flank_width = 10
-        query = Query(TEST_QUERY_VCF, TEST_PANEL, flank_width=flank_width)
+        sample = "sample"
+        query = Query(TEST_QUERY_VCF, TEST_PANEL, [sample], flank_width=flank_width)
         variant = retrieve_entry_from_test_query_vcf(0)
 
         expected = (0, 13)
@@ -63,7 +65,8 @@ class TestQuery:
         self
     ):
         flank_width = 2
-        query = Query(TEST_QUERY_VCF, TEST_PANEL, flank_width=flank_width)
+        sample = "sample"
+        query = Query(TEST_QUERY_VCF, TEST_PANEL, [sample], flank_width=flank_width)
         variant = retrieve_entry_from_test_query_vcf(1)
 
         expected = (17, 24)
@@ -72,9 +75,10 @@ class TestQuery:
         assert actual == expected
 
     def test_createProbesForGeneVariants_emptyVariants_returnEmptyProbes(self):
-        query = Query(TEST_QUERY_VCF, TEST_QUERY_REF)
+        samples = ["sample"]
+        query = Query(TEST_QUERY_VCF, TEST_QUERY_REF, samples)
 
-        expected = ""
+        expected = {sample: "" for sample in samples}
         actual = query._create_probes_for_gene_variants(pysam.FastxRecord(), [])
 
         assert actual == expected
@@ -82,30 +86,33 @@ class TestQuery:
     def test_makeProbes_emptyVariantsReturnsEmptyProbes(self):
         vcf = TEST_CASES / "empty.vcf"
         genes = TEST_QUERY_REF
-        query = Query(vcf, genes)
+        samples = ["sample"]
+        query = Query(vcf, genes, samples)
 
         actual = query.make_probes()
-        expected = ""
+        expected = {s: "" for s in samples}
 
         assert actual == expected
 
     def test_makeProbes_emptyGenesReturnsEmptyProbes(self):
         vcf = TEST_CASES / "empty.vcf"
         genes = TEST_CASES / "empty.fa"
-        query = Query(vcf, genes)
+        samples = ["sample"]
+        query = Query(vcf, genes, samples)
 
         actual = query.make_probes()
-        expected = ""
+        expected = {s: "" for s in samples}
 
         assert actual == expected
 
     def test_makeProbes_oneGeneOneVcfRecordNotInGeneReturnsEmptyProbes(self):
         vcf = TEST_CASES / "empty.vcf"
         genes = TEST_QUERY_REF
-        query = Query(vcf, genes)
+        samples = ["sample"]
+        query = Query(vcf, genes, samples)
 
         actual = query.make_probes()
-        expected = ""
+        expected = {s: "" for s in samples}
 
         assert actual == expected
 
@@ -113,10 +120,16 @@ class TestQuery:
         vcf = TEST_CASES / "make_probes_1.vcf"
         genes = TEST_CASES / "make_probes_1.fa"
         flank_width = 3
-        query = Query(vcf, genes, flank_width)
+        samples = ["sample"]
+        query = Query(vcf, genes, samples, flank_width)
 
         actual = query.make_probes()
-        expected = ">gene1_POS=4_interval=(0,7)_GT_CONF=262.757\nxxxFxxx\n"
+        expected = {
+            "sample": (
+                ">gene1_SAMPLE=sample_POS=4_INTERVAL=(0,7)_SVTYPE=COMPLEX_MEAN_"
+                "FWD_COVG=6_MEAN_REV_COVG=7_GT_CONF=262.757\nxxxFxxx\n"
+            )
+        }
 
         assert actual == expected
 
@@ -146,10 +159,18 @@ class TestQuery:
         vcf = TEST_CASES / "make_probes_3.vcf"
         genes = TEST_CASES / "make_probes_2.fa"
         flank_width = 5
-        query = Query(vcf, genes, flank_width)
+        samples = ["sample"]
+        query = Query(vcf, genes, samples, flank_width)
 
         actual = query.make_probes()
-        expected = ">gene1_POS=4_interval=(0,10)_GT_CONF=262.757\nxxxFOOxxxxx\n>gene1_POS=8_interval=(2,14)_GT_CONF=262.757\nxxxxxFOOxxxxx\n"
+        expected = {
+            "sample": (
+                ">gene1_SAMPLE=sample_POS=4_INTERVAL=(0,10)_SVTYPE=COMPLEX_MEAN_"
+                "FWD_COVG=6_MEAN_REV_COVG=7_GT_CONF=262.757\nxxxFOOxxxxx\n"
+                ">gene1_SAMPLE=sample_POS=8_INTERVAL=(2,14)_SVTYPE=COMPLEX_MEAN_"
+                "FWD_COVG=6_MEAN_REV_COVG=7_GT_CONF=262.757\nxxxxxFOOxxxxx\n"
+            )
+        }
 
         assert actual == expected
 
@@ -157,10 +178,18 @@ class TestQuery:
         vcf = TEST_CASES / "make_probes_3.vcf"
         genes = TEST_CASES / "make_probes_3.fa"
         flank_width = 5
-        query = Query(vcf, genes, flank_width)
+        samples = ["sample"]
+        query = Query(vcf, genes, samples, flank_width)
 
         actual = query.make_probes()
-        expected = ">gene1_POS=4_interval=(0,10)_GT_CONF=262.757\nxxxFOOxxxxx\n>gene1_POS=8_interval=(2,14)_GT_CONF=262.757\nxxxxxFOOxxx\n"
+        expected = {
+            "sample": (
+                ">gene1_SAMPLE=sample_POS=4_INTERVAL=(0,10)_SVTYPE=COMPLEX_MEAN_"
+                "FWD_COVG=6_MEAN_REV_COVG=7_GT_CONF=262.757\nxxxFOOxxxxx\n"
+                ">gene1_SAMPLE=sample_POS=8_INTERVAL=(2,14)_SVTYPE=COMPLEX_MEAN_"
+                "FWD_COVG=6_MEAN_REV_COVG=7_GT_CONF=262.757\nxxxxxFOOxxx\n"
+            )
+        }
 
         assert actual == expected
 
@@ -168,83 +197,149 @@ class TestQuery:
         vcf = TEST_CASES / "make_probes_4.vcf"
         genes = TEST_CASES / "make_probes_3.fa"
         flank_width = 5
-        query = Query(vcf, genes, flank_width)
+        samples = ["sample"]
+        query = Query(vcf, genes, samples, flank_width)
 
         actual = query.make_probes()
-        expected = ">gene1_POS=4_interval=(0,10)_GT_CONF=262.757\nxxxFOOxxxxx\n>gene2_POS=2_interval=(0,8)_GT_CONF=262.757\nxFOOx\n"
+        expected = {
+            "sample": (
+                ">gene1_SAMPLE=sample_POS=4_INTERVAL=(0,10)_SVTYPE=COMPLEX_MEAN_"
+                "FWD_COVG=6_MEAN_REV_COVG=7_GT_CONF=262.757\nxxxFOOxxxxx\n"
+                ">gene2_SAMPLE=sample_POS=2_INTERVAL=(0,8)_SVTYPE=COMPLEX_MEAN_"
+                "FWD_COVG=6_MEAN_REV_COVG=7_GT_CONF=262.757\nxFOOx\n"
+            )
+        }
+
+        assert actual == expected
+
+    def test_createProbeHeader(self):
+        sample = "sample"
+        variant = retrieve_entry_from_test_vcf(2)
+        interval = (1, 2)
+
+        actual = Query.create_probe_header(sample, variant, interval)
+        expected = (
+            "GC00000001_155_SAMPLE=sample_POS=1_INTERVAL=(1,2)_SVTYPE=COMPLEX_"
+            "MEAN_FWD_COVG=24_MEAN_REV_COVG=30_GT_CONF=262.757"
+        )
 
         assert actual == expected
 
 
 def test_isInvalidVcfEntry_withNoneGenotype_returnTrue():
     entry = retrieve_entry_from_test_vcf(0)
-    assert is_invalid_vcf_entry(entry)
+    sample = "sample"
+    assert is_invalid_vcf_entry(entry, sample)
 
 
 def test_isInvalidVcfEntry_withGenotype1_returnFalse():
     entry = retrieve_entry_from_test_vcf(1)
-    assert not is_invalid_vcf_entry(entry)
-
+    sample = "sample"
+    assert not is_invalid_vcf_entry(entry, sample)
 
 def test_getGenotypeConfidence():
     entry = retrieve_entry_from_test_vcf(0)
-    assert get_genotype_confidence(entry) == 262.757
+    sample = "sample"
+    assert get_genotype_confidence(entry, sample) == 262.757
+
+
+def test_getSvtype():
+    entry = retrieve_entry_from_test_vcf(0)
+
+    actual = get_svtype(entry)
+    expected = "COMPLEX"
+
+    assert actual == expected
+
+
+def test_getMeanCoverageForward():
+    entry = retrieve_entry_from_test_vcf(2)
+    sample = "sample"
+
+    actual = get_mean_coverage_forward(entry, sample)
+    expected = 24
+
+    assert actual == expected
+
+
+def test_getMeanCoverageReverse():
+    entry = retrieve_entry_from_test_vcf(1)
+    sample = "sample"
+
+    actual = get_mean_coverage_reverse(entry, sample)
+    expected = 7
+
+    assert actual == expected
 
 
 def test_getGenotype_genotypeNone_returnNone():
     entry = retrieve_entry_from_test_vcf(0)
-    assert get_genotype(entry) is None
+    sample = "sample"
+    assert get_genotype(entry, sample) is None
 
 
 def test_getGenotype_genotype1_return1():
     entry = retrieve_entry_from_test_vcf(1)
-    assert get_genotype(entry) == 1
+    sample = "sample"
+    assert get_genotype(entry, sample) == 1
 
 
 def test_getVariantSequence_genotypeNone_returnRef():
     entry = retrieve_entry_from_test_vcf(0)
+    sample = "sample"
+
+    actual = get_variant_sequence(entry, sample)
     expected = "CTGCCCGTTGGC"
-    actual = get_variant_sequence(entry)
 
     assert actual == expected
 
 
 def test_getVariantSequence_genotypeOne_returnFirstAlt():
     entry = retrieve_entry_from_test_vcf(1)
+    sample = "sample"
+
+    actual = get_variant_sequence(entry, sample)
     expected = "TTGGGGGAAGGCTCTGCACTGCCCGTTGGC"
-    actual = get_variant_sequence(entry)
 
     assert actual == expected
 
 
 def test_getVariantSequence_genotypeZero_returnRef():
     entry = retrieve_entry_from_test_vcf(2)
+    sample = "sample"
+
+    actual = get_variant_sequence(entry, sample)
     expected = "CTGCCCGTTGGC"
-    actual = get_variant_sequence(entry)
 
     assert actual == expected
 
 
 def test_getVariantLength_genotypeNone_returnRef():
     entry = retrieve_entry_from_test_vcf(0)
+    sample = "sample"
+
+    actual = get_variant_length(entry, sample)
     expected = 12
-    actual = get_variant_length(entry)
 
     assert actual == expected
 
 
 def test_getVariantLength_genotypeOne_returnFirstAlt():
     entry = retrieve_entry_from_test_vcf(1)
+    sample = "sample"
+
+    actual = get_variant_length(entry, sample)
     expected = 30
-    actual = get_variant_length(entry)
 
     assert actual == expected
 
 
 def test_getVariantLength_genotypeZero_returnRef():
     entry = retrieve_entry_from_test_vcf(2)
+    sample = "sample"
+
+    actual = get_variant_length(entry, sample)
     expected = 12
-    actual = get_variant_length(entry)
 
     assert actual == expected
 

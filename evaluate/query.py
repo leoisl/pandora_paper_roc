@@ -1,6 +1,6 @@
 import pysam
 from pathlib import Path
-from typing import Tuple, List
+from typing import Tuple, List, Dict
 from contextlib import ExitStack
 
 
@@ -9,7 +9,9 @@ class OverlappingRecordsError(Exception):
 
 
 class Query:
-    def __init__(self, vcf: Path, vcf_ref: Path, flank_width: int = 0):
+    def __init__(
+        self, vcf: Path, vcf_ref: Path, samples: List[str], flank_width: int = 0
+    ):
         self.vcf = Path(
             pysam.tabix_index(str(vcf), preset="vcf", keep_original=True, force=True)
         )
@@ -17,11 +19,13 @@ class Query:
         self._probe_names = set()
         self.flank_width = flank_width
         self._entry_number = 0
+        self.samples = samples
 
-    def make_probes(self) -> str:
-        query_probes = ""
+    def make_probes(self) -> Dict[str, str]:
+        query_probes: Dict[str, str] = {s: "" for s in self.samples}
         with ExitStack() as stack:
             vcf = stack.enter_context(pysam.VariantFile(self.vcf))
+            vcf.subset_samples(self.samples)
             genes_fasta = stack.enter_context(pysam.FastxFile(str(self.genes)))
 
             for gene in genes_fasta:
@@ -33,47 +37,54 @@ class Query:
                     else:
                         raise error
 
-                probes_for_gene = self._create_probes_for_gene_variants(gene, entries)
-                query_probes += probes_for_gene
+                probes_for_gene: Dict[str, str] = self._create_probes_for_gene_variants(
+                    gene, entries
+                )
+                for sample, probe in probes_for_gene.items():
+                    query_probes[sample] += probe
 
         return query_probes
 
     def _create_probes_for_gene_variants(
         self, gene: pysam.FastxRecord, variants: pysam.tabix_iterator
-    ) -> str:
+    ) -> Dict[str, str]:
         """Note: An assumption is made with this function that the variants you pass in
         are from the gene passed with them."""
-        probes = ""
-        variants = [entry for entry in variants if not is_invalid_vcf_entry(entry)]
-        intervals_to_probes = dict()
+        probes = {s: "" for s in self.samples}
+        intervals_to_probes = {s: {} for s in self.samples}
 
         for variant in variants:
-            interval = self.calculate_probe_boundaries_for_entry(variant)
-            if interval in intervals_to_probes and float(
-                intervals_to_probes[interval].name.split("=")[-1]
-            ) > get_genotype_confidence(variant):
-                continue
+            for sample in self.samples:
+                if is_invalid_vcf_entry(variant, sample):
+                    continue
+                interval = self.calculate_probe_boundaries_for_entry(variant)
+                if interval in intervals_to_probes and float(
+                    intervals_to_probes[interval].name.split("=")[-1]
+                ) > get_genotype_confidence(variant, sample):
+                    continue
 
-            mutated_consensus = ""
-            consensus = gene.sequence[slice(*interval)]
-            last_idx = 0
+                mutated_consensus = ""
+                consensus = gene.sequence[slice(*interval)]
+                last_idx = 0
 
-            start_idx_of_variant_on_consensus = variant.start - interval[0]
-            mutated_consensus += consensus[last_idx:start_idx_of_variant_on_consensus]
-            mutated_consensus += get_variant_sequence(variant)
-            last_idx = start_idx_of_variant_on_consensus + variant.rlen
-            mutated_consensus += consensus[last_idx:]
-            probe = pysam.FastxRecord()
-            probe.set_name(
-                f"{variant.chrom}_POS={variant.pos}_interval={interval}_GT_CONF={get_genotype_confidence(variant)}".replace(
-                    " ", ""
-                )
-            )
-            probe.set_sequence(mutated_consensus)
-            intervals_to_probes[interval] = probe
+                start_idx_of_variant_on_consensus = variant.start - interval[0]
+                mutated_consensus += consensus[
+                    last_idx:start_idx_of_variant_on_consensus
+                ]
+                mutated_consensus += get_variant_sequence(variant, sample)
+                last_idx = start_idx_of_variant_on_consensus + variant.rlen
+                mutated_consensus += consensus[last_idx:]
+                probe = pysam.FastxRecord()
+                probe.set_name(self.create_probe_header(sample, variant, interval))
+                probe.set_sequence(mutated_consensus)
+                if sample not in intervals_to_probes:
+                    intervals_to_probes[sample] = {interval: probe}
+                else:
+                    intervals_to_probes[sample][interval] = probe
 
-        for probe in intervals_to_probes.values():
-            probes += str(probe) + "\n"
+        for sample in intervals_to_probes:
+            for interval, probe in intervals_to_probes[sample].items():
+                probes[sample] += str(probe) + "\n"
 
         return probes
 
@@ -84,6 +95,23 @@ class Query:
         probe_stop = entry.stop + self.flank_width
 
         return probe_start, probe_stop
+
+    @staticmethod
+    def create_probe_header(
+        sample: str, variant: pysam.VariantRecord, interval: Tuple[int, int]
+    ) -> str:
+        header_fields = [
+            variant.chrom,
+            f"SAMPLE={sample}",
+            f"POS={variant.pos}",
+            f"INTERVAL={interval}",
+            f"SVTYPE={get_svtype(variant)}",
+            f"MEAN_FWD_COVG={get_mean_coverage_forward(variant, sample)}",
+            f"MEAN_REV_COVG={get_mean_coverage_reverse(variant, sample)}",
+            f"GT_CONF={get_genotype_confidence(variant, sample)}",
+        ]
+
+        return "_".join(header_fields).replace(" ", "")
 
 
 def merge_overlap_intervals(intervals: List[List[int]]) -> List[Tuple[int, int]]:
@@ -163,24 +191,22 @@ def find_index_in_intervals(intervals: List[Tuple[int, int]], query: int) -> int
     return -1
 
 
-def is_invalid_vcf_entry(entry: pysam.VariantRecord) -> bool:
-    genotype = get_genotype(entry)
+def is_invalid_vcf_entry(entry: pysam.VariantRecord, sample: str) -> bool:
+    genotype = get_genotype(entry, sample)
 
     return genotype is None
 
 
-def get_genotype_confidence(variant: pysam.VariantRecord) -> float:
-    return float(variant.samples["sample"].get("GT_CONF", 0))
+def get_genotype_confidence(variant: pysam.VariantRecord, sample: str) -> float:
+    return float(variant.samples[sample].get("GT_CONF", 0))
 
 
-def get_genotype(variant: pysam.VariantRecord) -> int:
-    samples = list(variant.samples.keys())
-    assert len(samples) == 1
-    return variant.samples[samples[0]]["GT"][0]
+def get_genotype(variant: pysam.VariantRecord, sample: str) -> int:
+    return variant.samples[sample]["GT"][0]
 
 
-def get_variant_sequence(variant: pysam.VariantRecord) -> str:
-    genotype = get_genotype(variant)
+def get_variant_sequence(variant: pysam.VariantRecord, sample: str) -> str:
+    genotype = get_genotype(variant, sample)
 
     if genotype is None:
         return variant.ref
@@ -188,5 +214,19 @@ def get_variant_sequence(variant: pysam.VariantRecord) -> str:
         return variant.alleles[genotype]
 
 
-def get_variant_length(variant: pysam.VariantRecord) -> int:
-    return len(get_variant_sequence(variant))
+def get_variant_length(variant: pysam.VariantRecord, sample: str) -> int:
+    return len(get_variant_sequence(variant, sample))
+
+
+def get_svtype(variant: pysam.VariantRecord) -> float:
+    return variant.info["SVTYPE"]
+
+
+def get_mean_coverage_forward(variant: pysam.VariantRecord, sample: str) -> int:
+    gt = get_genotype(variant, sample)
+    return int(variant.samples[sample]["MEAN_FWD_COVG"][gt])
+
+
+def get_mean_coverage_reverse(variant: pysam.VariantRecord, sample: str) -> int:
+    gt = get_genotype(variant, sample)
+    return int(variant.samples[sample]["MEAN_REV_COVG"][gt])
