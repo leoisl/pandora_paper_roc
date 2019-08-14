@@ -1,6 +1,7 @@
 from pathlib import Path
 from evaluate.utils import *
 
+
 def test_stripExtensions_noExtensionsReturnsSameAsInput():
     path = Path("path/to/foo")
 
@@ -17,6 +18,7 @@ def test_stripExtensions_oneExtensionReturnsInputWithoutExtension():
     expected = Path("path/to/foo")
 
     assert actual == expected
+
 
 def test_stripExtensions_twoExtensionsReturnsInputWithoutAnyExtensions():
     path = Path("path/to/foo.fa.gz")

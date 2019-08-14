@@ -85,12 +85,13 @@ def cli() -> argparse.Namespace:
             "Width of flank to add either side of the query/VCF probes "
             f"[{QUERY_FLANK_WIDTH}]"
         ),
-        default=GT_MAX,
+        default=QUERY_FLANK_WIDTH,
     )
     parser.add_argument(
         "--temp",
         help=f"Location for storing temporary files [{TEMP_DIR}]",
-        action="store_true",
+        type=Path,
+        default=TEMP_DIR
     )
     parser.add_argument(
         "--log_level",
@@ -108,7 +109,7 @@ def cli() -> argparse.Namespace:
     log_level = LOGGING_LEVELS[args.log_level]
     logging.basicConfig(
         level=log_level,
-        format="[%(asctime)s]:%(levelname)s:%(message)s",
+        format="[%(asctime)s]:%(levelname)s: %(message)s",
         datefmt="%m/%d/%Y %I:%M:%S %p",
     )
 

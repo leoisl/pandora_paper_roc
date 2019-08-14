@@ -1,7 +1,7 @@
-from evaluate.mummer import Nucmer, DeltaFilter, ShowSnps
-from evaluate.cli import cli
-from evaluate.utils import strip_extensions
-from evaluate.query import Query
+from mummer import Nucmer, DeltaFilter, ShowSnps
+from cli import cli
+from utils import strip_extensions
+from query import Query
 from io import StringIO
 from pathlib import Path
 import logging
@@ -97,7 +97,10 @@ def main():
     )
 
     logging.info("Making probes for VCF")
-    query_vcf = Query(args.vcf, args.vcf_ref, flank_width=args.query_flank)
+    samples = [reference_name, query_name]
+    query_vcf = Query(
+        args.vcf, args.vcf_ref, samples=samples, flank_width=args.query_flank
+    )
     vcf_probes: Dict[str, str] = query_vcf.make_probes()
     for sample, probes in vcf_probes.items():
         if probes:

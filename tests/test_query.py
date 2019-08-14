@@ -237,6 +237,7 @@ def test_isInvalidVcfEntry_withGenotype1_returnFalse():
     sample = "sample"
     assert not is_invalid_vcf_entry(entry, sample)
 
+
 def test_getGenotypeConfidence():
     entry = retrieve_entry_from_test_vcf(0)
     sample = "sample"
