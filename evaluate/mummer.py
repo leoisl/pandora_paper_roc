@@ -1,8 +1,9 @@
 """This file holds wrappers for running mummer commands."""
-from pathlib import Path
 import logging
 import subprocess
+from pathlib import Path
 from typing import List, TextIO
+
 import pandas as pd
 
 

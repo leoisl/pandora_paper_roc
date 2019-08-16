@@ -1,7 +1,8 @@
-import pysam
+from contextlib import ExitStack
 from pathlib import Path
 from typing import Tuple, List, Dict
-from contextlib import ExitStack
+
+import pysam
 
 
 class OverlappingRecordsError(Exception):

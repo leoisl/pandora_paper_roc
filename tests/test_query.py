@@ -1,6 +1,8 @@
-from evaluate.query import *
-import pytest
 from pathlib import Path
+
+import pytest
+
+from evaluate.query import *
 
 TEST_CASES = Path("tests/test_cases")
 TEST_VCF = TEST_CASES / "test.vcf"

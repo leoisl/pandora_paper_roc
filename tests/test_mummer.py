@@ -1,9 +1,9 @@
-import pytest
 import uuid
-from pathlib import Path
 from io import StringIO
-import pandas as pd
+
 import pandas.errors
+import pytest
+
 from evaluate.mummer import *
 
 REF = Path("tests/test_cases/ref.fa")
