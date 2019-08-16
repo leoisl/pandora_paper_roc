@@ -1,16 +1,26 @@
+from io import StringIO
 from pathlib import Path
-from evaluate.mummer import NucmerError, ShowSnps
-from evaluate.evaluate import (
+
+import pandas as pd
+import pysam
+import pytest
+
+from evaluate.main import (
     generate_mummer_snps,
+    is_mapping_invalid,
     make_truth_panels_from_snps_dataframe,
 )
-from io import StringIO
-import pandas as pd
-import pytest
+from evaluate.mummer import NucmerError, ShowSnps
 
 REF = Path("tests/test_cases/ref.fa")
 QUERY = Path("tests/test_cases/query.fa")
 SNPS = Path("tests/test_cases/out.snps")
+
+
+def create_sam_header(name: str, length: int) -> pysam.AlignmentHeader:
+    return pysam.AlignmentHeader.from_text(
+        f"@SQ	SN:{name}	LN:{length}\n@PG	ID:bwa	PN:bwa	VN:0.7.17-r1188	CL:bwa mem -t 1 panel.fa -"
+    )
 
 
 def test_getMummerSnps_invalidQueryFileRaisesNucmerError():
@@ -78,3 +88,44 @@ NUCMER
     )
 
     assert actual == expected
+
+
+def test_isMappingInvalid_unmappedEntry_returnTrue():
+    header = create_sam_header("C15154T", 201)
+    record = pysam.AlignedSegment.fromstring(
+        "GC00004785_pos200_entry0	4	C15154T	124	48	69M	*	0	0	CAAATCGGAAGCTAACAGAGCCAATACGCGCCTTGACGCCCAGGACTATTTTGATTGCCTGCGCTGCTT	*	NM:i:0	MD:Z:69	AS:i:69	XS:i:53",
+        header,
+    )
+
+    assert is_mapping_invalid(record)
+
+
+def test_isMappingInvalid_mappedEntry_returnFalse():
+    header = create_sam_header("C15154T", 201)
+    record = pysam.AlignedSegment.fromstring(
+        "GC00004785_pos200_entry0	0	C15154T	124	48	69M	*	0	0	CAAATCGGAAGCTAACAGAGCCAATACGCGCCTTGACGCCCAGGACTATTTTGATTGCCTGCGCTGCTT	*	NM:i:0	MD:Z:69	AS:i:69	XS:i:53",
+        header,
+    )
+    is_mapping_valid = not is_mapping_invalid(record)
+
+    assert is_mapping_valid
+
+
+def test_isMappingInvalid_supplementaryEntry_returnTrue():
+    header = create_sam_header("C15154T", 201)
+    record = pysam.AlignedSegment.fromstring(
+        "GC00004785_pos200_entry0	2048	C15154T	124	48	69M	*	0	0	CAAATCGGAAGCTAACAGAGCCAATACGCGCCTTGACGCCCAGGACTATTTTGATTGCCTGCGCTGCTT	*	NM:i:0	MD:Z:69	AS:i:69	XS:i:53",
+        header,
+    )
+
+    assert is_mapping_invalid(record)
+
+
+def test_isMappingInvalid_secondaryEntry_returnTrue():
+    header = create_sam_header("C15154T", 201)
+    record = pysam.AlignedSegment.fromstring(
+        "GC00004785_pos200_entry0	256	C15154T	124	48	69M	*	0	0	CAAATCGGAAGCTAACAGAGCCAATACGCGCCTTGACGCCCAGGACTATTTTGATTGCCTGCGCTGCTT	*	NM:i:0	MD:Z:69	AS:i:69	XS:i:53",
+        header,
+    )
+
+    assert is_mapping_invalid(record)
