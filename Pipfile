@@ -6,6 +6,8 @@ name = "pypi"
 [packages]
 pandas = "*"
 pysam = "==0.15.2"
+jupyter = "*"
+seaborn = "*"
 
 [dev-packages]
 pytest = "*"
