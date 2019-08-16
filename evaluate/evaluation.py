@@ -5,15 +5,19 @@ from typing import Tuple, Dict, List
 
 import pandas as pd
 import pysam
-from .bwa import BWA
-from .cli import cli
-from .mummer import Nucmer, DeltaFilter, ShowSnps
-from .query import Query
-from .utils import strip_extensions
+from bwa import BWA
+from cli import cli
+from mummer import Nucmer, DeltaFilter, ShowSnps
+from query import Query
+from utils import strip_extensions, arg_ranges
 
 
 def generate_mummer_snps(
-    reference: Path, query: Path, prefix: Path = Path("out"), flank_width: int = 0
+    reference: Path,
+    query: Path,
+    prefix: Path = Path("out"),
+    flank_width: int = 0,
+    indels: bool = False,
 ) -> StringIO:
     logging.info("Generating MUMmer SNPs file.")
 
@@ -33,7 +37,10 @@ def generate_mummer_snps(
 
     showsnps_params = "-rlTC"
     showsnps = ShowSnps(
-        filtered_deltafile, context=flank_width, extra_params=showsnps_params
+        filtered_deltafile,
+        context=flank_width,
+        extra_params=showsnps_params,
+        indels=indels,
     )
     showsnps_result = showsnps.run()
     showsnps_result.check_returncode()
@@ -47,20 +54,46 @@ def generate_mummer_snps(
     return StringIO(showsnps_content)
 
 
-def make_truth_panels_from_snps_dataframe(snps_df: pd.DataFrame) -> Tuple[str, str]:
-
+def make_truth_panels(snps_df: pd.DataFrame) -> Tuple[str, str]:
     ref_probes = ""
     query_probes = ""
 
-    for index, row in snps_df.iterrows():
-        ref_name = f">{row.ref_chrom}_POS={row.ref_pos}_SUB={row.ref_sub}"
-        ref_probe = row.ref_context.replace(".", "").replace("-", "")
-        ref_probes += f"{ref_name}\n{ref_probe}\n"
-        query_name = f">{row.query_chrom}_POS={row.query_pos}_SUB={row.query_sub}"
-        query_probe = row.query_context.replace(".", "").replace("-", "")
-        query_probes += f"{query_name}\n{query_probe}\n"
+    idxs = arg_ranges(snps_df.ref_pos.tolist())
+
+    for start, stop in idxs:
+        consecutive_positions = snps_df.iloc[slice(start, stop)]
+        ref_probe, query_probe = probes_from_consecutive_dataframe(
+            consecutive_positions
+        )
+        ref_probes += ref_probe
+        query_probes += query_probe
 
     return ref_probes, query_probes
+
+
+def probes_from_consecutive_dataframe(df: pd.DataFrame) -> Tuple[str, str]:
+    first_row = df.iloc[0]
+    flank_width = int((len(first_row.ref_context) - 1) / 2)
+    ref_sub = "".join(df.ref_sub)
+    ref_name = f">{first_row.ref_chrom}_POS={first_row.ref_pos}_SUB={ref_sub}"
+    ref_left_flank = first_row.ref_context[0:flank_width]
+    ref_right_flank = df.iloc[-1].ref_context[flank_width + 1 :]
+    ref_probe = (
+        (ref_left_flank + ref_sub + ref_right_flank).replace(".", "").replace("-", "")
+    )
+    ref_probe = f"{ref_name}\n{ref_probe}\n"
+
+    query_sub = "".join(df.query_sub)
+    query_name = f">{first_row.query_chrom}_POS={first_row.query_pos}_SUB={query_sub}"
+    query_left_flank = first_row.query_context[0:flank_width]
+    query_right_flank = df.iloc[-1].query_context[flank_width + 1 :]
+    query_probe = (
+        (query_left_flank + query_sub + query_right_flank)
+        .replace(".", "")
+        .replace("-", "")
+    )
+    query_probe = f"{query_name}\n{query_probe}\n"
+    return ref_probe, query_probe
 
 
 def write_vcf_probes_to_file(
@@ -74,11 +107,17 @@ def write_vcf_probes_to_file(
 
 
 def map_panel_to_probes(
-    panel: Path, probes: Path, threads: int = 1
+    panel: Path, probes: Path, output: Path = Path(), threads: int = 1
 ) -> Tuple[pysam.VariantHeader, List[pysam.AlignedSegment]]:
     bwa = BWA(threads)
     bwa.index(str(probes))
-    header, sam = bwa.align(panel.read_text())
+    stdout, stderr = bwa.align(panel.read_text())
+
+    # write sam to file if output path given
+    if output.name:
+        output.write_text(stdout)
+
+    header, sam = bwa.parse_sam_string(stdout)
 
     return header, [record for record in sam if not is_mapping_invalid(record)]
 
@@ -97,14 +136,11 @@ def main():
     prefix: Path = args.temp / f"{query1_name}_{query2_name}"
 
     mummer_snps: StringIO = generate_mummer_snps(
-        query1, query2, prefix, args.truth_flank
+        query1, query2, prefix, args.truth_flank, indels=args.indels
     )
     snps_df = ShowSnps.to_dataframe(mummer_snps)
-    # todo: merge consecutive positions
     logging.info("Making truth probesets.")
-    query1_truth_probes, query2_truth_probes = make_truth_panels_from_snps_dataframe(
-        snps_df
-    )
+    query1_truth_probes, query2_truth_probes = make_truth_panels(snps_df)
 
     query1_truth_probes_path: Path = args.temp / f"{query1_name}.truth_probes.fa"
     query2_truth_probes_path: Path = args.temp / f"{query2_name}.truth_probes.fa"
@@ -129,17 +165,21 @@ def main():
     query2_vcf_probes_path: Path = write_vcf_probes_to_file(
         vcf_probes, query2_name, args.temp
     )
-
-    # todo: index query probes with BWA
-    # todo: map truth probes to query probes with BWA mem
+    logging.info(f"Mapping probes for {query1_name}")
+    query1_sam_file = args.temp / (query1_name + ".panel_to_probes.sam")
     query1_header, query1_sam = map_panel_to_probes(
-        query1_truth_probes_path, query1_vcf_probes_path, args.threads
+        query1_truth_probes_path,
+        query1_vcf_probes_path,
+        output=query1_sam_file,
+        threads=args.threads,
     )
-    print(str(query1_header))
-    for record in query1_sam:
-        print(str(record))
+    logging.info(f"Mapping probes for {query2_name}")
+    query2_sam_file = args.temp / (query2_name + ".panel_to_probes.sam")
     query2_header, query2_sam = map_panel_to_probes(
-        query2_truth_probes_path, query2_vcf_probes_path, args.threads
+        query2_truth_probes_path,
+        query2_vcf_probes_path,
+        output=query2_sam_file,
+        threads=args.threads,
     )
     # todo: Filter SAM
     # todo: Plot mapping quality of SAM

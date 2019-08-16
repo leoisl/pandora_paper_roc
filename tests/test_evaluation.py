@@ -5,10 +5,10 @@ import pandas as pd
 import pysam
 import pytest
 
-from evaluate.main import (
+from evaluate.evaluation import (
     generate_mummer_snps,
     is_mapping_invalid,
-    make_truth_panels_from_snps_dataframe,
+    make_truth_panels,
 )
 from evaluate.mummer import NucmerError, ShowSnps
 
@@ -36,7 +36,9 @@ def test_getMummerSnps_validSequenceFilesProducesExpectedSnpsFile():
     prefix = Path("/tmp/ref_query")
     context = 3
 
-    actual = generate_mummer_snps(reference, query, prefix, flank_width=context)
+    actual = generate_mummer_snps(
+        reference, query, prefix, flank_width=context, indels=True
+    )
     expected = StringIO(
         """/home/michael/Projects/pandora1_paper/tests/test_cases/ref.fa /home/michael/Projects/pandora1_paper/tests/test_cases/query.fa
 NUCMER
@@ -51,9 +53,17 @@ NUCMER
 
 
 def test_makeTruthPanelFromSnpsDataframe_emptyDataframeReturnsEmptyPanel():
-    df = pd.DataFrame()
+    df = ShowSnps.to_dataframe(
+        StringIO(
+            """/home/michael/Projects/pandora1_paper/tests/test_cases/ref.fa /home/michael/Projects/pandora1_paper/tests/test_cases/query.fa
+NUCMER
 
-    actual = make_truth_panels_from_snps_dataframe(df)
+[P1]\t[SUB]\t[SUB]\t[P2]\t[BUFF]\t[DIST]\t[LEN R]\t[LEN Q]\t[CTX R]\t[CTX Q]\t[FRM]\t[TAGS]
+"""
+        )
+    )
+
+    actual = make_truth_panels(df)
     expected = ("", "")
 
     assert actual == expected
@@ -65,7 +75,7 @@ def test_makeTruthPanelFromSnpsDataframe_invalidDataframeRaisesError():
     )
 
     with pytest.raises(AttributeError):
-        make_truth_panels_from_snps_dataframe(df)
+        make_truth_panels(df)
 
 
 def test_makeTruthPanelFromSnpsDataframe_validDataframeReturnsTwoProbesets():
@@ -81,11 +91,107 @@ NUCMER
         )
     )
 
-    actual = make_truth_panels_from_snps_dataframe(df)
+    actual = make_truth_panels(df)
     expected = (
         ">ref_POS=39_SUB=G\nGTAGTAG\n>ref_POS=73_SUB=T\nGGATTGA\n",
         ">query_POS=38_SUB=.\nGTATAG\n>query_POS=72_SUB=A\nGGAATGA\n",
     )
+
+    assert actual == expected
+
+
+def test_makeTruthPanelFromSnpsDataframe_mergeConsecutiveRecordsForIndelInQuery():
+    df = ShowSnps.to_dataframe(
+        StringIO(
+            """ref query
+NUCMER
+
+[P1]\t[SUB]\t[SUB]\t[P2]\t[BUFF]\t[DIST]\t[LEN R]\t[LEN Q]\t[CTX R]\t[CTX Q]\t[FRM]\t[TAGS]
+39\tG\t.\t38\t34\t38\t85\t84\tGTAGTAG\tGTA.TAG\t1\t1\tref\tquery
+73\tT\t.\t72\t13\t13\t85\t84\tGGATTTG\tGGA.TGA\t1\t1\tref\tquery
+74\tT\t.\t72\t13\t13\t85\t84\tGATTTGA\tGGA.TGA\t1\t1\tref\tquery
+75\tT\t.\t72\t13\t13\t85\t84\tATTTGAA\tGGA.TGA\t1\t1\tref\tquery
+79\tT\tA\t78\t13\t13\t85\t84\tGGATTGA\tGGAATGA\t1\t1\tref\tquery
+"""
+        )
+    )
+
+    actual = make_truth_panels(df)
+    expected_ref_probes = (
+        ">ref_POS=39_SUB=G\nGTAGTAG\n"
+        ">ref_POS=73_SUB=TTT\nGGATTTGAA\n"
+        ">ref_POS=79_SUB=T\nGGATTGA\n"
+    )
+    expected_query_probes = (
+        ">query_POS=38_SUB=.\nGTATAG\n"
+        ">query_POS=72_SUB=...\nGGATGA\n"
+        ">query_POS=78_SUB=A\nGGAATGA\n"
+    )
+    expected = (expected_ref_probes, expected_query_probes)
+
+    assert actual == expected
+
+
+def test_makeTruthPanelFromSnpsDataframe_mergeConsecutiveRecordsForIndelInRef():
+    df = ShowSnps.to_dataframe(
+        StringIO(
+            """ref query
+NUCMER
+
+[P1]\t[SUB]\t[SUB]\t[P2]\t[BUFF]\t[DIST]\t[LEN R]\t[LEN Q]\t[CTX R]\t[CTX Q]\t[FRM]\t[TAGS]
+39\tG\t.\t38\t34\t38\t85\t84\tGTAGTAG\tGTA.TAG\t1\t1\tref\tquery
+72\t.\tT\t73\t13\t13\t85\t84\tGGA.TGA\tGGATTTG\t1\t1\tref\tquery
+72\t.\tT\t74\t13\t13\t85\t84\tGGA.TGA\tGATTTGA\t1\t1\tref\tquery
+72\t.\tT\t75\t13\t13\t85\t84\tGGA.TGA\tATTTGAA\t1\t1\tref\tquery
+79\tT\tA\t78\t13\t13\t85\t84\tGGATTGA\tGGAATGA\t1\t1\tref\tquery
+"""
+        )
+    )
+
+    actual = make_truth_panels(df)
+    expected_ref_probes = (
+        ">ref_POS=39_SUB=G\nGTAGTAG\n"
+        ">ref_POS=72_SUB=...\nGGATGA\n"
+        ">ref_POS=79_SUB=T\nGGATTGA\n"
+    )
+    expected_query_probes = (
+        ">query_POS=38_SUB=.\nGTATAG\n"
+        ">query_POS=73_SUB=TTT\nGGATTTGAA\n"
+        ">query_POS=78_SUB=A\nGGAATGA\n"
+    )
+    expected = (expected_ref_probes, expected_query_probes)
+
+    assert actual == expected
+
+
+def test_makeTruthPanelFromSnpsDataframe_mergeConsecutiveRecordsForMnpInRef():
+    df = ShowSnps.to_dataframe(
+        StringIO(
+            """ref query
+NUCMER
+
+[P1]\t[SUB]\t[SUB]\t[P2]\t[BUFF]\t[DIST]\t[LEN R]\t[LEN Q]\t[CTX R]\t[CTX Q]\t[FRM]\t[TAGS]
+39\tG\t.\t38\t34\t38\t85\t84\tGTAGTAG\tGTA.TAG\t1\t1\tref\tquery
+72\tA\tT\t73\t13\t13\t85\t84\tGGAAGCA\tGGATTTG\t1\t1\tref\tquery
+73\tG\tT\t74\t13\t13\t85\t84\tGAAGCAA\tGATTTGA\t1\t1\tref\tquery
+74\tC\tT\t75\t13\t13\t85\t84\tAAGCAAA\tATTTGAA\t1\t1\tref\tquery
+79\tT\tA\t78\t13\t13\t85\t84\tGGATTGA\tGGAATGA\t1\t1\tref\tquery
+"""
+        )
+    )
+
+    actual = make_truth_panels(df)
+    expected_ref_probes = (
+        ">ref_POS=39_SUB=G\nGTAGTAG\n"
+        ">ref_POS=72_SUB=AGC\nGGAAGCAAA\n"
+        ">ref_POS=79_SUB=T\nGGATTGA\n"
+    )
+    expected_query_probes = (
+        ">query_POS=38_SUB=.\nGTATAG\n"
+        ">query_POS=73_SUB=TTT\nGGATTTGAA\n"
+        ">query_POS=78_SUB=A\nGGAATGA\n"
+    )
+    expected = (expected_ref_probes, expected_query_probes)
 
     assert actual == expected
 
