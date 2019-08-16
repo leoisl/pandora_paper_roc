@@ -1,15 +1,14 @@
 """Assess the recall of a VCF with respect to two samples.
 """
 import argparse
-import sys
 import logging
+import sys
 from pathlib import Path
-
 
 GT_MAX = 300
 GT_STEP = 5
-TRUTH_FLANK_WIDTH = 25
-QUERY_FLANK_WIDTH = 50
+TRUTH_FLANK_WIDTH = 21
+QUERY_FLANK_WIDTH = 45
 TEMP_DIR = Path.cwd() / "tmp"
 LOGGING_LEVELS = {
     0: "NOTSET",
@@ -76,7 +75,7 @@ def cli() -> argparse.Namespace:
             "Width of flank to add either side of the truth probes "
             f"[{TRUTH_FLANK_WIDTH}]"
         ),
-        default=GT_MAX,
+        default=TRUTH_FLANK_WIDTH,
     )
     parser.add_argument(
         "--query-flank",
@@ -87,11 +86,15 @@ def cli() -> argparse.Namespace:
         ),
         default=QUERY_FLANK_WIDTH,
     )
+    parser.add_argument("--indels", help="Include indels.", action="store_true")
     parser.add_argument(
         "--temp",
         help=f"Location for storing temporary files [{TEMP_DIR}]",
         type=Path,
-        default=TEMP_DIR
+        default=TEMP_DIR,
+    )
+    parser.add_argument(
+        "--threads", help="Number of threads to use for BWA. [1]", type=int, default=1
     )
     parser.add_argument(
         "--log_level",
