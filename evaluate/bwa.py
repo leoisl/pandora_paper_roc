@@ -1,4 +1,6 @@
 import subprocess
+from typing import Tuple, List
+
 import pysam
 
 
@@ -17,22 +19,22 @@ class BWA:
         )
         completed_process.check_returncode()
 
-    def align(self, query: str) -> tuple:
+    def align(self, query: str) -> Tuple[str, str]:
         options = self.get_options()
-        self.alignment = subprocess.run(
+        bwa_mem = subprocess.run(
             ["bwa", "mem", *options, str(self.reference), "-"],
             input=query.encode(),
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
         )
 
-        if self.alignment.returncode != 0:
-            if b"fail to locate the index" in self.alignment.stderr:
+        if bwa_mem.returncode != 0:
+            if b"fail to locate the index" in bwa_mem.stderr:
                 raise IndexError("Reference must be indexed by BWA before alignment.")
             else:
-                self.alignment.check_returncode()
+                bwa_mem.check_returncode()
 
-        return self._get_samfile()
+        return bwa_mem.stdout.decode(), bwa_mem.stderr.decode()
 
     def get_options(self):
         options = []
@@ -40,10 +42,13 @@ class BWA:
 
         return options
 
-    def _get_samfile(self):
+    @staticmethod
+    def parse_sam_string(
+        sam_string: str
+    ) -> Tuple[pysam.VariantHeader, List[pysam.AlignedSegment]]:
         header = ""
         sam_lines = []
-        for line in self.alignment.stdout.decode().split("\n"):
+        for line in sam_string.split("\n"):
             if line.startswith("@"):
                 header += line + "\n"
             else:

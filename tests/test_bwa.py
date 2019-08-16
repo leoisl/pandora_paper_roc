@@ -1,7 +1,8 @@
-from evaluate.bwa import *
 from pathlib import Path
+
 import pytest
 
+from evaluate.bwa import *
 
 TEST_CASES = Path("tests/test_cases")
 TEST_PANEL = TEST_CASES / "test_panel.fa"
@@ -20,7 +21,8 @@ class TestBwa:
         bwa = BWA()
         bwa.index(TEST_PANEL)
         query = ">test\nGACGTTAAATGCAAAAATCGCACGTCTTGAGCAGGATATAAAA"
-        _, sam = bwa.align(query)
+        stdout, stderr = bwa.align(query)
+        header, sam = bwa.parse_sam_string(stdout)
         expected = "test\t0\tC15154T\t55\t60\t43M\t*\t0\t0\tGACGTTAAATGCAAAAATCGCACGTCTTGAGCAGGATATAAAA\t*\tNM:i:0\tMD:Z:43\tAS:i:43\tXS:i:0"
         actual = sam[0].to_string()
 
@@ -31,7 +33,8 @@ class TestBwa:
         bwa = BWA()
         bwa.index(TEST_PANEL)
         query = ">test\nGACGTTAAATGCAAAAATCGCACGTCTTGAGCAGGATATAAAA"
-        header, _ = bwa.align(query)
+        stdout, stderr = bwa.align(query)
+        header, sam = bwa.parse_sam_string(stdout)
         expected_start = (
             "@SQ\tSN:C15154T\tLN:201\n@SQ\tSN:T16509G\tLN:201\n@PG\tID:bwa\tPN:bwa\tVN:"
         )
