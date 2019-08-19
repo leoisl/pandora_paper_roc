@@ -5,11 +5,11 @@ from typing import Tuple, Dict, List
 
 import pandas as pd
 import pysam
-from bwa import BWA
-from cli import cli
-from mummer import Nucmer, DeltaFilter, ShowSnps
-from query import Query
-from utils import strip_extensions, arg_ranges
+from .bwa import BWA
+from .cli import cli
+from .mummer import Nucmer, DeltaFilter, ShowSnps
+from .query import Query
+from .utils import strip_extensions, arg_ranges
 
 
 def generate_mummer_snps(
@@ -75,23 +75,17 @@ def probes_from_consecutive_dataframe(df: pd.DataFrame) -> Tuple[str, str]:
     first_row = df.iloc[0]
     flank_width = int((len(first_row.ref_context) - 1) / 2)
     ref_sub = "".join(df.ref_sub)
-    ref_name = f">{first_row.ref_chrom}_POS={first_row.ref_pos}_SUB={ref_sub}"
-    ref_left_flank = first_row.ref_context[0:flank_width]
-    ref_right_flank = df.iloc[-1].ref_context[flank_width + 1 :]
-    ref_probe = (
-        (ref_left_flank + ref_sub + ref_right_flank).replace(".", "").replace("-", "")
-    )
+    ref_left_flank = first_row.ref_context[0:flank_width].replace("-", "")
+    ref_right_flank = df.iloc[-1].ref_context[flank_width + 1 :].replace("-", "")
+    ref_name = f">{first_row.ref_chrom}_POS={first_row.ref_pos}_SUB={ref_sub}_LEFT_FLANK_END={len(ref_left_flank)-1}"
+    ref_probe = ref_left_flank + ref_sub.replace(".", "") + ref_right_flank
     ref_probe = f"{ref_name}\n{ref_probe}\n"
 
     query_sub = "".join(df.query_sub)
-    query_name = f">{first_row.query_chrom}_POS={first_row.query_pos}_SUB={query_sub}"
-    query_left_flank = first_row.query_context[0:flank_width]
-    query_right_flank = df.iloc[-1].query_context[flank_width + 1 :]
-    query_probe = (
-        (query_left_flank + query_sub + query_right_flank)
-        .replace(".", "")
-        .replace("-", "")
-    )
+    query_left_flank = first_row.query_context[0:flank_width].replace("-", "")
+    query_right_flank = df.iloc[-1].query_context[flank_width + 1 :].replace("-", "")
+    query_name = f">{first_row.query_chrom}_POS={first_row.query_pos}_SUB={query_sub}_LEFT_FLANK_END={len(query_left_flank)-1}"
+    query_probe = query_left_flank + query_sub.replace(".", "") + query_right_flank
     query_probe = f"{query_name}\n{query_probe}\n"
     return ref_probe, query_probe
 
@@ -117,13 +111,14 @@ def map_panel_to_probes(
     if output.name:
         output.write_text(stdout)
 
-    header, sam = bwa.parse_sam_string(stdout)
-
-    return header, [record for record in sam if not is_mapping_invalid(record)]
+    return bwa.parse_sam_string(stdout)
 
 
 def is_mapping_invalid(record: pysam.AlignedSegment) -> bool:
     return any([record.is_unmapped, record.is_secondary, record.is_supplementary])
+
+
+# def assess_sam_file(sam_file: List[pysam.AlignedSegment]) ->
 
 
 def main():
@@ -181,9 +176,10 @@ def main():
         output=query2_sam_file,
         threads=args.threads,
     )
-    # todo: Filter SAM
-    # todo: Plot mapping quality of SAM
     # todo: Assess each valid SAM record
+
+    # todo: because of the multi-mapping, need to be careful when assessing records that I only assess mappings that cover the pandora call. Reason being is that if the truth probe maps to the flank of a pandora call, but not the actuall call part of the probe, then we will just get whatever the vcf ref is, which is an unfair comparison.
+    # todo: when assessing deletions I think it makes sense to asses the bases either side of the deletion site
     # todo: Write results for each SAM record
 
 

@@ -66,7 +66,7 @@ def cli() -> argparse.Namespace:
         "--gt-step",
         type=int,
         help=f"Steps between successive genotype confidence thresholds [{GT_STEP}]",
-        default=GT_MAX,
+        default=GT_STEP,
     )
     parser.add_argument(
         "--truth-flank",

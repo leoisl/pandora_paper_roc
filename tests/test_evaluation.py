@@ -93,13 +93,89 @@ NUCMER
 
     actual = make_truth_panels(df)
     expected = (
-        ">ref_POS=39_SUB=G\nGTAGTAG\n>ref_POS=73_SUB=T\nGGATTGA\n",
-        ">query_POS=38_SUB=.\nGTATAG\n>query_POS=72_SUB=A\nGGAATGA\n",
+        ">ref_POS=39_SUB=G_LEFT_FLANK_END=2\nGTAGTAG\n>ref_POS=73_SUB=T_LEFT_FLANK_END=2\nGGATTGA\n",
+        ">query_POS=38_SUB=._LEFT_FLANK_END=2\nGTATAG\n>query_POS=72_SUB=A_LEFT_FLANK_END=2\nGGAATGA\n",
     )
 
     assert actual == expected
 
+def test_makeTruthPanelFromSnpsDataframe_probeNearGeneStartReturnsTruncatedLeftFlank():
+    df = ShowSnps.to_dataframe(
+        StringIO(
+            """/home/michael/Projects/pandora1_paper/tests/test_cases/ref.fa /home/michael/Projects/pandora1_paper/tests/test_cases/query.fa
+NUCMER
 
+[P1]\t[SUB]\t[SUB]\t[P2]\t[BUFF]\t[DIST]\t[LEN R]\t[LEN Q]\t[CTX R]\t[CTX Q]\t[FRM]\t[TAGS]
+2\tG\t.\t3\t34\t38\t85\t84\t--AGTAG\t-TA.TAG\t1\t1\tref\tquery
+"""
+        )
+    )
+
+    actual = make_truth_panels(df)
+    expected = (
+        ">ref_POS=2_SUB=G_LEFT_FLANK_END=0\nAGTAG\n",
+        ">query_POS=3_SUB=._LEFT_FLANK_END=1\nTATAG\n"
+    )
+
+    assert actual == expected
+def test_makeTruthPanelFromSnpsDataframe_probeNearGeneEndReturnsTruncatedRightFlank():
+    df = ShowSnps.to_dataframe(
+        StringIO(
+            """/home/michael/Projects/pandora1_paper/tests/test_cases/ref.fa /home/michael/Projects/pandora1_paper/tests/test_cases/query.fa
+NUCMER
+
+[P1]\t[SUB]\t[SUB]\t[P2]\t[BUFF]\t[DIST]\t[LEN R]\t[LEN Q]\t[CTX R]\t[CTX Q]\t[FRM]\t[TAGS]
+12\tG\t.\t13\t34\t38\t85\t84\tAAAGTA-\tATA.T--\t1\t1\tref\tquery
+"""
+        )
+    )
+
+    actual = make_truth_panels(df)
+    expected = (
+        ">ref_POS=12_SUB=G_LEFT_FLANK_END=2\nAAAGTA\n",
+        ">query_POS=13_SUB=._LEFT_FLANK_END=2\nATAT\n"
+    )
+
+    assert actual == expected
+
+def test_makeTruthPanelFromSnpsDataframe_probeAtGeneStartReturnsTruncatedLeftFlank():
+    df = ShowSnps.to_dataframe(
+        StringIO(
+            """/home/michael/Projects/pandora1_paper/tests/test_cases/ref.fa /home/michael/Projects/pandora1_paper/tests/test_cases/query.fa
+NUCMER
+
+[P1]\t[SUB]\t[SUB]\t[P2]\t[BUFF]\t[DIST]\t[LEN R]\t[LEN Q]\t[CTX R]\t[CTX Q]\t[FRM]\t[TAGS]
+1\tG\t.\t1\t34\t38\t85\t84\t---GTAG\t---.TAG\t1\t1\tref\tquery
+"""
+        )
+    )
+
+    actual = make_truth_panels(df)
+    expected = (
+        ">ref_POS=1_SUB=G_LEFT_FLANK_END=-1\nGTAG\n",
+        ">query_POS=1_SUB=._LEFT_FLANK_END=-1\nTAG\n"
+    )
+
+    assert actual == expected
+def test_makeTruthPanelFromSnpsDataframe_probeAtGeneEndReturnsTruncatedRightFlank():
+    df = ShowSnps.to_dataframe(
+        StringIO(
+            """/home/michael/Projects/pandora1_paper/tests/test_cases/ref.fa /home/michael/Projects/pandora1_paper/tests/test_cases/query.fa
+NUCMER
+
+[P1]\t[SUB]\t[SUB]\t[P2]\t[BUFF]\t[DIST]\t[LEN R]\t[LEN Q]\t[CTX R]\t[CTX Q]\t[FRM]\t[TAGS]
+10\tG\t.\t10\t34\t38\t85\t84\tAAAG---\tAAA.---\t1\t1\tref\tquery
+"""
+        )
+    )
+
+    actual = make_truth_panels(df)
+    expected = (
+        ">ref_POS=10_SUB=G_LEFT_FLANK_END=2\nAAAG\n",
+        ">query_POS=10_SUB=._LEFT_FLANK_END=2\nAAA\n"
+    )
+
+    assert actual == expected
 def test_makeTruthPanelFromSnpsDataframe_mergeConsecutiveRecordsForIndelInQuery():
     df = ShowSnps.to_dataframe(
         StringIO(
@@ -118,14 +194,14 @@ NUCMER
 
     actual = make_truth_panels(df)
     expected_ref_probes = (
-        ">ref_POS=39_SUB=G\nGTAGTAG\n"
-        ">ref_POS=73_SUB=TTT\nGGATTTGAA\n"
-        ">ref_POS=79_SUB=T\nGGATTGA\n"
+        ">ref_POS=39_SUB=G_LEFT_FLANK_END=2\nGTAGTAG\n"
+        ">ref_POS=73_SUB=TTT_LEFT_FLANK_END=2\nGGATTTGAA\n"
+        ">ref_POS=79_SUB=T_LEFT_FLANK_END=2\nGGATTGA\n"
     )
     expected_query_probes = (
-        ">query_POS=38_SUB=.\nGTATAG\n"
-        ">query_POS=72_SUB=...\nGGATGA\n"
-        ">query_POS=78_SUB=A\nGGAATGA\n"
+        ">query_POS=38_SUB=._LEFT_FLANK_END=2\nGTATAG\n"
+        ">query_POS=72_SUB=..._LEFT_FLANK_END=2\nGGATGA\n"
+        ">query_POS=78_SUB=A_LEFT_FLANK_END=2\nGGAATGA\n"
     )
     expected = (expected_ref_probes, expected_query_probes)
 
@@ -150,14 +226,14 @@ NUCMER
 
     actual = make_truth_panels(df)
     expected_ref_probes = (
-        ">ref_POS=39_SUB=G\nGTAGTAG\n"
-        ">ref_POS=72_SUB=...\nGGATGA\n"
-        ">ref_POS=79_SUB=T\nGGATTGA\n"
+        ">ref_POS=39_SUB=G_LEFT_FLANK_END=2\nGTAGTAG\n"
+        ">ref_POS=72_SUB=..._LEFT_FLANK_END=2\nGGATGA\n"
+        ">ref_POS=79_SUB=T_LEFT_FLANK_END=2\nGGATTGA\n"
     )
     expected_query_probes = (
-        ">query_POS=38_SUB=.\nGTATAG\n"
-        ">query_POS=73_SUB=TTT\nGGATTTGAA\n"
-        ">query_POS=78_SUB=A\nGGAATGA\n"
+        ">query_POS=38_SUB=._LEFT_FLANK_END=2\nGTATAG\n"
+        ">query_POS=73_SUB=TTT_LEFT_FLANK_END=2\nGGATTTGAA\n"
+        ">query_POS=78_SUB=A_LEFT_FLANK_END=2\nGGAATGA\n"
     )
     expected = (expected_ref_probes, expected_query_probes)
 
@@ -182,14 +258,14 @@ NUCMER
 
     actual = make_truth_panels(df)
     expected_ref_probes = (
-        ">ref_POS=39_SUB=G\nGTAGTAG\n"
-        ">ref_POS=72_SUB=AGC\nGGAAGCAAA\n"
-        ">ref_POS=79_SUB=T\nGGATTGA\n"
+        ">ref_POS=39_SUB=G_LEFT_FLANK_END=2\nGTAGTAG\n"
+        ">ref_POS=72_SUB=AGC_LEFT_FLANK_END=2\nGGAAGCAAA\n"
+        ">ref_POS=79_SUB=T_LEFT_FLANK_END=2\nGGATTGA\n"
     )
     expected_query_probes = (
-        ">query_POS=38_SUB=.\nGTATAG\n"
-        ">query_POS=73_SUB=TTT\nGGATTTGAA\n"
-        ">query_POS=78_SUB=A\nGGAATGA\n"
+        ">query_POS=38_SUB=._LEFT_FLANK_END=2\nGTATAG\n"
+        ">query_POS=73_SUB=TTT_LEFT_FLANK_END=2\nGGATTTGAA\n"
+        ">query_POS=78_SUB=A_LEFT_FLANK_END=2\nGGAATGA\n"
     )
     expected = (expected_ref_probes, expected_query_probes)
 
