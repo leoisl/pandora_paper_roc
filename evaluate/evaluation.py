@@ -5,11 +5,11 @@ from typing import Tuple, Dict, List
 
 import pandas as pd
 import pysam
-from .bwa import BWA
-from .cli import cli
-from .mummer import Nucmer, DeltaFilter, ShowSnps
-from .query import Query
-from .utils import strip_extensions, arg_ranges
+from bwa import BWA
+from cli import cli
+from mummer import Nucmer, DeltaFilter, ShowSnps
+from query import Query
+from utils import strip_extensions, arg_ranges
 
 
 def generate_mummer_snps(
@@ -74,18 +74,28 @@ def make_truth_panels(snps_df: pd.DataFrame) -> Tuple[str, str]:
 def probes_from_consecutive_dataframe(df: pd.DataFrame) -> Tuple[str, str]:
     first_row = df.iloc[0]
     flank_width = int((len(first_row.ref_context) - 1) / 2)
-    ref_sub = "".join(df.ref_sub)
+    ref_sub = "".join(df.ref_sub).replace(".", "")
     ref_left_flank = first_row.ref_context[0:flank_width].replace("-", "")
     ref_right_flank = df.iloc[-1].ref_context[flank_width + 1 :].replace("-", "")
-    ref_name = f">{first_row.ref_chrom}_POS={first_row.ref_pos}_SUB={ref_sub}_LEFT_FLANK_END={len(ref_left_flank)-1}"
-    ref_probe = ref_left_flank + ref_sub.replace(".", "") + ref_right_flank
+    call_start_idx = max(0, len(ref_left_flank))
+    call_end_idx = call_start_idx + len(ref_sub)
+    ref_name = (
+        f">{first_row.ref_chrom}_POS={first_row.ref_pos}_"
+        f"CALL_INTERVAL=[{call_start_idx},{call_end_idx})"
+    )
+    ref_probe = ref_left_flank + ref_sub + ref_right_flank
     ref_probe = f"{ref_name}\n{ref_probe}\n"
 
-    query_sub = "".join(df.query_sub)
+    query_sub = "".join(df.query_sub).replace(".", "")
     query_left_flank = first_row.query_context[0:flank_width].replace("-", "")
     query_right_flank = df.iloc[-1].query_context[flank_width + 1 :].replace("-", "")
-    query_name = f">{first_row.query_chrom}_POS={first_row.query_pos}_SUB={query_sub}_LEFT_FLANK_END={len(query_left_flank)-1}"
-    query_probe = query_left_flank + query_sub.replace(".", "") + query_right_flank
+    call_start_idx = max(0, len(query_left_flank))
+    call_end_idx = call_start_idx + len(query_sub)
+    query_name = (
+        f">{first_row.query_chrom}_POS={first_row.query_pos}_"
+        f"CALL_INTERVAL=[{call_start_idx},{call_end_idx})"
+    )
+    query_probe = query_left_flank + query_sub + query_right_flank
     query_probe = f"{query_name}\n{query_probe}\n"
     return ref_probe, query_probe
 
@@ -118,7 +128,14 @@ def is_mapping_invalid(record: pysam.AlignedSegment) -> bool:
     return any([record.is_unmapped, record.is_secondary, record.is_supplementary])
 
 
-# def assess_sam_file(sam_file: List[pysam.AlignedSegment]) ->
+def assess_sam_record(record: pysam.AlignedSegment) -> str:
+    assessment = ""
+
+    if record.is_unmapped:
+        assessment = "unmapped"
+    # elif record.is_secondary:
+
+    return assessment
 
 
 def main():

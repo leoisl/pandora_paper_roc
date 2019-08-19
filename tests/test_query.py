@@ -128,7 +128,7 @@ class TestQuery:
         actual = query.make_probes()
         expected = {
             "sample": (
-                ">gene1_SAMPLE=sample_POS=4_INTERVAL=(0,7)_SVTYPE=COMPLEX_MEAN_"
+                ">gene1_SAMPLE=sample_POS=4_CALL_INTERVAL=[3,4)_SVTYPE=COMPLEX_MEAN_"
                 "FWD_COVG=6_MEAN_REV_COVG=7_GT_CONF=262.757\nxxxFxxx\n"
             )
         }
@@ -167,9 +167,9 @@ class TestQuery:
         actual = query.make_probes()
         expected = {
             "sample": (
-                ">gene1_SAMPLE=sample_POS=4_INTERVAL=(0,10)_SVTYPE=COMPLEX_MEAN_"
+                ">gene1_SAMPLE=sample_POS=4_CALL_INTERVAL=[3,6)_SVTYPE=COMPLEX_MEAN_"
                 "FWD_COVG=6_MEAN_REV_COVG=7_GT_CONF=262.757\nxxxFOOxxxxx\n"
-                ">gene1_SAMPLE=sample_POS=8_INTERVAL=(2,14)_SVTYPE=COMPLEX_MEAN_"
+                ">gene1_SAMPLE=sample_POS=8_CALL_INTERVAL=[5,8)_SVTYPE=COMPLEX_MEAN_"
                 "FWD_COVG=6_MEAN_REV_COVG=7_GT_CONF=262.757\nxxxxxFOOxxxxx\n"
             )
         }
@@ -186,9 +186,9 @@ class TestQuery:
         actual = query.make_probes()
         expected = {
             "sample": (
-                ">gene1_SAMPLE=sample_POS=4_INTERVAL=(0,10)_SVTYPE=COMPLEX_MEAN_"
+                ">gene1_SAMPLE=sample_POS=4_CALL_INTERVAL=[3,6)_SVTYPE=COMPLEX_MEAN_"
                 "FWD_COVG=6_MEAN_REV_COVG=7_GT_CONF=262.757\nxxxFOOxxxxx\n"
-                ">gene1_SAMPLE=sample_POS=8_INTERVAL=(2,14)_SVTYPE=COMPLEX_MEAN_"
+                ">gene1_SAMPLE=sample_POS=8_CALL_INTERVAL=[5,8)_SVTYPE=COMPLEX_MEAN_"
                 "FWD_COVG=6_MEAN_REV_COVG=7_GT_CONF=262.757\nxxxxxFOOxxx\n"
             )
         }
@@ -205,9 +205,9 @@ class TestQuery:
         actual = query.make_probes()
         expected = {
             "sample": (
-                ">gene1_SAMPLE=sample_POS=4_INTERVAL=(0,10)_SVTYPE=COMPLEX_MEAN_"
+                ">gene1_SAMPLE=sample_POS=4_CALL_INTERVAL=[3,6)_SVTYPE=COMPLEX_MEAN_"
                 "FWD_COVG=6_MEAN_REV_COVG=7_GT_CONF=262.757\nxxxFOOxxxxx\n"
-                ">gene2_SAMPLE=sample_POS=2_INTERVAL=(0,8)_SVTYPE=COMPLEX_MEAN_"
+                ">gene2_SAMPLE=sample_POS=2_CALL_INTERVAL=[1,4)_SVTYPE=COMPLEX_MEAN_"
                 "FWD_COVG=6_MEAN_REV_COVG=7_GT_CONF=262.757\nxFOOx\n"
             )
         }
@@ -215,13 +215,15 @@ class TestQuery:
         assert actual == expected
 
     def test_createProbeHeader(self):
+        flank_width = 3
         sample = "sample"
+        query = Query(TEST_VCF, TEST_PANEL, [sample], flank_width=flank_width)
         variant = retrieve_entry_from_test_vcf(2)
-        interval = (1, 2)
+        interval = query.calculate_probe_boundaries_for_entry(variant)
 
         actual = Query.create_probe_header(sample, variant, interval)
         expected = (
-            "GC00000001_155_SAMPLE=sample_POS=1_INTERVAL=(1,2)_SVTYPE=COMPLEX_"
+            "GC00000001_155_SAMPLE=sample_POS=1_CALL_INTERVAL=[0,12)_SVTYPE=COMPLEX_"
             "MEAN_FWD_COVG=24_MEAN_REV_COVG=30_GT_CONF=262.757"
         )
 

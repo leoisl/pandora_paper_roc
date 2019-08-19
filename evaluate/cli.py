@@ -8,7 +8,7 @@ from pathlib import Path
 GT_MAX = 300
 GT_STEP = 5
 TRUTH_FLANK_WIDTH = 21
-QUERY_FLANK_WIDTH = 45
+QUERY_FLANK_WIDTH = 25
 TEMP_DIR = Path.cwd() / "tmp"
 LOGGING_LEVELS = {
     0: "NOTSET",

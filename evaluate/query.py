@@ -101,11 +101,13 @@ class Query:
     def create_probe_header(
         sample: str, variant: pysam.VariantRecord, interval: Tuple[int, int]
     ) -> str:
+        call_start_idx = max(0, variant.start - interval[0])
+        call_end_idx = call_start_idx + get_variant_length(variant, sample)
         header_fields = [
             variant.chrom,
             f"SAMPLE={sample}",
             f"POS={variant.pos}",
-            f"INTERVAL={interval}",
+            f"CALL_INTERVAL=[{call_start_idx},{call_end_idx})",
             f"SVTYPE={get_svtype(variant)}",
             f"MEAN_FWD_COVG={get_mean_coverage_forward(variant, sample)}",
             f"MEAN_REV_COVG={get_mean_coverage_reverse(variant, sample)}",

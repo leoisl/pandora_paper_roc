@@ -5,11 +5,7 @@ import pandas as pd
 import pysam
 import pytest
 
-from evaluate.evaluation import (
-    generate_mummer_snps,
-    is_mapping_invalid,
-    make_truth_panels,
-)
+from evaluate.evaluation import *
 from evaluate.mummer import NucmerError, ShowSnps
 
 REF = Path("tests/test_cases/ref.fa")
@@ -93,11 +89,12 @@ NUCMER
 
     actual = make_truth_panels(df)
     expected = (
-        ">ref_POS=39_SUB=G_LEFT_FLANK_END=2\nGTAGTAG\n>ref_POS=73_SUB=T_LEFT_FLANK_END=2\nGGATTGA\n",
-        ">query_POS=38_SUB=._LEFT_FLANK_END=2\nGTATAG\n>query_POS=72_SUB=A_LEFT_FLANK_END=2\nGGAATGA\n",
+        ">ref_POS=39_CALL_INTERVAL=[3,4)\nGTAGTAG\n>ref_POS=73_CALL_INTERVAL=[3,4)\nGGATTGA\n",
+        ">query_POS=38_CALL_INTERVAL=[3,3)\nGTATAG\n>query_POS=72_CALL_INTERVAL=[3,4)\nGGAATGA\n",
     )
 
     assert actual == expected
+
 
 def test_makeTruthPanelFromSnpsDataframe_probeNearGeneStartReturnsTruncatedLeftFlank():
     df = ShowSnps.to_dataframe(
@@ -113,11 +110,13 @@ NUCMER
 
     actual = make_truth_panels(df)
     expected = (
-        ">ref_POS=2_SUB=G_LEFT_FLANK_END=0\nAGTAG\n",
-        ">query_POS=3_SUB=._LEFT_FLANK_END=1\nTATAG\n"
+        ">ref_POS=2_CALL_INTERVAL=[1,2)\nAGTAG\n",
+        ">query_POS=3_CALL_INTERVAL=[2,2)\nTATAG\n",
     )
 
     assert actual == expected
+
+
 def test_makeTruthPanelFromSnpsDataframe_probeNearGeneEndReturnsTruncatedRightFlank():
     df = ShowSnps.to_dataframe(
         StringIO(
@@ -132,11 +131,12 @@ NUCMER
 
     actual = make_truth_panels(df)
     expected = (
-        ">ref_POS=12_SUB=G_LEFT_FLANK_END=2\nAAAGTA\n",
-        ">query_POS=13_SUB=._LEFT_FLANK_END=2\nATAT\n"
+        ">ref_POS=12_CALL_INTERVAL=[3,4)\nAAAGTA\n",
+        ">query_POS=13_CALL_INTERVAL=[3,3)\nATAT\n",
     )
 
     assert actual == expected
+
 
 def test_makeTruthPanelFromSnpsDataframe_probeAtGeneStartReturnsTruncatedLeftFlank():
     df = ShowSnps.to_dataframe(
@@ -152,11 +152,13 @@ NUCMER
 
     actual = make_truth_panels(df)
     expected = (
-        ">ref_POS=1_SUB=G_LEFT_FLANK_END=-1\nGTAG\n",
-        ">query_POS=1_SUB=._LEFT_FLANK_END=-1\nTAG\n"
+        ">ref_POS=1_CALL_INTERVAL=[0,1)\nGTAG\n",
+        ">query_POS=1_CALL_INTERVAL=[0,0)\nTAG\n",
     )
 
     assert actual == expected
+
+
 def test_makeTruthPanelFromSnpsDataframe_probeAtGeneEndReturnsTruncatedRightFlank():
     df = ShowSnps.to_dataframe(
         StringIO(
@@ -171,11 +173,13 @@ NUCMER
 
     actual = make_truth_panels(df)
     expected = (
-        ">ref_POS=10_SUB=G_LEFT_FLANK_END=2\nAAAG\n",
-        ">query_POS=10_SUB=._LEFT_FLANK_END=2\nAAA\n"
+        ">ref_POS=10_CALL_INTERVAL=[3,4)\nAAAG\n",
+        ">query_POS=10_CALL_INTERVAL=[3,3)\nAAA\n",
     )
 
     assert actual == expected
+
+
 def test_makeTruthPanelFromSnpsDataframe_mergeConsecutiveRecordsForIndelInQuery():
     df = ShowSnps.to_dataframe(
         StringIO(
@@ -194,14 +198,14 @@ NUCMER
 
     actual = make_truth_panels(df)
     expected_ref_probes = (
-        ">ref_POS=39_SUB=G_LEFT_FLANK_END=2\nGTAGTAG\n"
-        ">ref_POS=73_SUB=TTT_LEFT_FLANK_END=2\nGGATTTGAA\n"
-        ">ref_POS=79_SUB=T_LEFT_FLANK_END=2\nGGATTGA\n"
+        ">ref_POS=39_CALL_INTERVAL=[3,4)\nGTAGTAG\n"
+        ">ref_POS=73_CALL_INTERVAL=[3,6)\nGGATTTGAA\n"
+        ">ref_POS=79_CALL_INTERVAL=[3,4)\nGGATTGA\n"
     )
     expected_query_probes = (
-        ">query_POS=38_SUB=._LEFT_FLANK_END=2\nGTATAG\n"
-        ">query_POS=72_SUB=..._LEFT_FLANK_END=2\nGGATGA\n"
-        ">query_POS=78_SUB=A_LEFT_FLANK_END=2\nGGAATGA\n"
+        ">query_POS=38_CALL_INTERVAL=[3,3)\nGTATAG\n"
+        ">query_POS=72_CALL_INTERVAL=[3,3)\nGGATGA\n"
+        ">query_POS=78_CALL_INTERVAL=[3,4)\nGGAATGA\n"
     )
     expected = (expected_ref_probes, expected_query_probes)
 
@@ -226,14 +230,14 @@ NUCMER
 
     actual = make_truth_panels(df)
     expected_ref_probes = (
-        ">ref_POS=39_SUB=G_LEFT_FLANK_END=2\nGTAGTAG\n"
-        ">ref_POS=72_SUB=..._LEFT_FLANK_END=2\nGGATGA\n"
-        ">ref_POS=79_SUB=T_LEFT_FLANK_END=2\nGGATTGA\n"
+        ">ref_POS=39_CALL_INTERVAL=[3,4)\nGTAGTAG\n"
+        ">ref_POS=72_CALL_INTERVAL=[3,3)\nGGATGA\n"
+        ">ref_POS=79_CALL_INTERVAL=[3,4)\nGGATTGA\n"
     )
     expected_query_probes = (
-        ">query_POS=38_SUB=._LEFT_FLANK_END=2\nGTATAG\n"
-        ">query_POS=73_SUB=TTT_LEFT_FLANK_END=2\nGGATTTGAA\n"
-        ">query_POS=78_SUB=A_LEFT_FLANK_END=2\nGGAATGA\n"
+        ">query_POS=38_CALL_INTERVAL=[3,3)\nGTATAG\n"
+        ">query_POS=73_CALL_INTERVAL=[3,6)\nGGATTTGAA\n"
+        ">query_POS=78_CALL_INTERVAL=[3,4)\nGGAATGA\n"
     )
     expected = (expected_ref_probes, expected_query_probes)
 
@@ -258,14 +262,14 @@ NUCMER
 
     actual = make_truth_panels(df)
     expected_ref_probes = (
-        ">ref_POS=39_SUB=G_LEFT_FLANK_END=2\nGTAGTAG\n"
-        ">ref_POS=72_SUB=AGC_LEFT_FLANK_END=2\nGGAAGCAAA\n"
-        ">ref_POS=79_SUB=T_LEFT_FLANK_END=2\nGGATTGA\n"
+        ">ref_POS=39_CALL_INTERVAL=[3,4)\nGTAGTAG\n"
+        ">ref_POS=72_CALL_INTERVAL=[3,6)\nGGAAGCAAA\n"
+        ">ref_POS=79_CALL_INTERVAL=[3,4)\nGGATTGA\n"
     )
     expected_query_probes = (
-        ">query_POS=38_SUB=._LEFT_FLANK_END=2\nGTATAG\n"
-        ">query_POS=73_SUB=TTT_LEFT_FLANK_END=2\nGGATTTGAA\n"
-        ">query_POS=78_SUB=A_LEFT_FLANK_END=2\nGGAATGA\n"
+        ">query_POS=38_CALL_INTERVAL=[3,3)\nGTATAG\n"
+        ">query_POS=73_CALL_INTERVAL=[3,6)\nGGATTTGAA\n"
+        ">query_POS=78_CALL_INTERVAL=[3,4)\nGGAATGA\n"
     )
     expected = (expected_ref_probes, expected_query_probes)
 
@@ -311,3 +315,39 @@ def test_isMappingInvalid_secondaryEntry_returnTrue():
     )
 
     assert is_mapping_invalid(record)
+
+
+def test_assessSamRecord_unmappedRecordReturnsUnmapped():
+    header = create_sam_header(
+        "GC00000422_2_SAMPLE=CFT073_POS=603_CALL_INTERVAL=[25,32)_SVTYPE=PH_SNPs_MEAN_FWD_COVG=23_MEAN_REV_COVG=13_GT_CONF=89.5987",
+        57,
+    )
+    record = pysam.AlignedSegment.fromstring(
+        ""
+        "3_POS=14788_CALL_INTERVAL=[21,22)\t4\t*\t0\t0\t*\t*\t0\t0\tCGCGAAAGCCCTGACCATCTGCACCGTGTCTGACCACATCCGC\t*\tAS:i:0\tXS:i:0",
+        header,
+    )
+
+    actual = assess_sam_record(record)
+    expected = "unmapped"
+
+    assert actual == expected
+
+
+def test_assessSamRecord_correctPrimaryAlignmentReturnsCorrect():
+    header = create_sam_header(
+        "GC00000422_2_SAMPLE=CFT073_POS=603_CALL_INTERVAL=[25,32)_SVTYPE=PH_SNPs_MEAN_FWD_COVG=23_MEAN_REV_COVG=13_GT_CONF=89.5987",
+        57,
+    )
+    record = pysam.AlignedSegment.fromstring(
+        "3_POS=14788_CALL_INTERVAL=[21,22)\t0\tGC00000422_2_SAMPLE=CFT073_POS=603_CALL_INTERVAL=[25,32)_SVTYPE=PH_SNPs_MEAN_FWD_COVG=23_MEAN_REV_COVG=13_GT_CONF=89.5987\t5\t60\t43M\t*\t0\t0\tCGCGAAAGCCCTGACCATCTGCACCGTGTCTGACCACATCCGC\t*\tNM:i:0\tMD:Z:43\tAS:i:43\tXS:i:32",
+        header,
+    )
+
+    # query_probe_seq = TTGGCGCGAAAGCCCTGACCATCTGCACCGTGTCTGACCACATCCGCACTCACGAGC
+    # truth_probe_seq =     CGCGAAAGCCCTGACCATCTGCACCGTGTCTGACCACATCCGC
+
+    actual = assess_sam_record(record)
+    expected = "correct"
+
+    assert actual == expected
