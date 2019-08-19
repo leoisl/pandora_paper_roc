@@ -5,11 +5,11 @@ from typing import Tuple, Dict, List
 
 import pandas as pd
 import pysam
-from bwa import BWA
-from cli import cli
-from mummer import Nucmer, DeltaFilter, ShowSnps
-from query import Query
-from utils import strip_extensions, arg_ranges
+from .bwa import BWA
+from .cli import cli
+from .mummer import Nucmer, DeltaFilter, ShowSnps
+from .query import Query
+from .utils import strip_extensions, arg_ranges
 
 
 def generate_mummer_snps(
@@ -18,6 +18,7 @@ def generate_mummer_snps(
     prefix: Path = Path("out"),
     flank_width: int = 0,
     indels: bool = False,
+    print_header: bool = True,
 ) -> StringIO:
     logging.info("Generating MUMmer SNPs file.")
 
@@ -41,6 +42,7 @@ def generate_mummer_snps(
         context=flank_width,
         extra_params=showsnps_params,
         indels=indels,
+        print_header=print_header,
     )
     showsnps_result = showsnps.run()
     showsnps_result.check_returncode()
