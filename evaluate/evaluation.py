@@ -27,7 +27,7 @@ def generate_mummer_snps(
     nucmer_result = nucmer.run()
     nucmer_result.check_returncode()
 
-    deltafile = prefix.with_suffix(".delta")
+    deltafile = Path(str(prefix) + ".delta")
     deltafilter_params = "-1"
     deltafilter = DeltaFilter(deltafile, extra_params=deltafilter_params)
     deltafilter_result = deltafilter.run()
