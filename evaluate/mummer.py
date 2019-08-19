@@ -84,6 +84,28 @@ class DeltaFilter:
         )
 
 
+class ShowSNPsDataframe (pd.DataFrame):
+    @property
+    def _constructor(self):
+        return ShowSNPsDataframe
+
+    def translate_to_FWD_strand(self):
+        def fix_position(position, strand_aln, length):
+            if strand_aln == 1:
+                return position
+            else:
+                return length - position + 1
+
+        def translate_to_FWD_strand_core(line):
+            line.ref_pos = fix_position(line.ref_pos, line.ref_strand, line.ref_len)
+            line.ref_strand = 1
+            line.query_pos = fix_position(line.query_pos, line.query_strand, line.query_len)
+            line.query_strand = 1
+            return line
+
+        return self.apply(translate_to_FWD_strand_core, axis=1)
+
+
 class ShowSnps:
     def __init__(
         self,
@@ -131,7 +153,7 @@ class ShowSnps:
         )
 
     @staticmethod
-    def to_dataframe(snps: TextIO) -> pd.DataFrame:
+    def to_dataframe(snps: TextIO) -> ShowSNPsDataframe:
         """Note: this method is not general. i.e it is only setup at the moment to
         parse a show-snps file where the options used were -rlTC and -x"""
         cols = {
@@ -145,17 +167,17 @@ class ShowSnps:
             "query_len": int,  #  LEN Q
             "ref_context": str,  # CTX R
             "query_context": str,  #  CTX Q
+            "ref_strand": int,
+            "query_strand": int,
             "ref_chrom": str,
             "query_chrom": str,
         }
         names = list(cols.keys())
-        usecols = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 12, 13]
-        return pd.read_csv(
+        return ShowSNPsDataframe(pd.read_csv(
             snps,
             sep="\t",
             skiprows=4,
             index_col=False,
-            usecols=usecols,
             names=names,
             dtype=cols,
-        )
+        ))
