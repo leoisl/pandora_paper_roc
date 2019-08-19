@@ -195,7 +195,7 @@ NUCMER
         )
 
         actual = ShowSnps.to_dataframe(snps)
-        expected = pd.DataFrame(
+        expected = ShowSNPsDataframe(
             {
                 "ref_pos": [39, 73],
                 "ref_sub": ["G", "T"],
@@ -207,9 +207,68 @@ NUCMER
                 "query_len": [84, 84],
                 "ref_context": ["GTAGTAG", "GGATTGA"],
                 "query_context": ["GTA.TAG", "GGAATGA"],
+                "ref_strand": [1, 1],
+                "query_strand": [1, 1],
                 "ref_chrom": ["ref", "ref"],
                 "query_chrom": ["query", "query"],
             }
         )
 
         assert actual.equals(expected)
+
+
+    def test_translate_to_FWD_strand(self):
+        reference = Path("tests/test_cases/test_translate_to_FWD_strand/ref.fa")
+        query = Path("tests/test_cases/test_translate_to_FWD_strand/query.fa")
+        prefix = Path("tests/test_cases/test_translate_to_FWD_strand/prefix")
+        nucmer_params = "--maxmatch"
+        nucmer = Nucmer(reference, query, str(prefix), extra_params=nucmer_params)
+        nucmer_result = nucmer.run()
+        nucmer_result.check_returncode()
+
+        deltafile = Path(str(prefix) + ".delta")
+        deltafilter_params = "-1"
+        deltafilter = DeltaFilter(deltafile, extra_params=deltafilter_params)
+        deltafilter_result = deltafilter.run()
+        deltafilter_result.check_returncode()
+
+        filtered_deltafile = prefix.with_suffix(".delta1")
+        _ = filtered_deltafile.write_text(deltafilter_result.stdout.decode())
+
+        showsnps_params = "-rlTC"
+        showsnps = ShowSnps(
+            filtered_deltafile,
+            context=7,
+            extra_params=showsnps_params,
+            indels=False,
+        )
+        showsnps_result = showsnps.run()
+        showsnps_result.check_returncode()
+        showsnps_content = showsnps_result.stdout.decode()
+
+        snpsfile = prefix.with_suffix(".snps")
+        _ = snpsfile.write_text(showsnps_content)
+
+        df = ShowSnps.to_dataframe(StringIO(showsnps_content))
+        df = df.translate_to_FWD_strand()
+
+        expected = ShowSNPsDataframe(
+            {
+                "ref_pos": [25, 67],
+                "ref_sub": ["G", "C"],
+                "query_sub": ["C", "G"],
+                "query_pos": [25, 67],
+                "nearest_mismatch": [25, 16],
+                "nearest_end": [25, 16],
+                "ref_len": [82, 82],
+                "query_len": [82, 82],
+                "ref_context": ["AAAAAAAGAAAAAAA", "AAAAAAACAAAAAAA"],
+                "query_context": ["AAAAAAACAAAAAAA", "AAAAAAAGAAAAAAA"],
+                "ref_strand": [1, 1],
+                "query_strand": [1, 1],
+                "ref_chrom": ["ref", "ref"],
+                "query_chrom": ["query", "query"],
+            }
+        )
+
+        assert df.equals(expected)
