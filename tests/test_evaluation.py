@@ -37,14 +37,10 @@ def test_getMummerSnps_validSequenceFilesProducesExpectedSnpsFile():
     context = 3
 
     actual = generate_mummer_snps(
-        reference, query, prefix, flank_width=context, indels=True
+        reference, query, prefix, flank_width=context, indels=True, print_header=False
     )
     expected = StringIO(
-        """/home/michael/Projects/pandora1_paper/tests/test_cases/ref.fa /home/michael/Projects/pandora1_paper/tests/test_cases/query.fa
-NUCMER
-
-[P1]\t[SUB]\t[SUB]\t[P2]\t[BUFF]\t[DIST]\t[LEN R]\t[LEN Q]\t[CTX R]\t[CTX Q]\t[FRM]\t[TAGS]
-39\tG\t.\t38\t34\t38\t85\t84\tGTAGTAG\tGTA.TAG\t1\t1\tref\tquery
+        """39\tG\t.\t38\t34\t38\t85\t84\tGTAGTAG\tGTA.TAG\t1\t1\tref\tquery
 73\tT\tA\t72\t13\t13\t85\t84\tGGATTGA\tGGAATGA\t1\t1\tref\tquery
 """
     )

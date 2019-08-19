@@ -101,7 +101,7 @@ class TestDeltaFilter:
         assert actual == expected
 
         actual = result.stdout.decode()
-        expected = """/home/michael/Projects/pandora1_paper/tests/test_cases/ref.fa /home/michael/Projects/pandora1_paper/tests/test_cases/query.fa
+        expected = """tests/test_cases/ref.fa tests/test_cases/query.fa
 NUCMER
 >ref query 85 84
 1 85 1 84 2 2 0
@@ -160,7 +160,7 @@ class TestShowSnps:
         assert actual == expected
 
         actual = result.stdout.decode()
-        expected = """/home/michael/Projects/pandora1_paper/tests/test_cases/ref.fa /home/michael/Projects/pandora1_paper/tests/test_cases/query.fa
+        expected = """tests/test_cases/ref.fa tests/test_cases/query.fa
 NUCMER
 
 [P1]\t[SUB]\t[SUB]\t[P2]\t[BUFF]\t[DIST]\t[LEN R]\t[LEN Q]\t[CTX R]\t[CTX Q]\t[FRM]\t[TAGS]
@@ -180,7 +180,7 @@ NUCMER
     def test_toDataframe_invalidInputRaisesError(self):
         snps = StringIO("foo\nbar\nsome\nrandom\ntext\n")
 
-        with pytest.raises(pandas.errors.ParserError):
+        with pytest.raises(ValueError):
             ShowSnps.to_dataframe(snps)
 
     def test_toDataFrame_validInputReturnCorrectDataframe(self):

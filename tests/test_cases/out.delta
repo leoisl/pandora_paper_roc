@@ -1,4 +1,4 @@
-/home/michael/Projects/pandora1_paper/tests/test_cases/ref.fa /home/michael/Projects/pandora1_paper/tests/test_cases/query.fa
+tests/test_cases/ref.fa tests/test_cases/query.fa
 NUCMER
 >ref query 85 84
 1 85 1 84 2 2 0
