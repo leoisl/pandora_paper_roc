@@ -135,9 +135,21 @@ def assess_sam_record(record: pysam.AlignedSegment) -> str:
 
     if record.is_unmapped:
         assessment = "unmapped"
-    # elif record.is_secondary:
+    elif record.is_secondary:
+        is_correct = do_probes_match(record)
+        assessment = "seconday_correct" if is_correct else "secondary_incorrect"
 
     return assessment
+
+
+def do_probes_match(record: pysam.AlignedSegment) -> bool:
+    truth = record.query_name[-1]
+
+    for query_pos, ref_pos, ref_base in record.get_aligned_pairs(with_seq=True):
+        if query_pos == REF_PANEL_FLANK_WIDTH:
+            return truth == ref_base
+
+    return False
 
 
 def main():

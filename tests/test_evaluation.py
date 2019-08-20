@@ -330,6 +330,86 @@ def test_assessSamRecord_unmappedRecordReturnsUnmapped():
     assert actual == expected
 
 
+def test_assessSamRecord_incorrectSecondayAlignmentMismatchReturnsIncorrect():
+    flag = 256
+    cigar = "43M"
+    nm = "NM:i:1"
+    md = "MD:Z:21T21"
+    mapq = 0
+    pos = 5
+    query_name = "3_POS=14788_CALL_INTERVAL=[21,22)"
+    ref_name = "GC00000422_2_SAMPLE=CFT073_POS=603_CALL_INTERVAL=[25,32)_SVTYPE=PH_SNPs_MEAN_FWD_COVG=23_MEAN_REV_COVG=13_GT_CONF=89.5987"
+    sequence = "CGCGAAAGCCCTGACCATCTGCACCGTGTCTGACCACATCCGC"
+    header = create_sam_header(ref_name, 57)
+    record = pysam.AlignedSegment.fromstring(
+        f"{query_name}\t{flag}\t{ref_name}\t{pos}\t{mapq}\t{cigar}\t*\t0\t0\t{sequence}\t*\t{nm}\t{md}\tAS:i:43\tXS:i:32",
+        header,
+    )
+
+    actual = assess_sam_record(record)
+    expected = "secondary_incorrect"
+
+    assert actual == expected
+
+def test_assessSamRecord_correctSecondayAlignmentReturnsCorrect():
+    flag = 256
+    cigar = "43M"
+    nm = "NM:i:0"
+    md = "MD:Z:43"
+    mapq = 0
+    pos = 5
+    query_name = "3_POS=14788_CALL_INTERVAL=[21,22)"
+    ref_name = "GC00000422_2_SAMPLE=CFT073_POS=603_CALL_INTERVAL=[25,32)_SVTYPE=PH_SNPs_MEAN_FWD_COVG=23_MEAN_REV_COVG=13_GT_CONF=89.5987"
+    sequence = "CGCGAAAGCCCTGACCATCTGCACCGTGTCTGACCACATCCGC"
+    header = create_sam_header(ref_name, 57)
+    record = pysam.AlignedSegment.fromstring(
+        f"{query_name}\t{flag}\t{ref_name}\t{pos}\t{mapq}\t{cigar}\t*\t0\t0\t{sequence}\t*\t{nm}\t{md}\tAS:i:43\tXS:i:32",
+        header,
+    )
+
+    actual = assess_sam_record(record)
+    expected = "secondary_correct"
+
+    assert actual == expected
+
+def test_assessSamRecord_incorrectPrimaryAlignmentMismatchReturnsIncorrect():
+    header = create_sam_header(
+        "GC00000422_2_SAMPLE=CFT073_POS=603_CALL_INTERVAL=[25,32)_SVTYPE=PH_SNPs_MEAN_FWD_COVG=23_MEAN_REV_COVG=13_GT_CONF=89.5987",
+        57,
+    )
+    record = pysam.AlignedSegment.fromstring(
+        "3_POS=14788_CALL_INTERVAL=[21,22)\t0\tGC00000422_2_SAMPLE=CFT073_POS=603_CALL_INTERVAL=[25,32)_SVTYPE=PH_SNPs_MEAN_FWD_COVG=23_MEAN_REV_COVG=13_GT_CONF=89.5987\t5\t60\t43M\t*\t0\t0\tCGCGAAAGCCCTGACCATCTGCACCGTGTCTGACCACATCCGC\t*\tNM:i:1\tMD:Z:21T21\tAS:i:43\tXS:i:32",
+        header,
+    )
+
+    # query_probe_seq = TTGGCGCGAAAGCCCTGACCATCTGTACCGTGTCTGACCACATCCGCACTCACGAGC
+    # truth_probe_seq =     CGCGAAAGCCCTGACCATCTGCACCGTGTCTGACCACATCCGC
+
+    actual = assess_sam_record(record)
+    expected = "incorrect"
+
+    assert actual == expected
+
+
+def test_assessSamRecord_correctPrimaryAlignmentMismatchInFlankReturnsCorrect():
+    header = create_sam_header(
+        "GC00000422_2_SAMPLE=CFT073_POS=603_CALL_INTERVAL=[25,32)_SVTYPE=PH_SNPs_MEAN_FWD_COVG=23_MEAN_REV_COVG=13_GT_CONF=89.5987",
+        57,
+    )
+    record = pysam.AlignedSegment.fromstring(
+        "3_POS=14788_CALL_INTERVAL=[21,22)\t0\tGC00000422_2_SAMPLE=CFT073_POS=603_CALL_INTERVAL=[25,32)_SVTYPE=PH_SNPs_MEAN_FWD_COVG=23_MEAN_REV_COVG=13_GT_CONF=89.5987\t5\t60\t43M\t*\t0\t0\tCGCGAAAGCCCTGACCATCTGCACCGTGTCTGACCACATCCGC\t*\tNM:i:1\tMD:Z:20T22\tAS:i:43\tXS:i:32",
+        header,
+    )
+
+    # query_probe_seq = TTGGCGCGAAAGCCCTGACCATCTTCACCGTGTCTGACCACATCCGCACTCACGAGC
+    # truth_probe_seq =     CGCGAAAGCCCTGACCATCTGCACCGTGTCTGACCACATCCGC
+
+    actual = assess_sam_record(record)
+    expected = "correct"
+
+    assert actual == expected
+
+
 def test_assessSamRecord_correctPrimaryAlignmentReturnsCorrect():
     header = create_sam_header(
         "GC00000422_2_SAMPLE=CFT073_POS=603_CALL_INTERVAL=[25,32)_SVTYPE=PH_SNPs_MEAN_FWD_COVG=23_MEAN_REV_COVG=13_GT_CONF=89.5987",
