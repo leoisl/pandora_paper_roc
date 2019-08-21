@@ -284,3 +284,39 @@ class TestProbe:
         expected = ""
 
         assert actual == expected
+
+    def test_fromString_emptyStringReturnsEmptyProbe(self):
+        string = ""
+
+        actual = Probe.from_string(string)
+        expected = Probe()
+
+        assert actual == expected
+
+    def test_fromString_headerOnlyStringReturnsProbeWithNoFullSequence(self):
+        string = ">CHROM=1;INTERVAL=[3,5);"
+
+        actual = Probe.from_string(string)
+        expected = Probe(header=ProbeHeader(chrom="1", interval=Interval(3, 5)))
+
+        assert actual == expected
+
+    def test_fromString_headerAndEmptySequenceInStringReturnsProbeWithNoFullSequence(
+        self
+    ):
+        string = ">CHROM=1;INTERVAL=[3,5);\n"
+
+        actual = Probe.from_string(string)
+        expected = Probe(header=ProbeHeader(chrom="1", interval=Interval(3, 5)))
+
+        assert actual == expected
+
+    def test_fromString_headerAndSequenceInStringReturnsFullProbe(self):
+        string = ">CHROM=1;INTERVAL=[3,5);\nfoo"
+
+        actual = Probe.from_string(string)
+        expected = Probe(
+            header=ProbeHeader(chrom="1", interval=Interval(3, 5)), full_sequence="foo"
+        )
+
+        assert actual == expected

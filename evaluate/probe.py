@@ -113,8 +113,8 @@ class Probe:
             return Probe()
 
         fields = string.split("\n")
-        header = fields[0]
-        probe = Probe.from_header(header)
+        header = ProbeHeader.from_string(fields[0])
+        probe = Probe(header=header)
 
         if len(fields) > 1 and fields[1]:
             probe.full_sequence = fields[1].rstrip()
