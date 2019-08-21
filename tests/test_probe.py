@@ -394,3 +394,11 @@ class TestProbe:
         )
 
         assert actual == expected
+
+    def test_gtConf(self):
+        probe = Probe(header=ProbeHeader(gt_conf=5.5))
+
+        actual = probe.gt_conf()
+        expected = 5.5
+
+        assert actual == expected

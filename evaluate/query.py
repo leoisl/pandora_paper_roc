@@ -52,32 +52,33 @@ class Query:
         """Note: An assumption is made with this function that the variants you pass in
         are from the gene passed with them."""
         probes = {s: "" for s in self.samples}
-        intervals_to_probes = {s: {} for s in self.samples}
+        intervals_to_probes: Dict[str, Dict[Interval, Probe]] = {
+            s: {} for s in self.samples
+        }
 
         for variant in variants:
             for sample in self.samples:
                 if is_invalid_vcf_entry(variant, sample):
                     continue
                 interval = self.calculate_probe_boundaries_for_entry(variant)
-                if interval in intervals_to_probes and float(
-                    intervals_to_probes[interval].name.split("=")[-1]
-                ) > get_genotype_confidence(variant, sample):
+                if interval in intervals_to_probes and intervals_to_probes[sample][
+                    interval
+                ].gt_conf() > get_genotype_confidence(variant, sample):
                     continue
 
                 mutated_consensus = ""
                 consensus = gene.sequence[slice(*interval)]
                 last_idx = 0
 
-                start_idx_of_variant_on_consensus = variant.start - interval[0]
+                start_idx_of_variant_on_consensus = variant.start - interval.start
                 mutated_consensus += consensus[
                     last_idx:start_idx_of_variant_on_consensus
                 ]
                 mutated_consensus += get_variant_sequence(variant, sample)
                 last_idx = start_idx_of_variant_on_consensus + variant.rlen
                 mutated_consensus += consensus[last_idx:]
-                probe = pysam.FastxRecord()
-                probe.set_name(self.create_probe_header(sample, variant, interval))
-                probe.set_sequence(mutated_consensus)
+                probe_header = self.create_probe_header(sample, variant, interval)
+                probe = Probe(header=probe_header, full_sequence=mutated_consensus)
                 if sample not in intervals_to_probes:
                     intervals_to_probes[sample] = {interval: probe}
                 else:
@@ -91,30 +92,29 @@ class Query:
 
     def calculate_probe_boundaries_for_entry(
         self, entry: pysam.VariantRecord
-    ) -> Tuple[int, int]:
+    ) -> Interval:
         probe_start = max(0, entry.start - self.flank_width)
         probe_stop = entry.stop + self.flank_width
 
-        return probe_start, probe_stop
+        return Interval(probe_start, probe_stop)
 
     @staticmethod
     def create_probe_header(
-        sample: str, variant: pysam.VariantRecord, interval: Tuple[int, int]
-    ) -> str:
+        sample: str, variant: pysam.VariantRecord, interval: Interval
+    ) -> ProbeHeader:
         call_start_idx = max(0, variant.start - interval[0])
         call_end_idx = call_start_idx + get_variant_length(variant, sample)
-        header_fields = [
-            variant.chrom,
-            f"SAMPLE={sample}",
-            f"POS={variant.pos}",
-            f"CALL_INTERVAL=[{call_start_idx},{call_end_idx})",
-            f"SVTYPE={get_svtype(variant)}",
-            f"MEAN_FWD_COVG={get_mean_coverage_forward(variant, sample)}",
-            f"MEAN_REV_COVG={get_mean_coverage_reverse(variant, sample)}",
-            f"GT_CONF={get_genotype_confidence(variant, sample)}",
-        ]
-
-        return "_".join(header_fields).replace(" ", "")
+        call_interval = Interval(call_start_idx, call_end_idx)
+        return ProbeHeader(
+            chrom=variant.chrom,
+            sample=sample,
+            pos=variant.pos,
+            interval=call_interval,
+            svtype=get_svtype(variant),
+            mean_fwd_covg=get_mean_coverage_forward(variant, sample),
+            mean_rev_covg=get_mean_coverage_reverse(variant, sample),
+            gt_conf=get_genotype_confidence(variant, sample),
+        )
 
 
 def merge_overlap_intervals(intervals: List[List[int]]) -> List[Tuple[int, int]]:
@@ -221,7 +221,7 @@ def get_variant_length(variant: pysam.VariantRecord, sample: str) -> int:
     return len(get_variant_sequence(variant, sample))
 
 
-def get_svtype(variant: pysam.VariantRecord) -> float:
+def get_svtype(variant: pysam.VariantRecord) -> str:
     return variant.info["SVTYPE"]
 
 

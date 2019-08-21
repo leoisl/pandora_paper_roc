@@ -136,6 +136,9 @@ class Probe:
     def get_core_sequence(self) -> str:
         return self.full_sequence[slice(*self.header.interval)]
 
+    def gt_conf(self) -> float:
+        return self.header.gt_conf
+
     @staticmethod
     def from_string(string: str) -> "Probe":
         if not string:

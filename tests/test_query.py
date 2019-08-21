@@ -127,10 +127,22 @@ class TestQuery:
 
         actual = query.make_probes()
         expected = {
-            "sample": (
-                ">gene1_SAMPLE=sample_POS=4_CALL_INTERVAL=[3,4)_SVTYPE=COMPLEX_MEAN_"
-                "FWD_COVG=6_MEAN_REV_COVG=7_GT_CONF=262.757\nxxxFxxx\n"
+            "sample": str(
+                Probe(
+                    ProbeHeader(
+                        chrom="gene1",
+                        sample="sample",
+                        pos=4,
+                        interval=Interval(3, 4),
+                        svtype="COMPLEX",
+                        mean_fwd_covg=6,
+                        mean_rev_covg=7,
+                        gt_conf=262.757,
+                    ),
+                    full_sequence="xxxFxxx",
+                )
             )
+            + "\n"
         }
 
         assert actual == expected
@@ -166,12 +178,38 @@ class TestQuery:
 
         actual = query.make_probes()
         expected = {
-            "sample": (
-                ">gene1_SAMPLE=sample_POS=4_CALL_INTERVAL=[3,6)_SVTYPE=COMPLEX_MEAN_"
-                "FWD_COVG=6_MEAN_REV_COVG=7_GT_CONF=262.757\nxxxFOOxxxxx\n"
-                ">gene1_SAMPLE=sample_POS=8_CALL_INTERVAL=[5,8)_SVTYPE=COMPLEX_MEAN_"
-                "FWD_COVG=6_MEAN_REV_COVG=7_GT_CONF=262.757\nxxxxxFOOxxxxx\n"
+            "sample": str(
+                Probe(
+                    ProbeHeader(
+                        chrom="gene1",
+                        sample="sample",
+                        pos=4,
+                        interval=Interval(3, 6),
+                        svtype="COMPLEX",
+                        mean_fwd_covg=6,
+                        mean_rev_covg=7,
+                        gt_conf=262.757,
+                    ),
+                    full_sequence="xxxFOOxxxxx",
+                )
             )
+            + "\n"
+            + str(
+                Probe(
+                    ProbeHeader(
+                        chrom="gene1",
+                        sample="sample",
+                        pos=8,
+                        interval=Interval(5, 8),
+                        svtype="COMPLEX",
+                        mean_fwd_covg=6,
+                        mean_rev_covg=7,
+                        gt_conf=262.757,
+                    ),
+                    full_sequence="xxxxxFOOxxxxx",
+                )
+            )
+            + "\n"
         }
 
         assert actual == expected
@@ -185,12 +223,38 @@ class TestQuery:
 
         actual = query.make_probes()
         expected = {
-            "sample": (
-                ">gene1_SAMPLE=sample_POS=4_CALL_INTERVAL=[3,6)_SVTYPE=COMPLEX_MEAN_"
-                "FWD_COVG=6_MEAN_REV_COVG=7_GT_CONF=262.757\nxxxFOOxxxxx\n"
-                ">gene1_SAMPLE=sample_POS=8_CALL_INTERVAL=[5,8)_SVTYPE=COMPLEX_MEAN_"
-                "FWD_COVG=6_MEAN_REV_COVG=7_GT_CONF=262.757\nxxxxxFOOxxx\n"
+            "sample": str(
+                Probe(
+                    ProbeHeader(
+                        chrom="gene1",
+                        sample="sample",
+                        pos=4,
+                        interval=Interval(3, 6),
+                        svtype="COMPLEX",
+                        mean_fwd_covg=6,
+                        mean_rev_covg=7,
+                        gt_conf=262.757,
+                    ),
+                    full_sequence="xxxFOOxxxxx",
+                )
             )
+            + "\n"
+            + str(
+                Probe(
+                    ProbeHeader(
+                        chrom="gene1",
+                        sample="sample",
+                        pos=8,
+                        interval=Interval(5, 8),
+                        svtype="COMPLEX",
+                        mean_fwd_covg=6,
+                        mean_rev_covg=7,
+                        gt_conf=262.757,
+                    ),
+                    full_sequence="xxxxxFOOxxx",
+                )
+            )
+            + "\n"
         }
 
         assert actual == expected
@@ -204,12 +268,38 @@ class TestQuery:
 
         actual = query.make_probes()
         expected = {
-            "sample": (
-                ">gene1_SAMPLE=sample_POS=4_CALL_INTERVAL=[3,6)_SVTYPE=COMPLEX_MEAN_"
-                "FWD_COVG=6_MEAN_REV_COVG=7_GT_CONF=262.757\nxxxFOOxxxxx\n"
-                ">gene2_SAMPLE=sample_POS=2_CALL_INTERVAL=[1,4)_SVTYPE=COMPLEX_MEAN_"
-                "FWD_COVG=6_MEAN_REV_COVG=7_GT_CONF=262.757\nxFOOx\n"
+            "sample": str(
+                Probe(
+                    ProbeHeader(
+                        chrom="gene1",
+                        sample="sample",
+                        pos=4,
+                        interval=Interval(3, 6),
+                        svtype="COMPLEX",
+                        mean_fwd_covg=6,
+                        mean_rev_covg=7,
+                        gt_conf=262.757,
+                    ),
+                    full_sequence="xxxFOOxxxxx",
+                )
             )
+            + "\n"
+            + str(
+                Probe(
+                    ProbeHeader(
+                        chrom="gene2",
+                        sample="sample",
+                        pos=2,
+                        interval=Interval(1, 4),
+                        svtype="COMPLEX",
+                        mean_fwd_covg=6,
+                        mean_rev_covg=7,
+                        gt_conf=262.757,
+                    ),
+                    full_sequence="xFOOx",
+                )
+            )
+            + "\n"
         }
 
         assert actual == expected
@@ -222,9 +312,15 @@ class TestQuery:
         interval = query.calculate_probe_boundaries_for_entry(variant)
 
         actual = Query.create_probe_header(sample, variant, interval)
-        expected = (
-            "GC00000001_155_SAMPLE=sample_POS=1_CALL_INTERVAL=[0,12)_SVTYPE=COMPLEX_"
-            "MEAN_FWD_COVG=24_MEAN_REV_COVG=30_GT_CONF=262.757"
+        expected = ProbeHeader(
+            chrom="GC00000001_155",
+            sample="sample",
+            pos=1,
+            interval=Interval(0, 12),
+            svtype="COMPLEX",
+            mean_fwd_covg=24,
+            mean_rev_covg=30,
+            gt_conf=262.757,
         )
 
         assert actual == expected
