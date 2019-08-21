@@ -1,8 +1,23 @@
 from evaluate.probe import *
-import pytest
 
 
 class TestInterval:
+    def test_str_nullIntervalReturnsEmptyString(self):
+        interval = Interval()
+
+        actual = str(interval)
+        expected = ""
+
+        assert actual == expected
+
+    def test_str_nonNullIntervalReturnsExpectedString(self):
+        interval = Interval(1, 5)
+
+        actual = str(interval)
+        expected = "[1,5)"
+
+        assert actual == expected
+
     def test_isNull_nullIntervalReturnsTrue(self):
         assert Interval(-1, -1).is_null()
 
@@ -109,8 +124,67 @@ class TestProbeHeader:
 
         assert actual == expected
 
+    def test_str_emptyProbeHeaderReturnsEmptyString(self):
+        header = ProbeHeader()
+
+        actual = str(header)
+        expected = ""
+
+        assert actual == expected
+
+    def test_str_singleVariableProbeHeaderReturnsStringWithOneField(self):
+        header = ProbeHeader(mean_rev_covg=9)
+
+        actual = str(header)
+        expected = ">MEAN_REV_COVG=9;"
+
+        assert actual == expected
+
+    def test_str_allFieldsInProbeHeaderReturnsStringWithAllFields(self):
+        header = ProbeHeader(
+            mean_rev_covg=9,
+            mean_fwd_covg=9,
+            pos=3,
+            gt_conf=2.2,
+            chrom="4",
+            sample="foo",
+            interval=Interval(5, 6),
+            svtype="SNP",
+        )
+
+        actual = str(header)
+        expected = ">CHROM=4;SAMPLE=foo;POS=3;INTERVAL=[5,6);SVTYPE=SNP;MEAN_FWD_COVG=9;MEAN_REV_COVG=9;GT_CONF=2.2;"
+
+        assert actual == expected
+
+        assert ProbeHeader.from_string(actual) == header
+
 
 class TestProbe:
+    def test_str_emptyProbeReturnsEmptyString(self):
+        probe = Probe()
+
+        actual = str(probe)
+        expected = ""
+
+        assert actual == expected
+    def test_str_emptyFullSequenceReturnsHeaderWithNewline(self):
+        probe = Probe(ProbeHeader(chrom="3"))
+
+        actual = str(probe)
+        expected = ">CHROM=3;\n"
+
+        assert actual == expected
+    def test_str_fullProbeReturnsHeaderAndSequence(self):
+        probe = Probe(ProbeHeader(pos=4, chrom="3"), full_sequence="foo")
+
+        actual = str(probe)
+        expected = ">CHROM=3;POS=4;\nfoo"
+
+        assert actual == expected
+
+        assert Probe.from_string(actual) == probe
+
     def test_equality_twoEqualProbesReturnsTrue(self):
         p1 = Probe(
             ProbeHeader(sample="foo", interval=Interval(1, 2)), full_sequence="bar"

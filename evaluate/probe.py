@@ -1,6 +1,8 @@
 import re
 from typing import NamedTuple, Type
 
+DELIM = ";"
+
 
 class RegexError(Exception):
     pass
@@ -9,6 +11,15 @@ class RegexError(Exception):
 class Interval(NamedTuple):
     start: int = -1
     end: int = -1
+
+    def __bool__(self) -> bool:
+        return not self.is_null()
+
+    def __str__(self) -> str:
+        if self.is_null():
+            return ""
+
+        return f"[{self.start},{self.end})"
 
     def is_null(self) -> bool:
         return self.start == -1 and self.end == -1
@@ -44,7 +55,7 @@ class ProbeHeader:
         self.mean_rev_covg = mean_rev_covg
         self.gt_conf = gt_conf
 
-    def __eq__(self, other: "ProbeHeader"):
+    def __eq__(self, other: "ProbeHeader") -> bool:
         return (
             self.chrom == other.chrom
             and self.sample == other.sample
@@ -56,10 +67,20 @@ class ProbeHeader:
             and self.gt_conf == other.gt_conf
         )
 
+    def __str__(self) -> str:
+        contents = DELIM.join(
+            f"{k.upper()}={str(v)}" for k, v in vars(self).items() if v
+        )
+
+        if not contents:
+            return ""
+
+        return f">{contents}{DELIM}"
+
     @staticmethod
     def from_string(string: str) -> "ProbeHeader":
         def parse_field_from_header(
-            field: str, header: str, return_type: Type = str, delim: str = ";"
+            field: str, header: str, return_type: Type = str, delim: str = DELIM
         ):
             regex = re.compile(f"{field}=(.+?){delim}")
             match = regex.search(header)
@@ -93,6 +114,14 @@ class Probe:
 
     def __eq__(self, other: "Probe"):
         return self.header == other.header and self.full_sequence == other.full_sequence
+
+    def __str__(self) -> str:
+        header = str(self.header)
+
+        if not header:
+            return ""
+
+        return f"{header}\n{self.full_sequence}"
 
     def get_left_flank(self) -> str:
         end = self.header.interval.start

@@ -1,7 +1,7 @@
 from contextlib import ExitStack
 from pathlib import Path
 from typing import Tuple, List, Dict
-
+from evaluate.probe import ProbeHeader, Probe, Interval
 import pysam
 
 
