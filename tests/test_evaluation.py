@@ -85,8 +85,32 @@ NUCMER
 
     actual = make_truth_panels(df)
     expected = (
-        ">ref_POS=39_CALL_INTERVAL=[3,4)\nGTAGTAG\n>ref_POS=73_CALL_INTERVAL=[3,4)\nGGATTGA\n",
-        ">query_POS=38_CALL_INTERVAL=[3,3)\nGTATAG\n>query_POS=72_CALL_INTERVAL=[3,4)\nGGAATGA\n",
+        str(
+            Probe(
+                ProbeHeader(chrom="ref", pos=39, interval=Interval(3, 4)),
+                full_sequence="GTAGTAG",
+            )
+        )
+        + "\n"
+        + str(
+            Probe(
+                ProbeHeader(chrom="ref", pos=73, interval=Interval(3, 4)),
+                full_sequence="GGATTGA",
+            )
+        ),
+        str(
+            Probe(
+                ProbeHeader(chrom="query", pos=38, interval=Interval(3, 3)),
+                full_sequence="GTATAG",
+            )
+        )
+        + "\n"
+        + str(
+            Probe(
+                ProbeHeader(chrom="query", pos=72, interval=Interval(3, 4)),
+                full_sequence="GGAATGA",
+            )
+        ),
     )
 
     assert actual == expected
@@ -105,10 +129,9 @@ NUCMER
     )
 
     actual = make_truth_panels(df)
-    expected = (
-        ">ref_POS=2_CALL_INTERVAL=[1,2)\nAGTAG\n",
-        ">query_POS=3_CALL_INTERVAL=[2,2)\nTATAG\n",
-    )
+    expected_ref = str(Probe(ProbeHeader(chrom="ref", pos=2, interval=Interval(1, 2)), full_sequence="AGTAG"))
+    expected_query = str(Probe(ProbeHeader(chrom="query", pos=3, interval=Interval(2, 2)), full_sequence="TATAG"))
+    expected = (str(expected_ref), str(expected_query))
 
     assert actual == expected
 
@@ -126,10 +149,9 @@ NUCMER
     )
 
     actual = make_truth_panels(df)
-    expected = (
-        ">ref_POS=12_CALL_INTERVAL=[3,4)\nAAAGTA\n",
-        ">query_POS=13_CALL_INTERVAL=[3,3)\nATAT\n",
-    )
+    expected_ref = str(Probe(ProbeHeader(chrom="ref", pos=12, interval=Interval(3, 4)), full_sequence="AAAGTA"))
+    expected_query = str(Probe(ProbeHeader(chrom="query", pos=13, interval=Interval(3, 3)), full_sequence="ATAT"))
+    expected = (str(expected_ref), str(expected_query))
 
     assert actual == expected
 
@@ -147,10 +169,9 @@ NUCMER
     )
 
     actual = make_truth_panels(df)
-    expected = (
-        ">ref_POS=1_CALL_INTERVAL=[0,1)\nGTAG\n",
-        ">query_POS=1_CALL_INTERVAL=[0,0)\nTAG\n",
-    )
+    expected_ref = str(Probe(ProbeHeader(chrom="ref", pos=1, interval=Interval(0, 1)), full_sequence="GTAG"))
+    expected_query = str(Probe(ProbeHeader(chrom="query", pos=1, interval=Interval(0, 0)), full_sequence="TAG"))
+    expected = (str(expected_ref), str(expected_query))
 
     assert actual == expected
 
@@ -168,10 +189,9 @@ NUCMER
     )
 
     actual = make_truth_panels(df)
-    expected = (
-        ">ref_POS=10_CALL_INTERVAL=[3,4)\nAAAG\n",
-        ">query_POS=10_CALL_INTERVAL=[3,3)\nAAA\n",
-    )
+    expected_ref = str(Probe(ProbeHeader(chrom="ref", pos=10, interval=Interval(3, 4)), full_sequence="AAAG"))
+    expected_query = str(Probe(ProbeHeader(chrom="query", pos=10, interval=Interval(3, 3)), full_sequence="AAA"))
+    expected = (str(expected_ref), str(expected_query))
 
     assert actual == expected
 
@@ -193,17 +213,13 @@ NUCMER
     )
 
     actual = make_truth_panels(df)
-    expected_ref_probes = (
-        ">ref_POS=39_CALL_INTERVAL=[3,4)\nGTAGTAG\n"
-        ">ref_POS=73_CALL_INTERVAL=[3,6)\nGGATTTGAA\n"
-        ">ref_POS=79_CALL_INTERVAL=[3,4)\nGGATTGA\n"
-    )
-    expected_query_probes = (
-        ">query_POS=38_CALL_INTERVAL=[3,3)\nGTATAG\n"
-        ">query_POS=72_CALL_INTERVAL=[3,3)\nGGATGA\n"
-        ">query_POS=78_CALL_INTERVAL=[3,4)\nGGAATGA\n"
-    )
-    expected = (expected_ref_probes, expected_query_probes)
+    expected_ref = str(Probe(ProbeHeader(chrom="ref", pos=39, interval=Interval(3, 4)), full_sequence="GTAGTAG"))
+    expected_ref += "\n" + str(Probe(ProbeHeader(chrom="ref", pos=73, interval=Interval(3, 6)), full_sequence="GGATTTGAA"))
+    expected_ref += "\n" + str(Probe(ProbeHeader(chrom="ref", pos=79, interval=Interval(3, 4)), full_sequence="GGATTGA"))
+    expected_query = str(Probe(ProbeHeader(chrom="query", pos=38, interval=Interval(3, 3)), full_sequence="GTATAG"))
+    expected_query += "\n" + str(Probe(ProbeHeader(chrom="query", pos=72, interval=Interval(3, 3)), full_sequence="GGATGA"))
+    expected_query += "\n" + str(Probe(ProbeHeader(chrom="query", pos=78, interval=Interval(3, 4)), full_sequence="GGAATGA"))
+    expected = (str(expected_ref), str(expected_query))
 
     assert actual == expected
 
@@ -225,17 +241,13 @@ NUCMER
     )
 
     actual = make_truth_panels(df)
-    expected_ref_probes = (
-        ">ref_POS=39_CALL_INTERVAL=[3,4)\nGTAGTAG\n"
-        ">ref_POS=72_CALL_INTERVAL=[3,3)\nGGATGA\n"
-        ">ref_POS=79_CALL_INTERVAL=[3,4)\nGGATTGA\n"
-    )
-    expected_query_probes = (
-        ">query_POS=38_CALL_INTERVAL=[3,3)\nGTATAG\n"
-        ">query_POS=73_CALL_INTERVAL=[3,6)\nGGATTTGAA\n"
-        ">query_POS=78_CALL_INTERVAL=[3,4)\nGGAATGA\n"
-    )
-    expected = (expected_ref_probes, expected_query_probes)
+    expected_ref = str(Probe(ProbeHeader(chrom="ref", pos=39, interval=Interval(3, 4)), full_sequence="GTAGTAG"))
+    expected_ref += "\n" + str(Probe(ProbeHeader(chrom="ref", pos=72, interval=Interval(3, 3)), full_sequence="GGATGA"))
+    expected_ref += "\n" + str(Probe(ProbeHeader(chrom="ref", pos=79, interval=Interval(3, 4)), full_sequence="GGATTGA"))
+    expected_query = str(Probe(ProbeHeader(chrom="query", pos=38, interval=Interval(3, 3)), full_sequence="GTATAG"))
+    expected_query += "\n" + str(Probe(ProbeHeader(chrom="query", pos=73, interval=Interval(3, 6)), full_sequence="GGATTTGAA"))
+    expected_query += "\n" + str(Probe(ProbeHeader(chrom="query", pos=78, interval=Interval(3, 4)), full_sequence="GGAATGA"))
+    expected = (str(expected_ref), str(expected_query))
 
     assert actual == expected
 
@@ -257,17 +269,13 @@ NUCMER
     )
 
     actual = make_truth_panels(df)
-    expected_ref_probes = (
-        ">ref_POS=39_CALL_INTERVAL=[3,4)\nGTAGTAG\n"
-        ">ref_POS=72_CALL_INTERVAL=[3,6)\nGGAAGCAAA\n"
-        ">ref_POS=79_CALL_INTERVAL=[3,4)\nGGATTGA\n"
-    )
-    expected_query_probes = (
-        ">query_POS=38_CALL_INTERVAL=[3,3)\nGTATAG\n"
-        ">query_POS=73_CALL_INTERVAL=[3,6)\nGGATTTGAA\n"
-        ">query_POS=78_CALL_INTERVAL=[3,4)\nGGAATGA\n"
-    )
-    expected = (expected_ref_probes, expected_query_probes)
+    expected_ref = str(Probe(ProbeHeader(chrom="ref", pos=39, interval=Interval(3, 4)), full_sequence="GTAGTAG"))
+    expected_ref += "\n" + str(Probe(ProbeHeader(chrom="ref", pos=72, interval=Interval(3, 6)), full_sequence="GGAAGCAAA"))
+    expected_ref += "\n" + str(Probe(ProbeHeader(chrom="ref", pos=79, interval=Interval(3, 4)), full_sequence="GGATTGA"))
+    expected_query = str(Probe(ProbeHeader(chrom="query", pos=38, interval=Interval(3, 3)), full_sequence="GTATAG"))
+    expected_query += "\n" + str(Probe(ProbeHeader(chrom="query", pos=73, interval=Interval(3, 6)), full_sequence="GGATTTGAA"))
+    expected_query += "\n" + str(Probe(ProbeHeader(chrom="query", pos=78, interval=Interval(3, 4)), full_sequence="GGAATGA"))
+    expected = (str(expected_ref), str(expected_query))
 
     assert actual == expected
 
@@ -337,12 +345,12 @@ def test_assessSamRecord_incorrectSecondayAlignmentMismatchReturnsIncorrect():
     md = "MD:Z:21T21"
     mapq = 0
     pos = 5
-    query_name = "3_POS=14788_CALL_INTERVAL=[21,22)"
-    ref_name = "GC00000422_2_SAMPLE=CFT073_POS=603_CALL_INTERVAL=[25,32)_SVTYPE=PH_SNPs_MEAN_FWD_COVG=23_MEAN_REV_COVG=13_GT_CONF=89.5987"
+    query_header = ProbeHeader(chrom="3", pos=14788, interval=Interval(21, 22))
+    ref_header = ProbeHeader(chrom="GC00000422_2", sample="CFT073", pos=603, interval=Interval(25, 32), svtype="PH_SNPs", mean_fwd_covg=23, mean_rev_covg=13, gt_conf=89.5987)
     sequence = "CGCGAAAGCCCTGACCATCTGCACCGTGTCTGACCACATCCGC"
-    header = create_sam_header(ref_name, 57)
+    header = create_sam_header(str(ref_header), 57)
     record = pysam.AlignedSegment.fromstring(
-        f"{query_name}\t{flag}\t{ref_name}\t{pos}\t{mapq}\t{cigar}\t*\t0\t0\t{sequence}\t*\t{nm}\t{md}\tAS:i:43\tXS:i:32",
+        f"{query_header}\t{flag}\t{ref_header}\t{pos}\t{mapq}\t{cigar}\t*\t0\t0\t{sequence}\t*\t{nm}\t{md}\tAS:i:43\tXS:i:32",
         header,
     )
 
@@ -350,6 +358,7 @@ def test_assessSamRecord_incorrectSecondayAlignmentMismatchReturnsIncorrect():
     expected = "secondary_incorrect"
 
     assert actual == expected
+
 
 def test_assessSamRecord_correctSecondayAlignmentReturnsCorrect():
     flag = 256
@@ -371,6 +380,7 @@ def test_assessSamRecord_correctSecondayAlignmentReturnsCorrect():
     expected = "secondary_correct"
 
     assert actual == expected
+
 
 def test_assessSamRecord_incorrectPrimaryAlignmentMismatchReturnsIncorrect():
     header = create_sam_header(
