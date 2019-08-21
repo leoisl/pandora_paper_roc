@@ -1,5 +1,4 @@
 from evaluate.probe import *
-import pytest
 
 
 class TestInterval:
@@ -91,7 +90,10 @@ class TestProbeHeader:
         )
 
         assert actual == expected
-    def test_fromString_stringWithInvalidFieldReturnsProbeHeaderWithOnlyValidFields(self):
+
+    def test_fromString_stringWithInvalidFieldReturnsProbeHeaderWithOnlyValidFields(
+        self
+    ):
         string = ">CHROM=1;SAMPLE=CFT073;SVTYPE=INDEL;MEAN_FWD_COVG=2;INVALID=foo;MEAN_REV_COVG=3;GT_CONF=10.9922;"
 
         actual = ProbeHeader.from_string(string)
@@ -103,5 +105,107 @@ class TestProbeHeader:
             mean_rev_covg=3,
             gt_conf=10.9922,
         )
+
+        assert actual == expected
+
+
+class TestProbe:
+    def test_equality_twoEqualProbesReturnsTrue(self):
+        p1 = Probe(
+            ProbeHeader(sample="foo", interval=Interval(1, 2)), full_sequence="bar"
+        )
+        p2 = Probe(
+            ProbeHeader(sample="foo", interval=Interval(1, 2)), full_sequence="bar"
+        )
+
+        assert p1 == p2
+
+    def test_equality_twoNonEqualProbesReturnsFalse(self):
+        p1 = Probe(
+            ProbeHeader(sample="foo", interval=Interval(1, 2)), full_sequence="barr"
+        )
+        p2 = Probe(
+            ProbeHeader(sample="foo", interval=Interval(1, 2)), full_sequence="bar"
+        )
+
+        assert p1 != p2
+
+    def test_getLeftFlank_emptyFullSequenceReturnsEmptyFlank(self):
+        header = ProbeHeader(interval=Interval(4, 5))
+        full_sequence = ""
+        probe = Probe(header, full_sequence)
+
+        actual = probe.get_left_flank()
+        expected = ""
+
+        assert actual == expected
+
+    def test_getLeftFlank_noLeftFlankInFullSequenceReturnsEmptyFlank(self):
+        header = ProbeHeader(interval=Interval(0, 5))
+        full_sequence = "abcdefg"
+        probe = Probe(header, full_sequence)
+
+        actual = probe.get_left_flank()
+        expected = ""
+
+        assert actual == expected
+
+    def test_getLeftFlank_singleBaseLeftFlankInFullSequenceReturnsLeftFlank(self):
+        header = ProbeHeader(interval=Interval(1, 5))
+        full_sequence = "abcdefg"
+        probe = Probe(header, full_sequence)
+
+        actual = probe.get_left_flank()
+        expected = "a"
+
+        assert actual == expected
+
+    def test_getLeftFlank_multiBaseLeftFlankInFullSequenceReturnsLeftFlank(self):
+        header = ProbeHeader(interval=Interval(3, 5))
+        full_sequence = "abcdefg"
+        probe = Probe(header, full_sequence)
+
+        actual = probe.get_left_flank()
+        expected = "abc"
+
+        assert actual == expected
+
+    def test_getRightFlank_emptyFullSequenceReturnsEmptyFlank(self):
+        header = ProbeHeader(interval=Interval(4, 5))
+        full_sequence = ""
+        probe = Probe(header, full_sequence)
+
+        actual = probe.get_right_flank()
+        expected = ""
+
+        assert actual == expected
+
+    def test_getRightFlank_noRightFlankInFullSequenceReturnsEmptyFlank(self):
+        header = ProbeHeader(interval=Interval(2, 7))
+        full_sequence = "abcdefg"
+        probe = Probe(header, full_sequence)
+
+        actual = probe.get_right_flank()
+        expected = ""
+
+        assert actual == expected
+
+    def test_getRightFlank_singleBaseRightFlankInFullSequenceReturnsRightFlank(self):
+        header = ProbeHeader(interval=Interval(1, 6))
+        full_sequence = "abcdefg"
+        probe = Probe(header, full_sequence)
+
+        actual = probe.get_right_flank()
+        expected = "g"
+
+        assert actual == expected
+
+    def test_getRightFlank_multiBaseRightFlankInFullSequenceReturnsRightFlank(self):
+        header = ProbeHeader(interval=Interval(3, 4))
+        full_sequence = "abcdefg"
+        probe = Probe(header, full_sequence)
+
+        actual = probe.get_right_flank()
+        expected = "efg"
 
         assert actual == expected

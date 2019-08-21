@@ -87,40 +87,22 @@ class ProbeHeader:
 
 
 class Probe:
-    def __init__(
-        self,
-        sample: str = "",
-        chrom: str = "",
-        pos: int = 0,
-        interval: Interval = Interval(),
-        svtype: str = "",
-        mean_fwd_covg: int = 0,
-        mean_rev_covg: int = 0,
-        gt_conf: float = 0,
-        full_sequence: str = "",
-    ):
-        self.chrom = chrom
-        self.sample = sample
-        self.pos = pos
-        self.interval = interval
-        self.svtype = svtype
-        self.mean_fwd_covg = mean_fwd_covg
-        self.mean_rev_covg = mean_rev_covg
-        self.gt_conf = gt_conf
+    def __init__(self, header: ProbeHeader = ProbeHeader(), full_sequence: str = ""):
+        self.header = header
         self.full_sequence = full_sequence
 
     def __eq__(self, other: "Probe"):
-        return (
-            self.chrom == other.chrom
-            and self.sample == other.sample
-            and self.pos == other.pos
-            and self.interval == other.interval
-            and self.svtype == other.svtype
-            and self.mean_fwd_covg == other.mean_fwd_covg
-            and self.mean_rev_covg == other.mean_rev_covg
-            and self.gt_conf == other.gt_conf
-            and self.full_sequence == other.full_sequence
-        )
+        return self.header == other.header and self.full_sequence == other.full_sequence
+
+    def get_left_flank(self) -> str:
+        end = self.header.interval.start
+
+        return self.full_sequence[:end]
+
+    def get_right_flank(self) -> str:
+        start = self.header.interval.end
+
+        return self.full_sequence[start:]
 
     @staticmethod
     def from_string(string: str) -> "Probe":
