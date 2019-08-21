@@ -1,4 +1,5 @@
 from evaluate.probe import *
+import pytest
 
 
 class TestInterval:
@@ -207,5 +208,79 @@ class TestProbe:
 
         actual = probe.get_right_flank()
         expected = "efg"
+
+        assert actual == expected
+
+    def test_getCoreSequence_emptyFullSequenceReturnsEmptyString(self):
+        header = ProbeHeader(interval=Interval(3, 4))
+        full_sequence = ""
+        probe = Probe(header, full_sequence)
+
+        actual = probe.get_core_sequence()
+        expected = ""
+
+        assert actual == expected
+
+    def test_getCoreSequence_intervalForDeletionReturnsEmptyString(self):
+        header = ProbeHeader(interval=Interval(3, 3))
+        full_sequence = "abcdefg"
+        probe = Probe(header, full_sequence)
+
+        actual = probe.get_core_sequence()
+        expected = ""
+
+        assert actual == expected
+
+    def test_getCoreSequence_intervalForSingleBaseReturnsSingleBase(self):
+        header = ProbeHeader(interval=Interval(3, 4))
+        full_sequence = "abcdefg"
+        probe = Probe(header, full_sequence)
+
+        actual = probe.get_core_sequence()
+        expected = "d"
+
+        assert actual == expected
+
+    def test_getCoreSequence_intervalForSingleBaseAtStartOfSequenceReturnsSingleBase(
+        self
+    ):
+        header = ProbeHeader(interval=Interval(0, 1))
+        full_sequence = "abcdefg"
+        probe = Probe(header, full_sequence)
+
+        actual = probe.get_core_sequence()
+        expected = "a"
+
+        assert actual == expected
+
+    def test_getCoreSequence_intervalForSingleBaseAtEndOfSequenceReturnsSingleBase(
+        self
+    ):
+        header = ProbeHeader(interval=Interval(6, 7))
+        full_sequence = "abcdefg"
+        probe = Probe(header, full_sequence)
+
+        actual = probe.get_core_sequence()
+        expected = "g"
+
+        assert actual == expected
+
+    def test_getCoreSequence_intervalForMultiBaseSequenceReturnsMultiBase(self):
+        header = ProbeHeader(interval=Interval(2, 5))
+        full_sequence = "abcdefg"
+        probe = Probe(header, full_sequence)
+
+        actual = probe.get_core_sequence()
+        expected = "cde"
+
+        assert actual == expected
+
+    def test_getCoreSequence_intervalOutOfRangeReturnsEmptyString(self):
+        header = ProbeHeader(interval=Interval(8, 9))
+        full_sequence = "abcdefg"
+        probe = Probe(header, full_sequence)
+
+        actual = probe.get_core_sequence()
+        expected = ""
 
         assert actual == expected

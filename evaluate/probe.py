@@ -104,6 +104,9 @@ class Probe:
 
         return self.full_sequence[start:]
 
+    def get_core_sequence(self) -> str:
+        return self.full_sequence[slice(*self.header.interval)]
+
     @staticmethod
     def from_string(string: str) -> "Probe":
         if not string:
