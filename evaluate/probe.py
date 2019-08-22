@@ -123,19 +123,23 @@ class Probe:
 
         return f"{header}\n{self.full_sequence}"
 
-    def get_left_flank(self) -> str:
+    @property
+    def left_flank(self) -> str:
         end = self.header.interval.start
 
         return self.full_sequence[:end]
 
-    def get_right_flank(self) -> str:
+    @property
+    def right_flank(self) -> str:
         start = self.header.interval.end
 
         return self.full_sequence[start:]
 
-    def get_core_sequence(self) -> str:
+    @property
+    def core_sequence(self) -> str:
         return self.full_sequence[slice(*self.header.interval)]
 
+    @property
     def gt_conf(self) -> float:
         return self.header.gt_conf
 

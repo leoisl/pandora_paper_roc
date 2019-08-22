@@ -210,7 +210,7 @@ class TestProbe:
         full_sequence = ""
         probe = Probe(header, full_sequence)
 
-        actual = probe.get_left_flank()
+        actual = probe.left_flank
         expected = ""
 
         assert actual == expected
@@ -220,7 +220,7 @@ class TestProbe:
         full_sequence = "abcdefg"
         probe = Probe(header, full_sequence)
 
-        actual = probe.get_left_flank()
+        actual = probe.left_flank
         expected = ""
 
         assert actual == expected
@@ -230,7 +230,7 @@ class TestProbe:
         full_sequence = "abcdefg"
         probe = Probe(header, full_sequence)
 
-        actual = probe.get_left_flank()
+        actual = probe.left_flank
         expected = "a"
 
         assert actual == expected
@@ -240,7 +240,7 @@ class TestProbe:
         full_sequence = "abcdefg"
         probe = Probe(header, full_sequence)
 
-        actual = probe.get_left_flank()
+        actual = probe.left_flank
         expected = "abc"
 
         assert actual == expected
@@ -250,7 +250,7 @@ class TestProbe:
         full_sequence = ""
         probe = Probe(header, full_sequence)
 
-        actual = probe.get_right_flank()
+        actual = probe.right_flank
         expected = ""
 
         assert actual == expected
@@ -260,7 +260,7 @@ class TestProbe:
         full_sequence = "abcdefg"
         probe = Probe(header, full_sequence)
 
-        actual = probe.get_right_flank()
+        actual = probe.right_flank
         expected = ""
 
         assert actual == expected
@@ -270,7 +270,7 @@ class TestProbe:
         full_sequence = "abcdefg"
         probe = Probe(header, full_sequence)
 
-        actual = probe.get_right_flank()
+        actual = probe.right_flank
         expected = "g"
 
         assert actual == expected
@@ -280,7 +280,7 @@ class TestProbe:
         full_sequence = "abcdefg"
         probe = Probe(header, full_sequence)
 
-        actual = probe.get_right_flank()
+        actual = probe.right_flank
         expected = "efg"
 
         assert actual == expected
@@ -290,7 +290,7 @@ class TestProbe:
         full_sequence = ""
         probe = Probe(header, full_sequence)
 
-        actual = probe.get_core_sequence()
+        actual = probe.core_sequence
         expected = ""
 
         assert actual == expected
@@ -300,7 +300,7 @@ class TestProbe:
         full_sequence = "abcdefg"
         probe = Probe(header, full_sequence)
 
-        actual = probe.get_core_sequence()
+        actual = probe.core_sequence
         expected = ""
 
         assert actual == expected
@@ -310,7 +310,7 @@ class TestProbe:
         full_sequence = "abcdefg"
         probe = Probe(header, full_sequence)
 
-        actual = probe.get_core_sequence()
+        actual = probe.core_sequence
         expected = "d"
 
         assert actual == expected
@@ -322,7 +322,7 @@ class TestProbe:
         full_sequence = "abcdefg"
         probe = Probe(header, full_sequence)
 
-        actual = probe.get_core_sequence()
+        actual = probe.core_sequence
         expected = "a"
 
         assert actual == expected
@@ -334,7 +334,7 @@ class TestProbe:
         full_sequence = "abcdefg"
         probe = Probe(header, full_sequence)
 
-        actual = probe.get_core_sequence()
+        actual = probe.core_sequence
         expected = "g"
 
         assert actual == expected
@@ -344,7 +344,7 @@ class TestProbe:
         full_sequence = "abcdefg"
         probe = Probe(header, full_sequence)
 
-        actual = probe.get_core_sequence()
+        actual = probe.core_sequence
         expected = "cde"
 
         assert actual == expected
@@ -354,7 +354,7 @@ class TestProbe:
         full_sequence = "abcdefg"
         probe = Probe(header, full_sequence)
 
-        actual = probe.get_core_sequence()
+        actual = probe.core_sequence
         expected = ""
 
         assert actual == expected

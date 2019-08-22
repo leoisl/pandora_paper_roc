@@ -84,28 +84,6 @@ class DeltaFilter:
         )
 
 
-class ShowSNPsDataframe (pd.DataFrame):
-    @property
-    def _constructor(self):
-        return ShowSNPsDataframe
-
-    def translate_to_FWD_strand(self):
-        def fix_position(position, strand_aln, length):
-            if strand_aln == 1:
-                return position
-            else:
-                return length - position + 1
-
-        def translate_to_FWD_strand_core(line):
-            line.ref_pos = fix_position(line.ref_pos, line.ref_strand, line.ref_len)
-            line.ref_strand = 1
-            line.query_pos = fix_position(line.query_pos, line.query_strand, line.query_len)
-            line.query_strand = 1
-            return line
-
-        return self.apply(translate_to_FWD_strand_core, axis=1)
-
-
 class ShowSnps:
     def __init__(
         self,
@@ -173,11 +151,84 @@ class ShowSnps:
             "query_chrom": str,
         }
         names = list(cols.keys())
-        return ShowSNPsDataframe(pd.read_csv(
-            snps,
-            sep="\t",
-            skiprows=4,
-            index_col=False,
-            names=names,
-            dtype=cols,
-        ))
+        return ShowSNPsDataframe(
+            pd.read_csv(
+                snps, sep="\t", skiprows=4, index_col=False, names=names, dtype=cols
+            )
+        )
+
+
+class ShowSNPsDataframe(pd.DataFrame):
+    @property
+    def _constructor(self):
+        return ShowSNPsDataframe
+
+    def translate_to_FWD_strand(self):
+        def fix_position(position, strand_aln, length):
+            if strand_aln == 1:
+                return position
+            else:
+                return length - position + 1
+
+        def translate_to_FWD_strand_core(line):
+            line.ref_pos = fix_position(line.ref_pos, line.ref_strand, line.ref_len)
+            line.ref_strand = 1
+            line.query_pos = fix_position(
+                line.query_pos, line.query_strand, line.query_len
+            )
+            line.query_strand = 1
+            return line
+
+        return self.apply(translate_to_FWD_strand_core, axis=1)
+
+
+def make_truth_panels(snps_df: pd.DataFrame) -> Tuple[str, str]:
+    ref_probes: List[str] = []
+    query_probes: List[str] = []
+
+    idxs = arg_ranges(snps_df.ref_pos.tolist())
+
+    for start, stop in idxs:
+        consecutive_positions = snps_df.iloc[slice(start, stop)]
+        ref_probe, query_probe = probes_from_consecutive_dataframe(
+            consecutive_positions
+        )
+        ref_probes.append(str(ref_probe))
+        query_probes.append(str(query_probe))
+
+    return (
+        "\n".join(probe for probe in ref_probes if probe),
+        "\n".join(probe for probe in query_probes if probe),
+    )
+
+
+def probes_from_consecutive_dataframe(df: pd.DataFrame) -> Tuple[Probe, Probe]:
+    first_row = df.iloc[0]
+    flank_width = int((len(first_row.ref_context) - 1) / 2)
+    ref_sub = "".join(df.ref_sub).replace(".", "")
+    ref_left_flank = first_row.ref_context[0:flank_width].replace("-", "")
+    ref_right_flank = df.iloc[-1].ref_context[flank_width + 1 :].replace("-", "")
+    call_start_idx = max(0, len(ref_left_flank))
+    call_end_idx = call_start_idx + len(ref_sub)
+    ref_header = ProbeHeader(
+        chrom=first_row.ref_chrom,
+        pos=first_row.ref_pos,
+        interval=Interval(call_start_idx, call_end_idx),
+    )
+    ref_sequence = ref_left_flank + ref_sub + ref_right_flank
+    ref_probe = Probe(header=ref_header, full_sequence=ref_sequence)
+
+    query_sub = "".join(df.query_sub).replace(".", "")
+    query_left_flank = first_row.query_context[0:flank_width].replace("-", "")
+    query_right_flank = df.iloc[-1].query_context[flank_width + 1 :].replace("-", "")
+    call_start_idx = max(0, len(query_left_flank))
+    call_end_idx = call_start_idx + len(query_sub)
+    query_header = ProbeHeader(
+        chrom=first_row.query_chrom,
+        pos=first_row.query_pos,
+        interval=Interval(call_start_idx, call_end_idx),
+    )
+    query_sequence = query_left_flank + query_sub + query_right_flank
+    query_probe = Probe(header=query_header, full_sequence=query_sequence)
+
+    return ref_probe, query_probe

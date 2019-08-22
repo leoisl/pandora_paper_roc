@@ -129,8 +129,18 @@ NUCMER
     )
 
     actual = make_truth_panels(df)
-    expected_ref = str(Probe(ProbeHeader(chrom="ref", pos=2, interval=Interval(1, 2)), full_sequence="AGTAG"))
-    expected_query = str(Probe(ProbeHeader(chrom="query", pos=3, interval=Interval(2, 2)), full_sequence="TATAG"))
+    expected_ref = str(
+        Probe(
+            ProbeHeader(chrom="ref", pos=2, interval=Interval(1, 2)),
+            full_sequence="AGTAG",
+        )
+    )
+    expected_query = str(
+        Probe(
+            ProbeHeader(chrom="query", pos=3, interval=Interval(2, 2)),
+            full_sequence="TATAG",
+        )
+    )
     expected = (str(expected_ref), str(expected_query))
 
     assert actual == expected
@@ -149,8 +159,18 @@ NUCMER
     )
 
     actual = make_truth_panels(df)
-    expected_ref = str(Probe(ProbeHeader(chrom="ref", pos=12, interval=Interval(3, 4)), full_sequence="AAAGTA"))
-    expected_query = str(Probe(ProbeHeader(chrom="query", pos=13, interval=Interval(3, 3)), full_sequence="ATAT"))
+    expected_ref = str(
+        Probe(
+            ProbeHeader(chrom="ref", pos=12, interval=Interval(3, 4)),
+            full_sequence="AAAGTA",
+        )
+    )
+    expected_query = str(
+        Probe(
+            ProbeHeader(chrom="query", pos=13, interval=Interval(3, 3)),
+            full_sequence="ATAT",
+        )
+    )
     expected = (str(expected_ref), str(expected_query))
 
     assert actual == expected
@@ -169,8 +189,18 @@ NUCMER
     )
 
     actual = make_truth_panels(df)
-    expected_ref = str(Probe(ProbeHeader(chrom="ref", pos=1, interval=Interval(0, 1)), full_sequence="GTAG"))
-    expected_query = str(Probe(ProbeHeader(chrom="query", pos=1, interval=Interval(0, 0)), full_sequence="TAG"))
+    expected_ref = str(
+        Probe(
+            ProbeHeader(chrom="ref", pos=1, interval=Interval(0, 1)),
+            full_sequence="GTAG",
+        )
+    )
+    expected_query = str(
+        Probe(
+            ProbeHeader(chrom="query", pos=1, interval=Interval(0, 0)),
+            full_sequence="TAG",
+        )
+    )
     expected = (str(expected_ref), str(expected_query))
 
     assert actual == expected
@@ -189,8 +219,18 @@ NUCMER
     )
 
     actual = make_truth_panels(df)
-    expected_ref = str(Probe(ProbeHeader(chrom="ref", pos=10, interval=Interval(3, 4)), full_sequence="AAAG"))
-    expected_query = str(Probe(ProbeHeader(chrom="query", pos=10, interval=Interval(3, 3)), full_sequence="AAA"))
+    expected_ref = str(
+        Probe(
+            ProbeHeader(chrom="ref", pos=10, interval=Interval(3, 4)),
+            full_sequence="AAAG",
+        )
+    )
+    expected_query = str(
+        Probe(
+            ProbeHeader(chrom="query", pos=10, interval=Interval(3, 3)),
+            full_sequence="AAA",
+        )
+    )
     expected = (str(expected_ref), str(expected_query))
 
     assert actual == expected
@@ -213,12 +253,42 @@ NUCMER
     )
 
     actual = make_truth_panels(df)
-    expected_ref = str(Probe(ProbeHeader(chrom="ref", pos=39, interval=Interval(3, 4)), full_sequence="GTAGTAG"))
-    expected_ref += "\n" + str(Probe(ProbeHeader(chrom="ref", pos=73, interval=Interval(3, 6)), full_sequence="GGATTTGAA"))
-    expected_ref += "\n" + str(Probe(ProbeHeader(chrom="ref", pos=79, interval=Interval(3, 4)), full_sequence="GGATTGA"))
-    expected_query = str(Probe(ProbeHeader(chrom="query", pos=38, interval=Interval(3, 3)), full_sequence="GTATAG"))
-    expected_query += "\n" + str(Probe(ProbeHeader(chrom="query", pos=72, interval=Interval(3, 3)), full_sequence="GGATGA"))
-    expected_query += "\n" + str(Probe(ProbeHeader(chrom="query", pos=78, interval=Interval(3, 4)), full_sequence="GGAATGA"))
+    expected_ref = str(
+        Probe(
+            ProbeHeader(chrom="ref", pos=39, interval=Interval(3, 4)),
+            full_sequence="GTAGTAG",
+        )
+    )
+    expected_ref += "\n" + str(
+        Probe(
+            ProbeHeader(chrom="ref", pos=73, interval=Interval(3, 6)),
+            full_sequence="GGATTTGAA",
+        )
+    )
+    expected_ref += "\n" + str(
+        Probe(
+            ProbeHeader(chrom="ref", pos=79, interval=Interval(3, 4)),
+            full_sequence="GGATTGA",
+        )
+    )
+    expected_query = str(
+        Probe(
+            ProbeHeader(chrom="query", pos=38, interval=Interval(3, 3)),
+            full_sequence="GTATAG",
+        )
+    )
+    expected_query += "\n" + str(
+        Probe(
+            ProbeHeader(chrom="query", pos=72, interval=Interval(3, 3)),
+            full_sequence="GGATGA",
+        )
+    )
+    expected_query += "\n" + str(
+        Probe(
+            ProbeHeader(chrom="query", pos=78, interval=Interval(3, 4)),
+            full_sequence="GGAATGA",
+        )
+    )
     expected = (str(expected_ref), str(expected_query))
 
     assert actual == expected
@@ -241,12 +311,42 @@ NUCMER
     )
 
     actual = make_truth_panels(df)
-    expected_ref = str(Probe(ProbeHeader(chrom="ref", pos=39, interval=Interval(3, 4)), full_sequence="GTAGTAG"))
-    expected_ref += "\n" + str(Probe(ProbeHeader(chrom="ref", pos=72, interval=Interval(3, 3)), full_sequence="GGATGA"))
-    expected_ref += "\n" + str(Probe(ProbeHeader(chrom="ref", pos=79, interval=Interval(3, 4)), full_sequence="GGATTGA"))
-    expected_query = str(Probe(ProbeHeader(chrom="query", pos=38, interval=Interval(3, 3)), full_sequence="GTATAG"))
-    expected_query += "\n" + str(Probe(ProbeHeader(chrom="query", pos=73, interval=Interval(3, 6)), full_sequence="GGATTTGAA"))
-    expected_query += "\n" + str(Probe(ProbeHeader(chrom="query", pos=78, interval=Interval(3, 4)), full_sequence="GGAATGA"))
+    expected_ref = str(
+        Probe(
+            ProbeHeader(chrom="ref", pos=39, interval=Interval(3, 4)),
+            full_sequence="GTAGTAG",
+        )
+    )
+    expected_ref += "\n" + str(
+        Probe(
+            ProbeHeader(chrom="ref", pos=72, interval=Interval(3, 3)),
+            full_sequence="GGATGA",
+        )
+    )
+    expected_ref += "\n" + str(
+        Probe(
+            ProbeHeader(chrom="ref", pos=79, interval=Interval(3, 4)),
+            full_sequence="GGATTGA",
+        )
+    )
+    expected_query = str(
+        Probe(
+            ProbeHeader(chrom="query", pos=38, interval=Interval(3, 3)),
+            full_sequence="GTATAG",
+        )
+    )
+    expected_query += "\n" + str(
+        Probe(
+            ProbeHeader(chrom="query", pos=73, interval=Interval(3, 6)),
+            full_sequence="GGATTTGAA",
+        )
+    )
+    expected_query += "\n" + str(
+        Probe(
+            ProbeHeader(chrom="query", pos=78, interval=Interval(3, 4)),
+            full_sequence="GGAATGA",
+        )
+    )
     expected = (str(expected_ref), str(expected_query))
 
     assert actual == expected
@@ -269,12 +369,42 @@ NUCMER
     )
 
     actual = make_truth_panels(df)
-    expected_ref = str(Probe(ProbeHeader(chrom="ref", pos=39, interval=Interval(3, 4)), full_sequence="GTAGTAG"))
-    expected_ref += "\n" + str(Probe(ProbeHeader(chrom="ref", pos=72, interval=Interval(3, 6)), full_sequence="GGAAGCAAA"))
-    expected_ref += "\n" + str(Probe(ProbeHeader(chrom="ref", pos=79, interval=Interval(3, 4)), full_sequence="GGATTGA"))
-    expected_query = str(Probe(ProbeHeader(chrom="query", pos=38, interval=Interval(3, 3)), full_sequence="GTATAG"))
-    expected_query += "\n" + str(Probe(ProbeHeader(chrom="query", pos=73, interval=Interval(3, 6)), full_sequence="GGATTTGAA"))
-    expected_query += "\n" + str(Probe(ProbeHeader(chrom="query", pos=78, interval=Interval(3, 4)), full_sequence="GGAATGA"))
+    expected_ref = str(
+        Probe(
+            ProbeHeader(chrom="ref", pos=39, interval=Interval(3, 4)),
+            full_sequence="GTAGTAG",
+        )
+    )
+    expected_ref += "\n" + str(
+        Probe(
+            ProbeHeader(chrom="ref", pos=72, interval=Interval(3, 6)),
+            full_sequence="GGAAGCAAA",
+        )
+    )
+    expected_ref += "\n" + str(
+        Probe(
+            ProbeHeader(chrom="ref", pos=79, interval=Interval(3, 4)),
+            full_sequence="GGATTGA",
+        )
+    )
+    expected_query = str(
+        Probe(
+            ProbeHeader(chrom="query", pos=38, interval=Interval(3, 3)),
+            full_sequence="GTATAG",
+        )
+    )
+    expected_query += "\n" + str(
+        Probe(
+            ProbeHeader(chrom="query", pos=73, interval=Interval(3, 6)),
+            full_sequence="GGATTTGAA",
+        )
+    )
+    expected_query += "\n" + str(
+        Probe(
+            ProbeHeader(chrom="query", pos=78, interval=Interval(3, 4)),
+            full_sequence="GGAATGA",
+        )
+    )
     expected = (str(expected_ref), str(expected_query))
 
     assert actual == expected
@@ -346,7 +476,16 @@ def test_assessSamRecord_incorrectSecondayAlignmentMismatchReturnsIncorrect():
     mapq = 0
     pos = 5
     query_header = ProbeHeader(chrom="3", pos=14788, interval=Interval(21, 22))
-    ref_header = ProbeHeader(chrom="GC00000422_2", sample="CFT073", pos=603, interval=Interval(25, 32), svtype="PH_SNPs", mean_fwd_covg=23, mean_rev_covg=13, gt_conf=89.5987)
+    ref_header = ProbeHeader(
+        chrom="GC00000422_2",
+        sample="CFT073",
+        pos=603,
+        interval=Interval(25, 32),
+        svtype="PH_SNPs",
+        mean_fwd_covg=23,
+        mean_rev_covg=13,
+        gt_conf=89.5987,
+    )
     sequence = "CGCGAAAGCCCTGACCATCTGCACCGTGTCTGACCACATCCGC"
     header = create_sam_header(str(ref_header), 57)
     record = pysam.AlignedSegment.fromstring(
