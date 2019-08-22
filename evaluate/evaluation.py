@@ -93,7 +93,7 @@ def assess_sam_record(record: pysam.AlignedSegment) -> str:
     elif not whole_probe_maps(record):
         assessment = "partially_mapped"
     elif record.is_secondary:
-        is_correct = do_probes_match(record)
+        is_correct = probes_match(record)
         assessment = "seconday_correct" if is_correct else "secondary_incorrect"
 
     return assessment
@@ -113,21 +113,30 @@ def whole_probe_maps(record: pysam.AlignedSegment) -> bool:
     return True
 
 
-def do_probes_match(record: pysam.AlignedSegment) -> bool:
+def probes_match(record: pysam.AlignedSegment) -> bool:
     truth_probe_header = ProbeHeader.from_string(record.query_name)
     truth_probe = Probe(header=truth_probe_header, full_sequence=record.query_sequence)
     truth = truth_probe.core_sequence
-
-    vcf_probe_header = ProbeHeader.from_string(record.reference_name)
-    ref_len = record.header.get_reference_length(record.reference_name)
-
-    # todo: code up written down solution
-
+    within_probe = False
+    ref_seq = ""
+    # todo: do this more succinctly
     for query_pos, ref_pos, ref_base in record.get_aligned_pairs(with_seq=True):
-        if query_pos == REF_PANEL_FLANK_WIDTH:
-            return truth == ref_base
+        if query_pos is not None and query_pos == truth_probe.interval.start:
+            within_probe = True
+        elif query_pos is not None and query_pos == truth_probe.interval.end - 1:
+            if ref_base is None:
+                return False
+            else:
+                ref_seq += ref_base
+            break
 
-    return False
+        if within_probe:
+            if ref_base is None:
+                return False
+            else:
+                ref_seq += ref_base
+
+    return ref_seq == truth
 
 
 def main():

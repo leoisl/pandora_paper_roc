@@ -137,7 +137,11 @@ class Probe:
 
     @property
     def core_sequence(self) -> str:
-        return self.full_sequence[slice(*self.header.interval)]
+        return self.full_sequence[slice(*self.interval)]
+
+    @property
+    def interval(self) -> Interval:
+        return self.header.interval
 
     @property
     def gt_conf(self) -> float:

@@ -168,6 +168,7 @@ class TestProbe:
         expected = ""
 
         assert actual == expected
+
     def test_str_emptyFullSequenceReturnsHeaderWithNewline(self):
         probe = Probe(ProbeHeader(chrom="3"))
 
@@ -175,6 +176,7 @@ class TestProbe:
         expected = ">CHROM=3;\n"
 
         assert actual == expected
+
     def test_str_fullProbeReturnsHeaderAndSequence(self):
         probe = Probe(ProbeHeader(pos=4, chrom="3"), full_sequence="foo")
 
@@ -400,5 +402,13 @@ class TestProbe:
 
         actual = probe.gt_conf
         expected = 5.5
+
+        assert actual == expected
+
+    def test_interval(self):
+        probe = Probe(header=ProbeHeader(interval=Interval(4, 6)))
+
+        actual = probe.interval
+        expected = Interval(4, 6)
 
         assert actual == expected
