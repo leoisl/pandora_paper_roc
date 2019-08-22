@@ -3,14 +3,14 @@ from io import StringIO
 from pathlib import Path
 from typing import Tuple, Dict, List
 
-import pandas as pd
 import pysam
+
 from bwa import BWA
 from cli import cli
 from mummer import Nucmer, DeltaFilter, ShowSnps
+from probe import ProbeHeader, Probe
 from query import Query
-from utils import strip_extensions, arg_ranges
-from probe import ProbeHeader, Probe, Interval
+from utils import strip_extensions
 
 
 def generate_mummer_snps(
@@ -131,7 +131,7 @@ def main():
     )
     snps_df = ShowSnps.to_dataframe(mummer_snps)
     logging.info("Making truth probesets.")
-    query1_truth_probes, query2_truth_probes = make_truth_panels(snps_df)
+    query1_truth_probes, query2_truth_probes = snps_df.get_probes()
 
     query1_truth_probes_path: Path = args.temp / f"{query1_name}.truth_probes.fa"
     query2_truth_probes_path: Path = args.temp / f"{query2_name}.truth_probes.fa"

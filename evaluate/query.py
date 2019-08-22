@@ -4,7 +4,7 @@ from typing import Tuple, List, Dict
 
 import pysam
 
-from evaluate.probe import ProbeHeader, Probe, Interval
+from probe import ProbeHeader, Probe, Interval
 
 
 class OverlappingRecordsError(Exception):

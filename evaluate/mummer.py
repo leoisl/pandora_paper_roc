@@ -2,9 +2,11 @@
 import logging
 import subprocess
 from pathlib import Path
-from typing import List, TextIO
+from typing import List, TextIO, Tuple
 
 import pandas as pd
+from probe import Probe, ProbeHeader, Interval
+from utils import arg_ranges
 
 
 class NucmerError(Exception):
@@ -131,7 +133,7 @@ class ShowSnps:
         )
 
     @staticmethod
-    def to_dataframe(snps: TextIO) -> ShowSNPsDataframe:
+    def to_dataframe(snps: TextIO) -> "ShowSNPsDataframe":
         """Note: this method is not general. i.e it is only setup at the moment to
         parse a show-snps file where the options used were -rlTC and -x"""
         cols = {
@@ -181,54 +183,44 @@ class ShowSNPsDataframe(pd.DataFrame):
 
         return self.apply(translate_to_FWD_strand_core, axis=1)
 
+    def get_probes(self) -> Tuple[str, str]:
+        ref_probes = []
+        query_probes = []
+        merged_indices = arg_ranges(self.ref_pos.tolist())
 
-def make_truth_panels(snps_df: pd.DataFrame) -> Tuple[str, str]:
-    ref_probes: List[str] = []
-    query_probes: List[str] = []
+        for interval in merged_indices:
+            ref_probe, query_probe = self.probes_for_interval(interval)
+            ref_probes.append(str(ref_probe))
+            query_probes.append(str(query_probe))
 
-    idxs = arg_ranges(snps_df.ref_pos.tolist())
-
-    for start, stop in idxs:
-        consecutive_positions = snps_df.iloc[slice(start, stop)]
-        ref_probe, query_probe = probes_from_consecutive_dataframe(
-            consecutive_positions
+        return (
+            "\n".join(probe for probe in ref_probes if probe),
+            "\n".join(probe for probe in query_probes if probe),
         )
-        ref_probes.append(str(ref_probe))
-        query_probes.append(str(query_probe))
 
-    return (
-        "\n".join(probe for probe in ref_probes if probe),
-        "\n".join(probe for probe in query_probes if probe),
-    )
+    def probes_for_interval(self, interval: Tuple[int, int]) -> Tuple[Probe, ...]:
+        probes = []
+        probe_prefixes = ["ref", "query"]
+        consecutive_positions = self.iloc[slice(*interval)]
+        first_row = consecutive_positions.iloc[0]
+        flank_width = int((len(first_row[f"{probe_prefixes[0]}_context"]) - 1) / 2)
 
+        for prefix in probe_prefixes:
+            core_sequence = "".join(consecutive_positions[f"{prefix}_sub"]).replace(
+                ".", ""
+            )
+            left_flank = first_row[f"{prefix}_context"][:flank_width].replace("-", "")
+            right_flank = consecutive_positions.iloc[-1][f"{prefix}_context"][
+                flank_width + 1 :
+            ].replace("-", "")
+            call_start_idx = max(0, len(left_flank))
+            call_end_idx = call_start_idx + len(core_sequence)
+            header = ProbeHeader(
+                chrom=first_row[f"{prefix}_chrom"],
+                pos=first_row[f"{prefix}_pos"],
+                interval=Interval(call_start_idx, call_end_idx),
+            )
+            full_sequence = left_flank + core_sequence + right_flank
+            probes.append(Probe(header=header, full_sequence=full_sequence))
 
-def probes_from_consecutive_dataframe(df: pd.DataFrame) -> Tuple[Probe, Probe]:
-    first_row = df.iloc[0]
-    flank_width = int((len(first_row.ref_context) - 1) / 2)
-    ref_sub = "".join(df.ref_sub).replace(".", "")
-    ref_left_flank = first_row.ref_context[0:flank_width].replace("-", "")
-    ref_right_flank = df.iloc[-1].ref_context[flank_width + 1 :].replace("-", "")
-    call_start_idx = max(0, len(ref_left_flank))
-    call_end_idx = call_start_idx + len(ref_sub)
-    ref_header = ProbeHeader(
-        chrom=first_row.ref_chrom,
-        pos=first_row.ref_pos,
-        interval=Interval(call_start_idx, call_end_idx),
-    )
-    ref_sequence = ref_left_flank + ref_sub + ref_right_flank
-    ref_probe = Probe(header=ref_header, full_sequence=ref_sequence)
-
-    query_sub = "".join(df.query_sub).replace(".", "")
-    query_left_flank = first_row.query_context[0:flank_width].replace("-", "")
-    query_right_flank = df.iloc[-1].query_context[flank_width + 1 :].replace("-", "")
-    call_start_idx = max(0, len(query_left_flank))
-    call_end_idx = call_start_idx + len(query_sub)
-    query_header = ProbeHeader(
-        chrom=first_row.query_chrom,
-        pos=first_row.query_pos,
-        interval=Interval(call_start_idx, call_end_idx),
-    )
-    query_sequence = query_left_flank + query_sub + query_right_flank
-    query_probe = Probe(header=query_header, full_sequence=query_sequence)
-
-    return ref_probe, query_probe
+        return tuple(probes)
