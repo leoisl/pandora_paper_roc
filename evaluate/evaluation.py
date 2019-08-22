@@ -5,12 +5,12 @@ from typing import Tuple, Dict, List
 
 import pysam
 
-from bwa import BWA
-from cli import cli
-from mummer import Nucmer, DeltaFilter, ShowSnps
-from probe import ProbeHeader, Probe
-from query import Query
-from utils import strip_extensions
+from .bwa import BWA
+from .cli import cli
+from .mummer import Nucmer, DeltaFilter, ShowSnps
+from .probe import ProbeHeader, Probe
+from .query import Query
+from .utils import strip_extensions
 
 
 def generate_mummer_snps(
@@ -57,8 +57,6 @@ def generate_mummer_snps(
     return StringIO(showsnps_content)
 
 
-
-
 def write_vcf_probes_to_file(
     vcf_probes: Dict[str, str], query_name: str, tempdir: Path
 ) -> Path:
@@ -92,11 +90,27 @@ def assess_sam_record(record: pysam.AlignedSegment) -> str:
 
     if record.is_unmapped:
         assessment = "unmapped"
+    elif not whole_probe_maps(record):
+        assessment = "partially_mapped"
     elif record.is_secondary:
         is_correct = do_probes_match(record)
         assessment = "seconday_correct" if is_correct else "secondary_incorrect"
 
     return assessment
+
+
+def whole_probe_maps(record: pysam.AlignedSegment) -> bool:
+    if record.is_unmapped:
+        return False
+
+    truth_interval = ProbeHeader.from_string(record.query_name).interval
+    truth_starts_before_alignment = truth_interval.start < record.query_alignment_start
+    truth_ends_after_alignment = truth_interval.end > record.query_alignment_end
+
+    if truth_starts_before_alignment or truth_ends_after_alignment:
+        return False
+
+    return True
 
 
 def do_probes_match(record: pysam.AlignedSegment) -> bool:
@@ -108,7 +122,6 @@ def do_probes_match(record: pysam.AlignedSegment) -> bool:
     ref_len = record.header.get_reference_length(record.reference_name)
 
     # todo: code up written down solution
-
 
     for query_pos, ref_pos, ref_base in record.get_aligned_pairs(with_seq=True):
         if query_pos == REF_PANEL_FLANK_WIDTH:

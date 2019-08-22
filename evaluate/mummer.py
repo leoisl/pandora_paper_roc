@@ -5,8 +5,8 @@ from pathlib import Path
 from typing import List, TextIO, Tuple
 
 import pandas as pd
-from probe import Probe, ProbeHeader, Interval
-from utils import arg_ranges
+from .probe import Probe, ProbeHeader, Interval
+from .utils import arg_ranges
 
 
 class NucmerError(Exception):

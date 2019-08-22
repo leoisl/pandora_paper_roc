@@ -44,8 +44,6 @@ def test_getMummerSnps_validSequenceFilesProducesExpectedSnpsFile():
     assert actual.readlines() == expected.readlines()
 
 
-
-
 def test_isMappingInvalid_unmappedEntry_returnTrue():
     header = create_sam_header("C15154T", 201)
     record = pysam.AlignedSegment.fromstring(
@@ -212,3 +210,201 @@ def test_assessSamRecord_correctPrimaryAlignmentReturnsCorrect():
     expected = "correct"
 
     assert actual == expected
+
+
+class TestWholeProbeMaps:
+    def test_unmappedRecordReturnsFalse(self):
+        ref_name = "reference"
+        ref_length = 55
+        header = create_sam_header(ref_name, ref_length)
+        flag = 4
+        cigar = "*"
+        nm = ""
+        md = ""
+        mapq = 0
+        pos = 0
+        query_name = "INTERVAL=[11,21);"
+        ref_name = "*"
+        sequence = "AAAAAAAAAAACGGCTCGCATAGACACGACGACGACACGTACGATCGATCAGTCAT"
+        sam_string = f"{query_name}\t{flag}\t{ref_name}\t{pos}\t{mapq}\t{cigar}\t*\t0\t0\t{sequence}\t*\tAS:i:0\tXS:i:0"
+        record = pysam.AlignedSegment.fromstring(sam_string, header)
+
+        assert not whole_probe_maps(record)
+
+    def test_probeCompletelyMapsReturnsTrue(self):
+        ref_name = "reference"
+        ref_length = 55
+        header = create_sam_header(ref_name, ref_length)
+        flag = 0
+        cigar = "9S47M"
+        nm = "NM:i:0"
+        md = "MD:Z:47"
+        mapq = 60
+        pos = 1
+        query_name = "INTERVAL=[11,21);"
+        sequence = "AAAAAAAAAAACGGCTCGCATAGACACGACGACGACACGTACGATCGATCAGTCAT"
+        sam_string = f"{query_name}\t{flag}\t{ref_name}\t{pos}\t{mapq}\t{cigar}\t*\t0\t0\t{sequence}\t*\t{nm}\t{md}\tAS:i:0\tXS:i:0"
+        record = pysam.AlignedSegment.fromstring(sam_string, header)
+
+        assert whole_probe_maps(record)
+
+    def test_probeStartsAtFirstAlignmentPositionMapsReturnsTrue(self):
+        ref_name = "reference"
+        ref_length = 55
+        header = create_sam_header(ref_name, ref_length)
+        flag = 0
+        cigar = "11S45M"
+        nm = "NM:i:0"
+        md = "MD:Z:45"
+        mapq = 60
+        pos = 1
+        query_name = "INTERVAL=[11,21);"
+        sequence = "AAAAAAAAAAACGGCTCGCATAGACACGACGACGACACGTACGATCGATCAGTCAT"
+        sam_string = f"{query_name}\t{flag}\t{ref_name}\t{pos}\t{mapq}\t{cigar}\t*\t0\t0\t{sequence}\t*\t{nm}\t{md}\tAS:i:0\tXS:i:0"
+        record = pysam.AlignedSegment.fromstring(sam_string, header)
+
+        assert whole_probe_maps(record)
+
+    def test_probeStartOneBaseBeforeFirstAlignmentPositionMapsReturnsFalse(self):
+        ref_name = "reference"
+        ref_length = 55
+        header = create_sam_header(ref_name, ref_length)
+        flag = 0
+        cigar = "12S44M"
+        nm = "NM:i:0"
+        md = "MD:Z:44"
+        mapq = 60
+        pos = 1
+        query_name = "INTERVAL=[11,21);"
+        sequence = "AAAAAAAAAAACGGCTCGCATAGACACGACGACGACACGTACGATCGATCAGTCAT"
+        sam_string = f"{query_name}\t{flag}\t{ref_name}\t{pos}\t{mapq}\t{cigar}\t*\t0\t0\t{sequence}\t*\t{nm}\t{md}\tAS:i:0\tXS:i:0"
+        record = pysam.AlignedSegment.fromstring(sam_string, header)
+
+        assert not whole_probe_maps(record)
+
+    def test_probeStartsThreeBaseBeforeFirstAlignmentPositionMapsReturnsFalse(self):
+        ref_name = "reference"
+        ref_length = 55
+        header = create_sam_header(ref_name, ref_length)
+        flag = 0
+        cigar = "14S42M"
+        nm = "NM:i:0"
+        md = "MD:Z:42"
+        mapq = 60
+        pos = 1
+        query_name = "INTERVAL=[11,21);"
+        sequence = "AAAAAAAAAAACGGCTCGCATAGACACGACGACGACACGTACGATCGATCAGTCAT"
+        sam_string = f"{query_name}\t{flag}\t{ref_name}\t{pos}\t{mapq}\t{cigar}\t*\t0\t0\t{sequence}\t*\t{nm}\t{md}\tAS:i:0\tXS:i:0"
+        record = pysam.AlignedSegment.fromstring(sam_string, header)
+
+        assert not whole_probe_maps(record)
+
+    def test_ProbeEndsOneBaseBeforeAlignmentStartsReturnsFalse(self):
+        ref_name = "reference"
+        ref_length = 55
+        header = create_sam_header(ref_name, ref_length)
+        flag = 0
+        cigar = "21S35M"
+        nm = "NM:i:0"
+        md = "MD:Z:35"
+        mapq = 60
+        pos = 1
+        query_name = "INTERVAL=[11,21);"
+        sequence = "AAAAAAAAAAACGGCTCGCATAGACACGACGACGACACGTACGATCGATCAGTCAT"
+        sam_string = f"{query_name}\t{flag}\t{ref_name}\t{pos}\t{mapq}\t{cigar}\t*\t0\t0\t{sequence}\t*\t{nm}\t{md}\tAS:i:0\tXS:i:0"
+        record = pysam.AlignedSegment.fromstring(sam_string, header)
+
+        assert not whole_probe_maps(record)
+
+    def test_probeEndsThreeBasesBeforeAlignmentStartsReturnsFalse(self):
+        ref_name = "reference"
+        ref_length = 55
+        header = create_sam_header(ref_name, ref_length)
+        flag = 0
+        cigar = "23S33M"
+        nm = "NM:i:0"
+        md = "MD:Z:33"
+        mapq = 60
+        pos = 1
+        query_name = "INTERVAL=[11,21);"
+        sequence = "AAAAAAAAAAACGGCTCGCATAGACACGACGACGACACGTACGATCGATCAGTCAT"
+        sam_string = f"{query_name}\t{flag}\t{ref_name}\t{pos}\t{mapq}\t{cigar}\t*\t0\t0\t{sequence}\t*\t{nm}\t{md}\tAS:i:0\tXS:i:0"
+        record = pysam.AlignedSegment.fromstring(sam_string, header)
+
+        assert not whole_probe_maps(record)
+
+    def test_probeEndsOnLastBaseOfAlignmentReturnsTrue(self):
+        ref_name = "reference"
+        ref_length = 59
+        header = create_sam_header(ref_name, ref_length)
+        flag = 0
+        cigar = "33M35S"
+        nm = "NM:i:0"
+        md = "MD:Z:33"
+        mapq = 60
+        pos = 6
+        query_name = "INTERVAL=[23,33);"
+        sequence = (
+            "AAAAAAAAAAAAAAAAAAAAAAACGGCTCGCATAGACACGACGACGACACGTACGATCGATCAGTCAT"
+        )
+        sam_string = f"{query_name}\t{flag}\t{ref_name}\t{pos}\t{mapq}\t{cigar}\t*\t0\t0\t{sequence}\t*\t{nm}\t{md}\tAS:i:0\tXS:i:0"
+        record = pysam.AlignedSegment.fromstring(sam_string, header)
+
+        assert whole_probe_maps(record)
+
+    def test_probeEndsOneBaseAfterLastBaseOfAlignmentReturnsFalse(self):
+        ref_name = "reference"
+        ref_length = 59
+        header = create_sam_header(ref_name, ref_length)
+        flag = 0
+        cigar = "32M36S"
+        nm = "NM:i:0"
+        md = "MD:Z:32"
+        mapq = 60
+        pos = 6
+        query_name = "INTERVAL=[23,33);"
+        sequence = (
+            "AAAAAAAAAAAAAAAAAAAAAAACGGCTCGCATAGACACGACGACGACACGTACGATCGATCAGTCAT"
+        )
+        sam_string = f"{query_name}\t{flag}\t{ref_name}\t{pos}\t{mapq}\t{cigar}\t*\t0\t0\t{sequence}\t*\t{nm}\t{md}\tAS:i:0\tXS:i:0"
+        record = pysam.AlignedSegment.fromstring(sam_string, header)
+
+        assert not whole_probe_maps(record)
+
+    def test_probeEndsThreeBasesAfterLastBaseOfAlignmentReturnsFalse(self):
+        ref_name = "reference"
+        ref_length = 59
+        header = create_sam_header(ref_name, ref_length)
+        flag = 0
+        cigar = "30M38S"
+        nm = "NM:i:0"
+        md = "MD:Z:30"
+        mapq = 60
+        pos = 6
+        query_name = "INTERVAL=[23,33);"
+        sequence = (
+            "AAAAAAAAAAAAAAAAAAAAAAACGGCTCGCATAGACACGACGACGACACGTACGATCGATCAGTCAT"
+        )
+        sam_string = f"{query_name}\t{flag}\t{ref_name}\t{pos}\t{mapq}\t{cigar}\t*\t0\t0\t{sequence}\t*\t{nm}\t{md}\tAS:i:0\tXS:i:0"
+        record = pysam.AlignedSegment.fromstring(sam_string, header)
+
+        assert not whole_probe_maps(record)
+
+    def test_probeStartsAfterLastBaseOfAlignmentReturnsFalse(self):
+        ref_name = "reference"
+        ref_length = 59
+        header = create_sam_header(ref_name, ref_length)
+        flag = 0
+        cigar = "22M46S"
+        nm = "NM:i:0"
+        md = "MD:Z:22"
+        mapq = 60
+        pos = 6
+        query_name = "INTERVAL=[23,33);"
+        sequence = (
+            "AAAAAAAAAAAAAAAAAAAAAAACGGCTCGCATAGACACGACGACGACACGTACGATCGATCAGTCAT"
+        )
+        sam_string = f"{query_name}\t{flag}\t{ref_name}\t{pos}\t{mapq}\t{cigar}\t*\t0\t0\t{sequence}\t*\t{nm}\t{md}\tAS:i:0\tXS:i:0"
+        record = pysam.AlignedSegment.fromstring(sam_string, header)
+
+        assert not whole_probe_maps(record)
