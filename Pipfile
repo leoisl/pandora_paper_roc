@@ -1,23 +1,13 @@
 [[source]]
-
 url = "https://pypi.python.org/simple"
 verify_ssl = true
 name = "pypi"
 
-
 [packages]
-
-seaborn = "*"
-jupyter = "*"
 pandas = "*"
-jupyterthemes = "*"
-pysam = "*"
-
+pysam = "==0.15.2"
+jupyter = "*"
+seaborn = "*"
 
 [dev-packages]
-
-
-
-[requires]
-
-python_version = "3.6"
+pytest = "*"
