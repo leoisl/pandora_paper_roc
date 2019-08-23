@@ -4,9 +4,10 @@ from evaluate.evaluation import *
 from evaluate.mummer import NucmerError
 from evaluate.probe import Interval
 
-REF = Path("tests/test_cases/ref.fa")
-QUERY = Path("tests/test_cases/query.fa")
-SNPS = Path("tests/test_cases/out.snps")
+TEST_DIR = Path("tests/test_cases")
+REF = TEST_DIR / "ref.fa"
+QUERY = TEST_DIR / "query.fa"
+SNPS = TEST_DIR / "out.snps"
 
 
 def create_sam_header(name: str, length: int) -> pysam.AlignmentHeader:
@@ -180,57 +181,105 @@ class TestAssessSamRecord:
 
         assert actual == expected
 
-    def test_incorrectPrimaryAlignmentMismatchReturnsIncorrect(self):
-        header = create_sam_header(
-            "GC00000422_2_SAMPLE=CFT073_POS=603_CALL_INTERVAL=[25,32)_SVTYPE=PH_SNPs_MEAN_FWD_COVG=23_MEAN_REV_COVG=13_GT_CONF=89.5987",
-            57,
+    def test_incorrectSupplementaryAlignmentMismatchReturnsIncorrect(self):
+        flag = 2048
+        cigar = "43M"
+        nm = "NM:i:1"
+        md = "MD:Z:21T21"
+        mapq = 0
+        pos = 5
+        query_header = ProbeHeader(chrom="3", pos=14788, interval=Interval(21, 22))
+        ref_header = ProbeHeader(
+            chrom="GC00000422_2",
+            sample="CFT073",
+            pos=603,
+            interval=Interval(25, 32),
+            svtype="PH_SNPs",
+            mean_fwd_covg=23,
+            mean_rev_covg=13,
+            gt_conf=89.5987,
         )
+        sequence = "CGCGAAAGCCCTGACCATCTGCACCGTGTCTGACCACATCCGC"
+        header = create_sam_header(str(ref_header), 57)
         record = pysam.AlignedSegment.fromstring(
-            "3_POS=14788_CALL_INTERVAL=[21,22)\t0\tGC00000422_2_SAMPLE=CFT073_POS=603_CALL_INTERVAL=[25,32)_SVTYPE=PH_SNPs_MEAN_FWD_COVG=23_MEAN_REV_COVG=13_GT_CONF=89.5987\t5\t60\t43M\t*\t0\t0\tCGCGAAAGCCCTGACCATCTGCACCGTGTCTGACCACATCCGC\t*\tNM:i:1\tMD:Z:21T21\tAS:i:43\tXS:i:32",
+            f"{query_header}\t{flag}\t{ref_header}\t{pos}\t{mapq}\t{cigar}\t*\t0\t0\t{sequence}\t*\t{nm}\t{md}\tAS:i:43\tXS:i:32",
             header,
         )
 
-        # query_probe_seq = TTGGCGCGAAAGCCCTGACCATCTGTACCGTGTCTGACCACATCCGCACTCACGAGC
-        # truth_probe_seq =     CGCGAAAGCCCTGACCATCTGCACCGTGTCTGACCACATCCGC
+        actual = assess_sam_record(record)
+        expected = "supplementary_incorrect"
+
+        assert actual == expected
+
+    def test_correctSupplementaryAlignmentReturnsCorrect(self):
+        flag = 2048
+        cigar = "43M"
+        nm = "NM:i:1"
+        md = "MD:Z:19T23"
+        mapq = 0
+        pos = 5
+        query_header = ProbeHeader(chrom="3", pos=14788, interval=Interval(21, 22))
+        ref_header = ProbeHeader(
+            chrom="GC00000422_2",
+            sample="CFT073",
+            pos=603,
+            interval=Interval(25, 32),
+            svtype="PH_SNPs",
+            mean_fwd_covg=23,
+            mean_rev_covg=13,
+            gt_conf=89.5987,
+        )
+        sequence = "CGCGAAAGCCCTGACCATCTGCACCGTGTCTGACCACATCCGC"
+        header = create_sam_header(str(ref_header), 57)
+        record = pysam.AlignedSegment.fromstring(
+            f"{query_header}\t{flag}\t{ref_header}\t{pos}\t{mapq}\t{cigar}\t*\t0\t0\t{sequence}\t*\t{nm}\t{md}\tAS:i:43\tXS:i:32",
+            header,
+        )
+
+        actual = assess_sam_record(record)
+        expected = "supplementary_correct"
+
+        assert actual == expected
+
+    def test_correctPrimaryAlignmenReturnsCorrect(self):
+        flag = 0
+        cigar = "56M"
+        nm = "NM:i:0"
+        md = "MD:Z:56"
+        mapq = 60
+        pos = 1
+        query_header = ProbeHeader(interval=Interval(12, 17))
+        ref_header = "reference"
+        sequence = "AAAAAAAAAAACGGCTCGCATAGACACGACGACGACACGTACGATCGATCAGTCAT"
+        header = create_sam_header(str(ref_header), 64)
+        record = pysam.AlignedSegment.fromstring(
+            f"{query_header}\t{flag}\t{ref_header}\t{pos}\t{mapq}\t{cigar}\t*\t0\t0\t{sequence}\t*\t{nm}\t{md}\tAS:i:43\tXS:i:32",
+            header,
+        )
+
+        actual = assess_sam_record(record)
+        expected = "correct"
+
+        assert actual == expected
+
+    def test_incorrectPrimaryAlignmentMismatchReturnsIncorrect(self):
+        flag = 0
+        cigar = "56M"
+        nm = "NM:i:1"
+        md = "MD:Z:12T43"
+        mapq = 60
+        pos = 1
+        query_header = ProbeHeader(interval=Interval(12, 13))
+        ref_header = "reference"
+        sequence = "AAAAAAAAAAACGGCTCGCATAGACACGACGACGACACGTACGATCGATCAGTCAT"
+        header = create_sam_header(str(ref_header), 64)
+        record = pysam.AlignedSegment.fromstring(
+            f"{query_header}\t{flag}\t{ref_header}\t{pos}\t{mapq}\t{cigar}\t*\t0\t0\t{sequence}\t*\t{nm}\t{md}\tAS:i:43\tXS:i:32",
+            header,
+        )
 
         actual = assess_sam_record(record)
         expected = "incorrect"
-
-        assert actual == expected
-
-    def test_correctPrimaryAlignmentMismatchInFlankReturnsCorrect(self):
-        header = create_sam_header(
-            "GC00000422_2_SAMPLE=CFT073_POS=603_CALL_INTERVAL=[25,32)_SVTYPE=PH_SNPs_MEAN_FWD_COVG=23_MEAN_REV_COVG=13_GT_CONF=89.5987",
-            57,
-        )
-        record = pysam.AlignedSegment.fromstring(
-            "3_POS=14788_CALL_INTERVAL=[21,22)\t0\tGC00000422_2_SAMPLE=CFT073_POS=603_CALL_INTERVAL=[25,32)_SVTYPE=PH_SNPs_MEAN_FWD_COVG=23_MEAN_REV_COVG=13_GT_CONF=89.5987\t5\t60\t43M\t*\t0\t0\tCGCGAAAGCCCTGACCATCTGCACCGTGTCTGACCACATCCGC\t*\tNM:i:1\tMD:Z:20T22\tAS:i:43\tXS:i:32",
-            header,
-        )
-
-        # query_probe_seq = TTGGCGCGAAAGCCCTGACCATCTTCACCGTGTCTGACCACATCCGCACTCACGAGC
-        # truth_probe_seq =     CGCGAAAGCCCTGACCATCTGCACCGTGTCTGACCACATCCGC
-
-        actual = assess_sam_record(record)
-        expected = "correct"
-
-        assert actual == expected
-
-    def test_correctPrimaryAlignmentReturnsCorrect(self):
-        header = create_sam_header(
-            "GC00000422_2_SAMPLE=CFT073_POS=603_CALL_INTERVAL=[25,32)_SVTYPE=PH_SNPs_MEAN_FWD_COVG=23_MEAN_REV_COVG=13_GT_CONF=89.5987",
-            57,
-        )
-        record = pysam.AlignedSegment.fromstring(
-            "3_POS=14788_CALL_INTERVAL=[21,22)\t0\tGC00000422_2_SAMPLE=CFT073_POS=603_CALL_INTERVAL=[25,32)_SVTYPE=PH_SNPs_MEAN_FWD_COVG=23_MEAN_REV_COVG=13_GT_CONF=89.5987\t5\t60\t43M\t*\t0\t0\tCGCGAAAGCCCTGACCATCTGCACCGTGTCTGACCACATCCGC\t*\tNM:i:0\tMD:Z:43\tAS:i:43\tXS:i:32",
-            header,
-        )
-
-        # query_probe_seq = TTGGCGCGAAAGCCCTGACCATCTGCACCGTGTCTGACCACATCCGCACTCACGAGC
-        # truth_probe_seq =     CGCGAAAGCCCTGACCATCTGCACCGTGTCTGACCACATCCGC
-
-        actual = assess_sam_record(record)
-        expected = "correct"
 
         assert actual == expected
 

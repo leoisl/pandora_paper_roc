@@ -86,15 +86,20 @@ def is_mapping_invalid(record: pysam.AlignedSegment) -> bool:
 
 
 def assess_sam_record(record: pysam.AlignedSegment) -> str:
-    assessment = ""
-
     if record.is_unmapped:
         assessment = "unmapped"
     elif not whole_probe_maps(record):
         assessment = "partially_mapped"
-    elif record.is_secondary:
+    else:
         is_correct = probes_match(record)
-        assessment = "secondary_correct" if is_correct else "secondary_incorrect"
+        if record.is_secondary:
+            assessment = "secondary_correct" if is_correct else "secondary_incorrect"
+        elif record.is_supplementary:
+            assessment = (
+                "supplementary_correct" if is_correct else "supplementary_incorrect"
+            )
+        else:
+            assessment = "correct" if is_correct else "incorrect"
 
     return assessment
 
