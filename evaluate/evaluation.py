@@ -208,7 +208,21 @@ def main():
         threads=args.threads,
     )
     # todo: Assess each valid SAM record
-
+    print(
+        "sample\ttruth_probe_header\tvcf_probe_header\tclassification", file=args.output
+    )
+    for record in query1_sam:
+        classification = assess_sam_record(record)
+        print(
+            f"{query1_name}\t{record.query_name}\t{record.reference_name}\t{classification}",
+            file=args.output,
+        )
+    for record in query2_sam:
+        classification = assess_sam_record(record)
+        print(
+            f"{query2_name}\t{record.query_name}\t{record.reference_name}\t{classification}",
+            file=args.output,
+        )
     # todo: because of the multi-mapping, need to be careful when assessing records that I only assess mappings that cover the pandora call. Reason being is that if the truth probe maps to the flank of a pandora call, but not the actuall call part of the probe, then we will just get whatever the vcf ref is, which is an unfair comparison.
     # todo: when assessing deletions I think it makes sense to asses the bases either side of the deletion site
     # todo: Write results for each SAM record
