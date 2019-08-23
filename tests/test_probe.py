@@ -18,6 +18,30 @@ class TestInterval:
 
         assert actual == expected
 
+    def test_len_isZeroLengthReturnsZero(self):
+        interval = Interval(2, 2)
+
+        actual = len(interval)
+        expected = 0
+
+        assert actual == expected
+
+    def test_len_isTwoReturnsTwo(self):
+        interval = Interval(4, 6)
+
+        actual = len(interval)
+        expected = 2
+
+        assert actual == expected
+
+    def test_len_isNullReturnsZero(self):
+        interval = Interval()
+
+        actual = len(interval)
+        expected = 0
+
+        assert actual == expected
+
     def test_isNull_nullIntervalReturnsTrue(self):
         assert Interval(-1, -1).is_null()
 

@@ -153,16 +153,25 @@ class TestAssessSamRecord:
     def test_correctSecondayAlignmentReturnsCorrect(self):
         flag = 256
         cigar = "43M"
-        nm = "NM:i:0"
-        md = "MD:Z:43"
+        nm = "NM:i:1"
+        md = "MD:Z:19T23"
         mapq = 0
         pos = 5
-        query_name = "3_POS=14788_CALL_INTERVAL=[21,22)"
-        ref_name = "GC00000422_2_SAMPLE=CFT073_POS=603_CALL_INTERVAL=[25,32)_SVTYPE=PH_SNPs_MEAN_FWD_COVG=23_MEAN_REV_COVG=13_GT_CONF=89.5987"
+        query_header = ProbeHeader(chrom="3", pos=14788, interval=Interval(21, 22))
+        ref_header = ProbeHeader(
+            chrom="GC00000422_2",
+            sample="CFT073",
+            pos=603,
+            interval=Interval(25, 32),
+            svtype="PH_SNPs",
+            mean_fwd_covg=23,
+            mean_rev_covg=13,
+            gt_conf=89.5987,
+        )
         sequence = "CGCGAAAGCCCTGACCATCTGCACCGTGTCTGACCACATCCGC"
-        header = create_sam_header(ref_name, 57)
+        header = create_sam_header(str(ref_header), 57)
         record = pysam.AlignedSegment.fromstring(
-            f"{query_name}\t{flag}\t{ref_name}\t{pos}\t{mapq}\t{cigar}\t*\t0\t0\t{sequence}\t*\t{nm}\t{md}\tAS:i:43\tXS:i:32",
+            f"{query_header}\t{flag}\t{ref_header}\t{pos}\t{mapq}\t{cigar}\t*\t0\t0\t{sequence}\t*\t{nm}\t{md}\tAS:i:43\tXS:i:32",
             header,
         )
 
@@ -425,6 +434,57 @@ class TestWholeProbeMaps:
 
 
 class TestProbesMatch:
+    def test_probeIsSnpAndIsMismatchReturnsFalse(self):
+        ref_name = "reference"
+        ref_length = 64
+        header = create_sam_header(ref_name, ref_length)
+        flag = 0
+        cigar = "56M"
+        nm = "NM:i:1"
+        md = "MD:Z:11A44"
+        mapq = 60
+        pos = 6
+        query_name = "INTERVAL=[11,12);"
+        sequence = "AAAAAAAAAAACGGCTCGCATAGACACGACGACGACACGTACGATCGATCAGTCAT"
+        sam_string = f"{query_name}\t{flag}\t{ref_name}\t{pos}\t{mapq}\t{cigar}\t*\t0\t0\t{sequence}\t*\t{nm}\t{md}\tAS:i:0\tXS:i:0"
+        record = pysam.AlignedSegment.fromstring(sam_string, header)
+
+        assert not probes_match(record)
+
+    def test_probeIsSnpAndIsHasMismatchToLeftReturnsTrue(self):
+        ref_name = "reference"
+        ref_length = 64
+        header = create_sam_header(ref_name, ref_length)
+        flag = 0
+        cigar = "56M"
+        nm = "NM:i:1"
+        md = "MD:Z:10C45"
+        mapq = 60
+        pos = 6
+        query_name = "INTERVAL=[11,12);"
+        sequence = "AAAAAAAAAAACGGCTCGCATAGACACGACGACGACACGTACGATCGATCAGTCAT"
+        sam_string = f"{query_name}\t{flag}\t{ref_name}\t{pos}\t{mapq}\t{cigar}\t*\t0\t0\t{sequence}\t*\t{nm}\t{md}\tAS:i:0\tXS:i:0"
+        record = pysam.AlignedSegment.fromstring(sam_string, header)
+
+        assert probes_match(record)
+
+    def test_probeIsSnpAndIsHasMismatchToRightReturnsTrue(self):
+        ref_name = "reference"
+        ref_length = 64
+        header = create_sam_header(ref_name, ref_length)
+        flag = 0
+        cigar = "56M"
+        nm = "NM:i:1"
+        md = "MD:Z:12C43"
+        mapq = 60
+        pos = 6
+        query_name = "INTERVAL=[11,12);"
+        sequence = "AAAAAAAAAAACGGCTCGCATAGACACGACGACGACACGTACGATCGATCAGTCAT"
+        sam_string = f"{query_name}\t{flag}\t{ref_name}\t{pos}\t{mapq}\t{cigar}\t*\t0\t0\t{sequence}\t*\t{nm}\t{md}\tAS:i:0\tXS:i:0"
+        record = pysam.AlignedSegment.fromstring(sam_string, header)
+
+        assert probes_match(record)
+
     def test_probesMatchPerfectlyReturnsTrue(self):
         ref_name = "reference"
         ref_length = 59
@@ -443,6 +503,57 @@ class TestProbesMatch:
         record = pysam.AlignedSegment.fromstring(sam_string, header)
 
         assert probes_match(record)
+
+    def test_probeIsDeletionBasesEitherSideMatchReturnsTrue(self):
+        ref_name = "reference"
+        ref_length = 64
+        header = create_sam_header(ref_name, ref_length)
+        flag = 0
+        cigar = "56M"
+        nm = "NM:i:0"
+        md = "MD:Z:56"
+        mapq = 60
+        pos = 6
+        query_name = "INTERVAL=[12,12);"
+        sequence = "AAAAAAAAAAACGGCTCGCATAGACACGACGACGACACGTACGATCGATCAGTCAT"
+        sam_string = f"{query_name}\t{flag}\t{ref_name}\t{pos}\t{mapq}\t{cigar}\t*\t0\t0\t{sequence}\t*\t{nm}\t{md}\tAS:i:0\tXS:i:0"
+        record = pysam.AlignedSegment.fromstring(sam_string, header)
+
+        assert probes_match(record)
+
+    def test_probeIsDeletionBaseToLeftIsMismatchReturnsFalse(self):
+        ref_name = "reference"
+        ref_length = 64
+        header = create_sam_header(ref_name, ref_length)
+        flag = 0
+        cigar = "56M"
+        nm = "NM:i:1"
+        md = "MD:Z:11T44"
+        mapq = 60
+        pos = 6
+        query_name = "INTERVAL=[12,12);"
+        sequence = "AAAAAAAAAAACGGCTCGCATAGACACGACGACGACACGTACGATCGATCAGTCAT"
+        sam_string = f"{query_name}\t{flag}\t{ref_name}\t{pos}\t{mapq}\t{cigar}\t*\t0\t0\t{sequence}\t*\t{nm}\t{md}\tAS:i:0\tXS:i:0"
+        record = pysam.AlignedSegment.fromstring(sam_string, header)
+
+        assert not probes_match(record)
+
+    def test_probeIsDeletionBaseToRightIsMismatchReturnsFalse(self):
+        ref_name = "reference"
+        ref_length = 64
+        header = create_sam_header(ref_name, ref_length)
+        flag = 0
+        cigar = "56M"
+        nm = "NM:i:1"
+        md = "MD:Z:12T43"
+        mapq = 60
+        pos = 6
+        query_name = "INTERVAL=[12,12);"
+        sequence = "AAAAAAAAAAACGGCTCGCATAGACACGACGACGACACGTACGATCGATCAGTCAT"
+        sam_string = f"{query_name}\t{flag}\t{ref_name}\t{pos}\t{mapq}\t{cigar}\t*\t0\t0\t{sequence}\t*\t{nm}\t{md}\tAS:i:0\tXS:i:0"
+        record = pysam.AlignedSegment.fromstring(sam_string, header)
+
+        assert not probes_match(record)
 
     def test_mismatchInFirstCoreProbeBaseReturnsFalse(self):
         ref_name = "reference"

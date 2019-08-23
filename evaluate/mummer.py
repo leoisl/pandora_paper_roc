@@ -213,7 +213,7 @@ class ShowSNPsDataframe(pd.DataFrame):
             right_flank = consecutive_positions.iloc[-1][f"{prefix}_context"][
                 flank_width + 1 :
             ].replace("-", "")
-            call_start_idx = max(0, len(left_flank))
+            call_start_idx = len(left_flank)
             call_end_idx = call_start_idx + len(core_sequence)
             header = ProbeHeader(
                 chrom=first_row[f"{prefix}_chrom"],

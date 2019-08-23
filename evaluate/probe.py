@@ -21,6 +21,9 @@ class Interval(NamedTuple):
 
         return f"[{self.start},{self.end})"
 
+    def __len__(self) -> int:
+        return self.end - self.start
+
     def is_null(self) -> bool:
         return self.start == -1 and self.end == -1
 

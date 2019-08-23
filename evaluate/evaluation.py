@@ -94,7 +94,7 @@ def assess_sam_record(record: pysam.AlignedSegment) -> str:
         assessment = "partially_mapped"
     elif record.is_secondary:
         is_correct = probes_match(record)
-        assessment = "seconday_correct" if is_correct else "secondary_incorrect"
+        assessment = "secondary_correct" if is_correct else "secondary_incorrect"
 
     return assessment
 
@@ -116,14 +116,22 @@ def whole_probe_maps(record: pysam.AlignedSegment) -> bool:
 def probes_match(record: pysam.AlignedSegment) -> bool:
     truth_probe_header = ProbeHeader.from_string(record.query_name)
     truth_probe = Probe(header=truth_probe_header, full_sequence=record.query_sequence)
-    truth = truth_probe.core_sequence
     within_probe = False
     ref_seq = ""
     # todo: do this more succinctly
+    if len(truth_probe.interval) > 0:
+        truth_start = truth_probe.interval.start
+        truth_stop = truth_probe.interval.end - 1
+        truth = truth_probe.core_sequence
+    else:
+        truth_start = max(0, truth_probe.interval.start - 1)
+        truth_stop = truth_probe.interval.end
+        truth = truth_probe.full_sequence[truth_start : truth_stop + 1]
+
     for query_pos, ref_pos, ref_base in record.get_aligned_pairs(with_seq=True):
-        if query_pos is not None and query_pos == truth_probe.interval.start:
+        if query_pos is not None and query_pos == truth_start:
             within_probe = True
-        elif query_pos is not None and query_pos == truth_probe.interval.end - 1:
+        if query_pos is not None and query_pos == truth_stop:
             if ref_base is None:
                 return False
             else:

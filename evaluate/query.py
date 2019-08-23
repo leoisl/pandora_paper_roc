@@ -65,7 +65,7 @@ class Query:
                 interval = self.calculate_probe_boundaries_for_entry(variant)
                 if interval in intervals_to_probes and intervals_to_probes[sample][
                     interval
-                ].gt_conf() > get_genotype_confidence(variant, sample):
+                ].gt_conf > get_genotype_confidence(variant, sample):
                     continue
 
                 mutated_consensus = ""
@@ -119,7 +119,7 @@ class Query:
         )
 
 
-def merge_overlap_intervals(intervals: List[List[int]]) -> List[Tuple[int, int]]:
+def merge_overlap_intervals(intervals: List[List[int]]) -> List[Tuple[int, ...]]:
     """Checks consecutive intervals and if they overlap it merges them into a
     single interval.
     Args:
