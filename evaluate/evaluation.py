@@ -8,9 +8,9 @@ import pysam
 from .bwa import BWA
 from .cli import cli
 from .mummer import Nucmer, DeltaFilter, ShowSnps
-from .probe import ProbeHeader, Probe
 from .query import Query
 from .utils import strip_extensions
+from .recall import RecallClassification
 
 
 def generate_mummer_snps(
@@ -83,73 +83,6 @@ def map_panel_to_probes(
 
 def is_mapping_invalid(record: pysam.AlignedSegment) -> bool:
     return any([record.is_unmapped, record.is_secondary, record.is_supplementary])
-
-
-def assess_sam_record(record: pysam.AlignedSegment) -> str:
-    if record.is_unmapped:
-        assessment = "unmapped"
-    elif not whole_probe_maps(record):
-        assessment = "partially_mapped"
-    else:
-        is_correct = probes_match(record)
-        if record.is_secondary:
-            assessment = "secondary_correct" if is_correct else "secondary_incorrect"
-        elif record.is_supplementary:
-            assessment = (
-                "supplementary_correct" if is_correct else "supplementary_incorrect"
-            )
-        else:
-            assessment = "correct" if is_correct else "incorrect"
-
-    return assessment
-
-
-def whole_probe_maps(record: pysam.AlignedSegment) -> bool:
-    if record.is_unmapped:
-        return False
-
-    truth_interval = ProbeHeader.from_string(record.query_name).interval
-    truth_starts_before_alignment = truth_interval.start < record.query_alignment_start
-    truth_ends_after_alignment = truth_interval.end > record.query_alignment_end
-
-    if truth_starts_before_alignment or truth_ends_after_alignment:
-        return False
-
-    return True
-
-
-def probes_match(record: pysam.AlignedSegment) -> bool:
-    truth_probe_header = ProbeHeader.from_string(record.query_name)
-    truth_probe = Probe(header=truth_probe_header, full_sequence=record.query_sequence)
-    within_probe = False
-    ref_seq = ""
-    # todo: do this more succinctly
-    if len(truth_probe.interval) > 0:
-        truth_start = truth_probe.interval.start
-        truth_stop = truth_probe.interval.end - 1
-        truth = truth_probe.core_sequence
-    else:
-        truth_start = max(0, truth_probe.interval.start - 1)
-        truth_stop = truth_probe.interval.end
-        truth = truth_probe.full_sequence[truth_start : truth_stop + 1]
-
-    for query_pos, ref_pos, ref_base in record.get_aligned_pairs(with_seq=True):
-        if query_pos is not None and query_pos == truth_start:
-            within_probe = True
-        if query_pos is not None and query_pos == truth_stop:
-            if ref_base is None:
-                return False
-            else:
-                ref_seq += ref_base
-            break
-
-        if within_probe:
-            if ref_base is None:
-                return False
-            else:
-                ref_seq += ref_base
-
-    return ref_seq == truth
 
 
 def main():
