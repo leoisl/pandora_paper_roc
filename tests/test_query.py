@@ -309,7 +309,7 @@ class TestQuery:
         variant = retrieve_entry_from_test_vcf(2)
         interval = query.calculate_probe_boundaries_for_entry(variant)
 
-        actual = Query.create_probe_header(sample, variant, interval)
+        actual = Query._create_probe_header(sample, variant, interval)
         expected = ProbeHeader(
             chrom="GC00000001_155",
             sample="sample",

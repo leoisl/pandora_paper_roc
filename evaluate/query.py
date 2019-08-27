@@ -79,7 +79,7 @@ class Query:
                 mutated_consensus += get_variant_sequence(variant, sample)
                 last_idx = start_idx_of_variant_on_consensus + variant.rlen
                 mutated_consensus += consensus[last_idx:]
-                probe_header = self.create_probe_header(sample, variant, interval)
+                probe_header = self._create_probe_header(sample, variant, interval)
                 probe = Probe(header=probe_header, full_sequence=mutated_consensus)
                 if sample not in intervals_to_probes:
                     intervals_to_probes[sample] = {interval: probe}
@@ -101,7 +101,7 @@ class Query:
         return Interval(probe_start, probe_stop)
 
     @staticmethod
-    def create_probe_header(
+    def _create_probe_header(
         sample: str, variant: pysam.VariantRecord, interval: Interval
     ) -> ProbeHeader:
         call_start_idx = max(0, variant.start - interval[0])
