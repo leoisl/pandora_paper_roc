@@ -187,12 +187,12 @@ def test_PositionedSNPsIndex_check_if_there_are_no_PositionedSNP_copies():
     This does not need to be called in the true run
     '''
     positionedSNPsIndex = PositionedSNPsIndex()
-    positionedSNPsIndex.add_SNPs_from_csv('test_cases/Positioned_SNPs/genome.0-SEP-genome.1.mummer.1000.csv', 'genome.0', 'genome.1')
-    positionedSNPsIndex.add_SNPs_from_csv('test_cases/Positioned_SNPs/genome.0-SEP-genome.2.mummer.1000.csv', 'genome.0', 'genome.2')
-    positionedSNPsIndex.add_SNPs_from_csv('test_cases/Positioned_SNPs/genome.0-SEP-genome.3.mummer.1000.csv', 'genome.0', 'genome.3')
-    positionedSNPsIndex.add_SNPs_from_csv('test_cases/Positioned_SNPs/genome.1-SEP-genome.2.mummer.1000.csv', 'genome.1', 'genome.2')
-    positionedSNPsIndex.add_SNPs_from_csv('test_cases/Positioned_SNPs/genome.1-SEP-genome.3.mummer.1000.csv', 'genome.1', 'genome.3')
-    positionedSNPsIndex.add_SNPs_from_csv('test_cases/Positioned_SNPs/genome.2-SEP-genome.3.mummer.1000.csv', 'genome.2', 'genome.3')
+    positionedSNPsIndex.add_SNPs_from_csv('test_cases/Positioned_SNPs/genome.0-SEP-genome.1.mummer.filtered.csv', 'genome.0', 'genome.1')
+    positionedSNPsIndex.add_SNPs_from_csv('test_cases/Positioned_SNPs/genome.0-SEP-genome.2.mummer.filtered.csv', 'genome.0', 'genome.2')
+    positionedSNPsIndex.add_SNPs_from_csv('test_cases/Positioned_SNPs/genome.0-SEP-genome.3.mummer.filtered.csv', 'genome.0', 'genome.3')
+    positionedSNPsIndex.add_SNPs_from_csv('test_cases/Positioned_SNPs/genome.1-SEP-genome.2.mummer.filtered.csv', 'genome.1', 'genome.2')
+    positionedSNPsIndex.add_SNPs_from_csv('test_cases/Positioned_SNPs/genome.1-SEP-genome.3.mummer.filtered.csv', 'genome.1', 'genome.3')
+    positionedSNPsIndex.add_SNPs_from_csv('test_cases/Positioned_SNPs/genome.2-SEP-genome.3.mummer.filtered.csv', 'genome.2', 'genome.3')
     for positioned_snp_1 in positionedSNPsIndex.PositionedSNPIndexKey_to_PositionedSNP.values():
         for positioned_snp_2 in positionedSNPsIndex.PositionedSNPIndexKey_to_PositionedSNP.values():
             assert (positioned_snp_1 == positioned_snp_2 and positioned_snp_1 is positioned_snp_2) or \
