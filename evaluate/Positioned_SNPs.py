@@ -182,14 +182,3 @@ class PositionedSNPsIndex:
         return str(self.__dict__)
 
 
-
-# TODO: add unit test
-# positionedSNPsIndex = PositionedSNPsIndex()
-# positionedSNPsIndex.add_SNPs_from_csv('assemblies_sample_out/genome.1/genome.1-SEP-genome.2.mummer.csv', 'genome.1', 'genome.2')
-# positionedSNPsIndex.add_SNPs_from_csv('assemblies_sample_out/genome.1/genome.1-SEP-genome.3.mummer.csv', 'genome.1', 'genome.3')
-# positionedSNPsIndex.add_SNPs_from_csv('assemblies_sample_out/genome.2/genome.2-SEP-genome.3.mummer.csv', 'genome.2', 'genome.3')
-# positionedSNPsIndex.add_SNPs_from_csv('assemblies_sample_out/genome.0/genome.0-SEP-genome.1.mummer.csv', 'genome.0', 'genome.1')
-# positionedSNPsIndex.add_SNPs_from_csv('assemblies_sample_out/genome.0/genome.0-SEP-genome.2.mummer.csv', 'genome.0', 'genome.2')
-# positionedSNPsIndex.add_SNPs_from_csv('assemblies_sample_out/genome.0/genome.0-SEP-genome.3.mummer.csv', 'genome.0', 'genome.3')
-# positionedSNPsIndex.serialize("assemblies_sample_out/positionedSNPsIndex")
-# positionedSNPs_loaded = positionedSNPsIndex.load("assemblies_sample_out/positionedSNPsIndex")
