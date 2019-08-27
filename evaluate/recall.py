@@ -58,7 +58,6 @@ class RecallClassification:
 
         return True
 
-
     def is_correct(self) -> bool:
         within_probe = False
         ref_seq = ""
@@ -98,7 +97,9 @@ class RecallClassification:
         else:
             is_correct = self.is_correct()
             if self.is_secondary:
-                assessment = "secondary_correct" if is_correct else "secondary_incorrect"
+                assessment = (
+                    "secondary_correct" if is_correct else "secondary_incorrect"
+                )
             elif self.is_supplementary:
                 assessment = (
                     "supplementary_correct" if is_correct else "supplementary_incorrect"
@@ -107,3 +108,22 @@ class RecallClassification:
                 assessment = "correct" if is_correct else "incorrect"
 
         return assessment
+
+
+class RecallClassifier:
+    def __init__(self, sam: pysam.AlignmentFile):
+        self.sam = sam
+
+    def classify(self) -> List[RecallClassification]:
+        classifications = []
+        for record in self.sam:
+            truth_probe = Probe(
+                header=ProbeHeader.from_string(record.query_name),
+                full_sequence=record.query_sequence,
+            )
+            classification = RecallClassification(
+                truth_probe=truth_probe, record=record
+            )
+            classifications.append(classification)
+
+        return classifications

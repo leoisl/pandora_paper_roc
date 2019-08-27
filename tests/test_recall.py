@@ -1,4 +1,5 @@
 import pysam
+import tempfile
 
 from evaluate.recall import *
 from tests.test_evaluation import create_sam_header
@@ -809,3 +810,77 @@ class TestRecallClassification:
         expected = "incorrect"
 
         assert actual == expected
+
+
+def create_tmp_sam(contents: str) -> pysam.AlignmentFile:
+    with tempfile.NamedTemporaryFile(mode="r+") as tmp:
+        tmp.write(contents)
+        tmp.truncate()
+        return pysam.AlignmentFile(tmp.name)
+
+
+class TestRecallClassifier:
+    def test_classify(self):
+        flag = 0
+        cigar = "56M"
+        nm = "NM:i:0"
+        md = "MD:Z:56"
+        mapq = 60
+        pos = 1
+        query_header = ProbeHeader(interval=Interval(12, 17))
+        sequence = "AAAAAAAAAAACGGCTCGCATAGACACGACGACGACACGTACGATCGATCAGTCAT"
+        ref_header = ProbeHeader(
+            chrom="GC00000422_2",
+            sample="CFT073",
+            pos=603,
+            interval=Interval(25, 32),
+            svtype="PH_SNPs",
+            mean_fwd_covg=23,
+            mean_rev_covg=13,
+            gt_conf=89.5987,
+        )
+        header = create_sam_header(str(ref_header), 64)
+        contents = str(header) + "\n"
+        record1 = pysam.AlignedSegment.fromstring(
+            f"{query_header}\t{flag}\t{ref_header}\t{pos}\t{mapq}\t{cigar}\t*\t0\t0\t{sequence}\t*\t{nm}\t{md}\tAS:i:43\tXS:i:32",
+            header,
+        )
+        contents += record1.to_string() + "\n"
+
+        flag = 2048
+        cigar = "43M"
+        nm = "NM:i:1"
+        md = "MD:Z:21T21"
+        mapq = 0
+        pos = 5
+        query_header = ProbeHeader(chrom="3", pos=14788, interval=Interval(21, 22))
+        sequence = "CGCGAAAGCCCTGACCATCTGCACCGTGTCTGACCACATCCGC"
+        header = create_sam_header(str(ref_header), 57)
+        record2 = pysam.AlignedSegment.fromstring(
+            f"{query_header}\t{flag}\t{ref_header}\t{pos}\t{mapq}\t{cigar}\t*\t0\t0\t{sequence}\t*\t{nm}\t{md}\tAS:i:43\tXS:i:32",
+            header,
+        )
+        contents += record2.to_string() + "\n"
+        sam = create_tmp_sam(contents)
+        classifier = RecallClassifier(sam)
+
+        actual = classifier.classify()
+        expected = [
+            RecallClassification(
+                truth_probe=Probe(
+                    ProbeHeader.from_string(record1.query_name),
+                    full_sequence=record1.query_sequence,
+                )
+            ),
+            RecallClassification(
+                truth_probe=Probe(
+                    ProbeHeader.from_string(record2.query_name),
+                    full_sequence=record2.query_sequence,
+                )
+            ),
+        ]
+
+        assert actual == expected
+
+        expected_classifications = ["correct", "supplementary_incorrect"]
+        assert [x.assessment() for x in actual] == expected_classifications
