@@ -11,7 +11,7 @@ class PositionedSNP:
         self.alleles = (allele_1, allele_2)
         self.positions = set()
 
-    def add_pos (self, position):
+    def add_pos(self, position):
         self.positions.add(position)
 
     def merge(self, other):
@@ -40,6 +40,8 @@ class PositionedSNP:
         """Overrides the default implementation"""
         if isinstance(other, PositionedSNP):
             return self.__dict__ == other.__dict__
+        elif isinstance(other, dict):
+            return self.__dict__ == other
         return NotImplemented
 
     def __repr__(self):
@@ -177,10 +179,15 @@ class PositionedSNPsIndex:
             if dict_in_pos is not None:
                 for positioned_snp in dict_in_pos.values():
                     if id(positioned_snp) not in all_unique_positioned_SNPs_ids:
+                        all_unique_positioned_SNPs_ids.add(id(positioned_snp))
                         all_unique_positioned_SNPs.append(positioned_snp)
         return all_unique_positioned_SNPs
 
     def get_nb_SNPs_that_can_be_found_with_the_given_genomes(self, genomes):
+        """
+        :param genomes: the genomes to be found (list of string)
+        :return: A dictionary with the genome names and the nb of SNPs that can be found in each. Additionally, an entry with "all" is added, with the nb of SNPs in the pangenome
+        """
         genomes_to_nb_of_SNPs = {}
         all_unique_positioned_SNPs = self.get_all_unique_Positioned_SNPs()
 
@@ -207,17 +214,15 @@ class PositionedSNPsIndex:
         with open(filename, "wb") as fout:
             pickle.dump(self, fout)
 
-    @classmethod
-    def from_dict(cls, dict):
+    def to_dict(self):
         '''
-        Factory method mainly used for testing
-        :param dict: represents a dictionary to configure a new PositionedSNPsIndex object
-        :return: new PositionedSNPsIndex object
+        Transforms self._PositionedSNPIndexKey_to_PositionedSNP into a dictionary, mainly used for testing
         '''
-        new_PositionedSNPsIndex = PositionedSNPsIndex()
-        new_PositionedSNPsIndex.__dict__ = dict
-        return new_PositionedSNPsIndex
-
+        self_as_dict = {}
+        for pos, dict_in_pos in enumerate(self._PositionedSNPIndexKey_to_PositionedSNP):
+            if dict_in_pos is not None:
+                self_as_dict[pos] = dict_in_pos
+        return self_as_dict
 
     def __eq__(self, other):
         """Overrides the default implementation"""
@@ -230,6 +235,7 @@ class PositionedSNPsIndex:
         return str(self.__dict__)
 
 
+'''
 def test():
     positionedSNPsIndex = PositionedSNPsIndex(5572075)
     positionedSNPsIndex.add_SNPs_from_csv('assemblies_sample_out/genome.0/genome.0-SEP-genome.1.mummer.csv', 'genome.0', 'genome.1')
@@ -238,6 +244,9 @@ def test():
     positionedSNPsIndex.add_SNPs_from_csv('assemblies_sample_out/genome.1/genome.1-SEP-genome.2.mummer.csv', 'genome.1', 'genome.2')
     positionedSNPsIndex.add_SNPs_from_csv('assemblies_sample_out/genome.1/genome.1-SEP-genome.3.mummer.csv', 'genome.1', 'genome.3')
     positionedSNPsIndex.add_SNPs_from_csv('assemblies_sample_out/genome.2/genome.2-SEP-genome.3.mummer.csv', 'genome.2', 'genome.3')
+
+test()
+'''
 
 '''
 import cProfile
