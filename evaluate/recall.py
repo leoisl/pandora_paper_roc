@@ -1,17 +1,25 @@
-from typing import List, Tuple
+from typing import List, TextIO, Iterable
+
+import pandas as pd
 import pysam
 
-from evaluate.probe import ProbeHeader, Probe
-from .probe import Probe, Interval, ProbeHeader
+from .probe import Probe, ProbeHeader
 
 
 class RecallClassification:
-    def __init__(self, truth_probe: Probe = None, record: pysam.AlignedSegment = None):
-        if truth_probe is None:
-            truth_probe = Probe()
-
-        self.truth_probe = truth_probe
+    def __init__(self, record: pysam.AlignedSegment = None):
         self.record = record
+
+        if self.record is not None:
+            self.truth_probe = Probe(
+                header=ProbeHeader.from_string(self.record.query_name),
+                full_sequence=self.record.query_sequence,
+            )
+            reference_name = self.record.reference_name or ""
+            self.vcf_probe = Probe(header=ProbeHeader.from_string(reference_name))
+        else:
+            self.truth_probe = Probe()
+            self.vcf_probe = Probe()
 
     def __eq__(self, other: "RecallClassification") -> bool:
         return self.truth_probe == other.truth_probe
@@ -111,19 +119,46 @@ class RecallClassification:
 
 
 class RecallClassifier:
-    def __init__(self, sam: pysam.AlignmentFile):
+    def __init__(self, sam: Iterable[pysam.AlignedSegment] = None, name: str = ""):
+        if sam is None:
+            sam = []
         self.sam = sam
+        self.name = name
 
     def classify(self) -> List[RecallClassification]:
         classifications = []
         for record in self.sam:
-            truth_probe = Probe(
-                header=ProbeHeader.from_string(record.query_name),
-                full_sequence=record.query_sequence,
-            )
-            classification = RecallClassification(
-                truth_probe=truth_probe, record=record
-            )
+            classification = RecallClassification(record=record)
             classifications.append(classification)
 
         return classifications
+
+
+class RecallReporter:
+    def __init__(self, classifiers: Iterable[RecallClassifier], delim: str = "\t"):
+        self.classifiers = classifiers
+        self.delim = delim
+        self.columns = [
+            "sample",
+            "truth_probe_header",
+            "vcf_probe_header",
+            "classification",
+        ]
+
+    def generate_report(self) -> pd.DataFrame:
+        report_entries = []
+        for classifier in self.classifiers:
+            classifications = classifier.classify()
+            for classification in classifications:
+                assessment = classification.assessment()
+                truth_probe_header = str(classification.truth_probe.header)
+                vcf_probe_header = str(classification.vcf_probe.header)
+                report_entries.append(
+                    [classifier.name, truth_probe_header, vcf_probe_header, assessment]
+                )
+
+        return pd.DataFrame(data=report_entries, columns=self.columns)
+
+    def save(self, file_handle: TextIO) -> None:
+        report = self.generate_report()
+        report.to_csv(file_handle, sep=self.delim, header=True, index=False)

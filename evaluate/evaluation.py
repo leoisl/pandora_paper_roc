@@ -10,7 +10,7 @@ from .cli import cli
 from .mummer import Nucmer, DeltaFilter, ShowSnps
 from .query import Query
 from .utils import strip_extensions
-from .recall import RecallClassification
+from .recall import RecallReporter, RecallClassifier
 
 
 def generate_mummer_snps(
@@ -56,7 +56,7 @@ def generate_mummer_snps(
 
     return StringIO(showsnps_content)
 
-
+# todo: write tests
 def write_vcf_probes_to_file(
     vcf_probes: Dict[str, str], query_name: str, tempdir: Path
 ) -> Path:
@@ -140,25 +140,17 @@ def main():
         output=query2_sam_file,
         threads=args.threads,
     )
-    # todo: Assess each valid SAM record
-    print(
-        "sample\ttruth_probe_header\tvcf_probe_header\tclassification", file=args.output
-    )
-    for record in query1_sam:
-        classification = assess_sam_record(record)
-        print(
-            f"{query1_name}\t{record.query_name}\t{record.reference_name}\t{classification}",
-            file=args.output,
-        )
-    for record in query2_sam:
-        classification = assess_sam_record(record)
-        print(
-            f"{query2_name}\t{record.query_name}\t{record.reference_name}\t{classification}",
-            file=args.output,
-        )
-    # todo: because of the multi-mapping, need to be careful when assessing records that I only assess mappings that cover the pandora call. Reason being is that if the truth probe maps to the flank of a pandora call, but not the actuall call part of the probe, then we will just get whatever the vcf ref is, which is an unfair comparison.
-    # todo: when assessing deletions I think it makes sense to asses the bases either side of the deletion site
-    # todo: Write results for each SAM record
+
+    logging.info("Running recall classification")
+    classifiers = []
+    for sample, sam in [(query1_name, query1_sam), (query2_name, query2_sam)]:
+        classifiers.append(RecallClassifier(sam=sam, name=sample))
+
+    reporter = RecallReporter(classifiers=classifiers)
+    reporter.save(args.output)
+
+    args.output.close()
+    logging.info(f"Recall report written to {args.output.name}")
 
 
 if __name__ == "__main__":

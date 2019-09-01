@@ -11,3 +11,4 @@ seaborn = "*"
 
 [dev-packages]
 pytest = "*"
+coverage = "*"

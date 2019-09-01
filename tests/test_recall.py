@@ -1,21 +1,272 @@
 import pysam
+from io import StringIO
+import pytest
+from pathlib import Path
 import tempfile
-
+from evaluate.probe import *
 from evaluate.recall import *
 from tests.test_evaluation import create_sam_header
 from .test_evaluation import create_sam_header
 
 
+def create_tmp_sam(contents: str) -> pysam.AlignmentFile:
+    with tempfile.NamedTemporaryFile(mode="r+") as tmp:
+        tmp.write(contents)
+        tmp.truncate()
+        return pysam.AlignmentFile(tmp.name)
+
+
+def create_unmapped_sam_record() -> pysam.AlignedSegment:
+    header = create_sam_header(
+        "GC00000422_2_SAMPLE=CFT073_POS=603_CALL_INTERVAL=[25,32)_SVTYPE=PH_SNPs_MEAN_FWD_COVG=23_MEAN_REV_COVG=13_GT_CONF=89.5987",
+        57,
+    )
+    record = pysam.AlignedSegment.fromstring(
+        ""
+        "3_POS=14788_CALL_INTERVAL=[21,22)\t4\t*\t0\t0\t*\t*\t0\t0\tCGCGAAAGCCCTGACCATCTGCACCGTGTCTGACCACATCCGC\t*\tAS:i:0\tXS:i:0",
+        header,
+    )
+    return record
+
+
+def create_partially_mapped_sam_record() -> pysam.AlignedSegment:
+    ref_name = "reference"
+    ref_length = 59
+    header = create_sam_header(ref_name, ref_length)
+    flag = 0
+    cigar = "30M38S"
+    nm = "NM:i:0"
+    md = "MD:Z:30"
+    mapq = 60
+    pos = 6
+    query_name = "INTERVAL=[23,33);"
+    sequence = "AAAAAAAAAAAAAAAAAAAAAAACGGCTCGCATAGACACGACGACGACACGTACGATCGATCAGTCAT"
+    sam_string = f"{query_name}\t{flag}\t{ref_name}\t{pos}\t{mapq}\t{cigar}\t*\t0\t0\t{sequence}\t*\t{nm}\t{md}\tAS:i:0\tXS:i:0"
+    record = pysam.AlignedSegment.fromstring(sam_string, header)
+    return record
+
+
+def create_incorrect_secondary_sam_record() -> pysam.AlignedSegment:
+    flag = 256
+    cigar = "43M"
+    nm = "NM:i:1"
+    md = "MD:Z:21T21"
+    mapq = 0
+    pos = 5
+    query_header = ProbeHeader(chrom="3", pos=14788, interval=Interval(21, 22))
+    ref_header = ProbeHeader(
+        chrom="GC00000422_2",
+        sample="CFT073",
+        pos=603,
+        interval=Interval(25, 32),
+        svtype="PH_SNPs",
+        mean_fwd_covg=23,
+        mean_rev_covg=13,
+        gt_conf=89.5987,
+    )
+    sequence = "CGCGAAAGCCCTGACCATCTGCACCGTGTCTGACCACATCCGC"
+    header = create_sam_header(str(ref_header), 57)
+    record = pysam.AlignedSegment.fromstring(
+        f"{query_header}\t{flag}\t{ref_header}\t{pos}\t{mapq}\t{cigar}\t*\t0\t0\t{sequence}\t*\t{nm}\t{md}\tAS:i:43\tXS:i:32",
+        header,
+    )
+    return record
+
+
+def create_correct_secondary_sam_record() -> pysam.AlignedSegment:
+    flag = 256
+    cigar = "43M"
+    nm = "NM:i:1"
+    md = "MD:Z:19T23"
+    mapq = 0
+    pos = 5
+    query_header = ProbeHeader(chrom="3", pos=14788, interval=Interval(21, 22))
+    ref_header = ProbeHeader(
+        chrom="GC00000422_2",
+        sample="CFT073",
+        pos=603,
+        interval=Interval(25, 32),
+        svtype="PH_SNPs",
+        mean_fwd_covg=23,
+        mean_rev_covg=13,
+        gt_conf=89.5987,
+    )
+    sequence = "CGCGAAAGCCCTGACCATCTGCACCGTGTCTGACCACATCCGC"
+    header = create_sam_header(str(ref_header), 57)
+    record = pysam.AlignedSegment.fromstring(
+        f"{query_header}\t{flag}\t{ref_header}\t{pos}\t{mapq}\t{cigar}\t*\t0\t0\t{sequence}\t*\t{nm}\t{md}\tAS:i:43\tXS:i:32",
+        header,
+    )
+    return record
+
+
+def create_incorrect_supplementary_sam_record() -> pysam.AlignedSegment:
+    flag = 2048
+    cigar = "43M"
+    nm = "NM:i:1"
+    md = "MD:Z:21T21"
+    mapq = 0
+    pos = 5
+    query_header = ProbeHeader(chrom="3", pos=14788, interval=Interval(21, 22))
+    ref_header = ProbeHeader(
+        chrom="GC00000422_2",
+        sample="CFT073",
+        pos=603,
+        interval=Interval(25, 32),
+        svtype="PH_SNPs",
+        mean_fwd_covg=23,
+        mean_rev_covg=13,
+        gt_conf=89.5987,
+    )
+    sequence = "CGCGAAAGCCCTGACCATCTGCACCGTGTCTGACCACATCCGC"
+    header = create_sam_header(str(ref_header), 57)
+    record = pysam.AlignedSegment.fromstring(
+        f"{query_header}\t{flag}\t{ref_header}\t{pos}\t{mapq}\t{cigar}\t*\t0\t0\t{sequence}\t*\t{nm}\t{md}\tAS:i:43\tXS:i:32",
+        header,
+    )
+    return record
+
+
+def create_correct_supplementary_sam_record() -> pysam.AlignedSegment:
+    flag = 2048
+    cigar = "43M"
+    nm = "NM:i:1"
+    md = "MD:Z:19T23"
+    mapq = 0
+    pos = 5
+    query_header = ProbeHeader(chrom="3", pos=14788, interval=Interval(21, 22))
+    ref_header = ProbeHeader(
+        chrom="GC00000422_2",
+        sample="CFT073",
+        pos=603,
+        interval=Interval(25, 32),
+        svtype="PH_SNPs",
+        mean_fwd_covg=23,
+        mean_rev_covg=13,
+        gt_conf=89.5987,
+    )
+    sequence = "CGCGAAAGCCCTGACCATCTGCACCGTGTCTGACCACATCCGC"
+    header = create_sam_header(str(ref_header), 57)
+    record = pysam.AlignedSegment.fromstring(
+        f"{query_header}\t{flag}\t{ref_header}\t{pos}\t{mapq}\t{cigar}\t*\t0\t0\t{sequence}\t*\t{nm}\t{md}\tAS:i:43\tXS:i:32",
+        header,
+    )
+    return record
+
+
+def create_correct_primary_sam_record() -> pysam.AlignedSegment:
+    flag = 0
+    cigar = "56M"
+    nm = "NM:i:0"
+    md = "MD:Z:56"
+    mapq = 60
+    pos = 1
+    query_header = ProbeHeader(interval=Interval(12, 17))
+    ref_header = ProbeHeader(
+        chrom="GC00000422_2",
+        sample="CFT073",
+        pos=603,
+        interval=Interval(25, 32),
+        svtype="PH_SNPs",
+        mean_fwd_covg=23,
+        mean_rev_covg=13,
+        gt_conf=89.5987,
+    )
+    sequence = "AAAAAAAAAAACGGCTCGCATAGACACGACGACGACACGTACGATCGATCAGTCAT"
+    header = create_sam_header(str(ref_header), 64)
+    record = pysam.AlignedSegment.fromstring(
+        f"{query_header}\t{flag}\t{ref_header}\t{pos}\t{mapq}\t{cigar}\t*\t0\t0\t{sequence}\t*\t{nm}\t{md}\tAS:i:43\tXS:i:32",
+        header,
+    )
+    return record
+
+
+def create_incorrect_primary_sam_record() -> pysam.AlignedSegment:
+    flag = 0
+    cigar = "56M"
+    nm = "NM:i:1"
+    md = "MD:Z:12T43"
+    mapq = 60
+    pos = 1
+    query_header = ProbeHeader(interval=Interval(12, 13))
+    ref_header = ProbeHeader(
+        chrom="GC00000422_2",
+        sample="CFT073",
+        pos=603,
+        interval=Interval(25, 32),
+        svtype="PH_SNPs",
+        mean_fwd_covg=23,
+        mean_rev_covg=13,
+        gt_conf=89.5987,
+    )
+    sequence = "AAAAAAAAAAACGGCTCGCATAGACACGACGACGACACGTACGATCGATCAGTCAT"
+    header = create_sam_header(str(ref_header), 64)
+    record = pysam.AlignedSegment.fromstring(
+        f"{query_header}\t{flag}\t{ref_header}\t{pos}\t{mapq}\t{cigar}\t*\t0\t0\t{sequence}\t*\t{nm}\t{md}\tAS:i:43\tXS:i:32",
+        header,
+    )
+    return record
+
+
+def create_recall_classifier_with_two_entries() -> RecallClassifier:
+    flag = 0
+    cigar = "56M"
+    nm = "NM:i:0"
+    md = "MD:Z:56"
+    mapq = 60
+    pos = 1
+    query_header = ProbeHeader(interval=Interval(12, 17))
+    sequence = "AAAAAAAAAAACGGCTCGCATAGACACGACGACGACACGTACGATCGATCAGTCAT"
+    ref_header = ProbeHeader(
+        chrom="GC00000422_2",
+        sample="CFT073",
+        pos=603,
+        interval=Interval(25, 32),
+        svtype="PH_SNPs",
+        mean_fwd_covg=23,
+        mean_rev_covg=13,
+        gt_conf=89.5987,
+    )
+    header = create_sam_header(str(ref_header), 64)
+    contents = str(header) + "\n"
+    record1 = pysam.AlignedSegment.fromstring(
+        f"{query_header}\t{flag}\t{ref_header}\t{pos}\t{mapq}\t{cigar}\t*\t0\t0\t{sequence}\t*\t{nm}\t{md}\tAS:i:43\tXS:i:32",
+        header,
+    )
+    contents += record1.to_string() + "\n"
+
+    flag = 2048
+    cigar = "43M"
+    nm = "NM:i:1"
+    md = "MD:Z:21T21"
+    mapq = 0
+    pos = 5
+    query_header = ProbeHeader(chrom="3", pos=14788, interval=Interval(21, 22))
+    sequence = "CGCGAAAGCCCTGACCATCTGCACCGTGTCTGACCACATCCGC"
+    header = create_sam_header(str(ref_header), 57)
+    record2 = pysam.AlignedSegment.fromstring(
+        f"{query_header}\t{flag}\t{ref_header}\t{pos}\t{mapq}\t{cigar}\t*\t0\t0\t{sequence}\t*\t{nm}\t{md}\tAS:i:43\tXS:i:32",
+        header,
+    )
+    contents += record2.to_string() + "\n"
+    sam = create_tmp_sam(contents)
+    return RecallClassifier(sam)
+
+
 class TestRecallClassification:
     def test_equality_twoEqualReturnsTrue(self):
-        c1 = RecallClassification(truth_probe=Probe(ProbeHeader(chrom="2", pos=5)))
-        c2 = RecallClassification(truth_probe=Probe(ProbeHeader(chrom="2", pos=5)))
+        c1 = RecallClassification()
+        c1.truth_probe = Probe(ProbeHeader(chrom="2", pos=5))
+        c2 = RecallClassification()
+        c2.truth_probe = Probe(ProbeHeader(chrom="2", pos=5))
 
         assert c1 == c2
 
     def test_equality_twoNonEqualReturnsFalse(self):
-        c1 = RecallClassification(truth_probe=Probe(ProbeHeader(chrom="2", pos=5)))
-        c2 = RecallClassification(truth_probe=Probe(ProbeHeader(chrom="3", pos=5)))
+        c1 = RecallClassification()
+        c1.truth_probe = Probe(ProbeHeader(chrom="2", pos=5))
+        c2 = RecallClassification()
+        c2.truth_probe = Probe(ProbeHeader(chrom="3", pos=5))
 
         assert c1 != c2
 
@@ -34,9 +285,7 @@ class TestRecallClassification:
         sequence = "AAAAAAAAAAACGGCTCGCATAGACACGACGACGACACGTACGATCGATCAGTCAT"
         sam_string = f"{query_name}\t{flag}\t{ref_name}\t{pos}\t{mapq}\t{cigar}\t*\t0\t0\t{sequence}\t*\tAS:i:0\tXS:i:0"
         record = pysam.AlignedSegment.fromstring(sam_string, header)
-        classification = RecallClassification(
-            truth_probe=Probe(ProbeHeader.from_string(query_name)), record=record
-        )
+        classification = RecallClassification(record=record)
 
         assert not classification._whole_probe_maps()
 
@@ -54,9 +303,7 @@ class TestRecallClassification:
         sequence = "AAAAAAAAAAACGGCTCGCATAGACACGACGACGACACGTACGATCGATCAGTCAT"
         sam_string = f"{query_name}\t{flag}\t{ref_name}\t{pos}\t{mapq}\t{cigar}\t*\t0\t0\t{sequence}\t*\t{nm}\t{md}\tAS:i:0\tXS:i:0"
         record = pysam.AlignedSegment.fromstring(sam_string, header)
-        classification = RecallClassification(
-            truth_probe=Probe(ProbeHeader.from_string(query_name)), record=record
-        )
+        classification = RecallClassification(record=record)
 
         assert classification._whole_probe_maps()
 
@@ -74,9 +321,7 @@ class TestRecallClassification:
         sequence = "AAAAAAAAAAACGGCTCGCATAGACACGACGACGACACGTACGATCGATCAGTCAT"
         sam_string = f"{query_name}\t{flag}\t{ref_name}\t{pos}\t{mapq}\t{cigar}\t*\t0\t0\t{sequence}\t*\t{nm}\t{md}\tAS:i:0\tXS:i:0"
         record = pysam.AlignedSegment.fromstring(sam_string, header)
-        classification = RecallClassification(
-            truth_probe=Probe(ProbeHeader.from_string(query_name)), record=record
-        )
+        classification = RecallClassification(record=record)
 
         assert classification._whole_probe_maps()
 
@@ -96,9 +341,7 @@ class TestRecallClassification:
         sequence = "AAAAAAAAAAACGGCTCGCATAGACACGACGACGACACGTACGATCGATCAGTCAT"
         sam_string = f"{query_name}\t{flag}\t{ref_name}\t{pos}\t{mapq}\t{cigar}\t*\t0\t0\t{sequence}\t*\t{nm}\t{md}\tAS:i:0\tXS:i:0"
         record = pysam.AlignedSegment.fromstring(sam_string, header)
-        classification = RecallClassification(
-            truth_probe=Probe(ProbeHeader.from_string(query_name)), record=record
-        )
+        classification = RecallClassification(record=record)
 
         assert not classification._whole_probe_maps()
 
@@ -118,9 +361,7 @@ class TestRecallClassification:
         sequence = "AAAAAAAAAAACGGCTCGCATAGACACGACGACGACACGTACGATCGATCAGTCAT"
         sam_string = f"{query_name}\t{flag}\t{ref_name}\t{pos}\t{mapq}\t{cigar}\t*\t0\t0\t{sequence}\t*\t{nm}\t{md}\tAS:i:0\tXS:i:0"
         record = pysam.AlignedSegment.fromstring(sam_string, header)
-        classification = RecallClassification(
-            truth_probe=Probe(ProbeHeader.from_string(query_name)), record=record
-        )
+        classification = RecallClassification(record=record)
 
         assert not classification._whole_probe_maps()
 
@@ -138,9 +379,7 @@ class TestRecallClassification:
         sequence = "AAAAAAAAAAACGGCTCGCATAGACACGACGACGACACGTACGATCGATCAGTCAT"
         sam_string = f"{query_name}\t{flag}\t{ref_name}\t{pos}\t{mapq}\t{cigar}\t*\t0\t0\t{sequence}\t*\t{nm}\t{md}\tAS:i:0\tXS:i:0"
         record = pysam.AlignedSegment.fromstring(sam_string, header)
-        classification = RecallClassification(
-            truth_probe=Probe(ProbeHeader.from_string(query_name)), record=record
-        )
+        classification = RecallClassification(record=record)
 
         assert not classification._whole_probe_maps()
 
@@ -158,9 +397,7 @@ class TestRecallClassification:
         sequence = "AAAAAAAAAAACGGCTCGCATAGACACGACGACGACACGTACGATCGATCAGTCAT"
         sam_string = f"{query_name}\t{flag}\t{ref_name}\t{pos}\t{mapq}\t{cigar}\t*\t0\t0\t{sequence}\t*\t{nm}\t{md}\tAS:i:0\tXS:i:0"
         record = pysam.AlignedSegment.fromstring(sam_string, header)
-        classification = RecallClassification(
-            truth_probe=Probe(ProbeHeader.from_string(query_name)), record=record
-        )
+        classification = RecallClassification(record=record)
 
         assert not classification._whole_probe_maps()
 
@@ -180,9 +417,7 @@ class TestRecallClassification:
         )
         sam_string = f"{query_name}\t{flag}\t{ref_name}\t{pos}\t{mapq}\t{cigar}\t*\t0\t0\t{sequence}\t*\t{nm}\t{md}\tAS:i:0\tXS:i:0"
         record = pysam.AlignedSegment.fromstring(sam_string, header)
-        classification = RecallClassification(
-            truth_probe=Probe(ProbeHeader.from_string(query_name)), record=record
-        )
+        classification = RecallClassification(record=record)
 
         assert classification._whole_probe_maps()
 
@@ -202,9 +437,7 @@ class TestRecallClassification:
         )
         sam_string = f"{query_name}\t{flag}\t{ref_name}\t{pos}\t{mapq}\t{cigar}\t*\t0\t0\t{sequence}\t*\t{nm}\t{md}\tAS:i:0\tXS:i:0"
         record = pysam.AlignedSegment.fromstring(sam_string, header)
-        classification = RecallClassification(
-            truth_probe=Probe(ProbeHeader.from_string(query_name)), record=record
-        )
+        classification = RecallClassification(record=record)
 
         assert not classification._whole_probe_maps()
 
@@ -226,9 +459,7 @@ class TestRecallClassification:
         )
         sam_string = f"{query_name}\t{flag}\t{ref_name}\t{pos}\t{mapq}\t{cigar}\t*\t0\t0\t{sequence}\t*\t{nm}\t{md}\tAS:i:0\tXS:i:0"
         record = pysam.AlignedSegment.fromstring(sam_string, header)
-        classification = RecallClassification(
-            truth_probe=Probe(ProbeHeader.from_string(query_name)), record=record
-        )
+        classification = RecallClassification(record=record)
 
         assert not classification._whole_probe_maps()
 
@@ -248,9 +479,7 @@ class TestRecallClassification:
         )
         sam_string = f"{query_name}\t{flag}\t{ref_name}\t{pos}\t{mapq}\t{cigar}\t*\t0\t0\t{sequence}\t*\t{nm}\t{md}\tAS:i:0\tXS:i:0"
         record = pysam.AlignedSegment.fromstring(sam_string, header)
-        classification = RecallClassification(
-            truth_probe=Probe(ProbeHeader.from_string(query_name)), record=record
-        )
+        classification = RecallClassification(record=record)
 
         assert not classification._whole_probe_maps()
 
@@ -271,7 +500,7 @@ class TestRecallClassification:
         probe = Probe(
             header=ProbeHeader.from_string(query_name), full_sequence=sequence
         )
-        classification = RecallClassification(truth_probe=probe, record=record)
+        classification = RecallClassification(record=record)
 
         assert not classification.is_correct()
 
@@ -292,7 +521,7 @@ class TestRecallClassification:
         probe = Probe(
             header=ProbeHeader.from_string(query_name), full_sequence=sequence
         )
-        classification = RecallClassification(truth_probe=probe, record=record)
+        classification = RecallClassification(record=record)
 
         assert classification.is_correct()
 
@@ -313,7 +542,7 @@ class TestRecallClassification:
         probe = Probe(
             header=ProbeHeader.from_string(query_name), full_sequence=sequence
         )
-        classification = RecallClassification(truth_probe=probe, record=record)
+        classification = RecallClassification(record=record)
 
         assert classification.is_correct()
 
@@ -336,7 +565,7 @@ class TestRecallClassification:
         probe = Probe(
             header=ProbeHeader.from_string(query_name), full_sequence=sequence
         )
-        classification = RecallClassification(truth_probe=probe, record=record)
+        classification = RecallClassification(record=record)
 
         assert classification.is_correct()
 
@@ -357,7 +586,7 @@ class TestRecallClassification:
         probe = Probe(
             header=ProbeHeader.from_string(query_name), full_sequence=sequence
         )
-        classification = RecallClassification(truth_probe=probe, record=record)
+        classification = RecallClassification(record=record)
 
         assert classification.is_correct()
 
@@ -378,7 +607,7 @@ class TestRecallClassification:
         probe = Probe(
             header=ProbeHeader.from_string(query_name), full_sequence=sequence
         )
-        classification = RecallClassification(truth_probe=probe, record=record)
+        classification = RecallClassification(record=record)
 
         assert not classification.is_correct()
 
@@ -399,7 +628,7 @@ class TestRecallClassification:
         probe = Probe(
             header=ProbeHeader.from_string(query_name), full_sequence=sequence
         )
-        classification = RecallClassification(truth_probe=probe, record=record)
+        classification = RecallClassification(record=record)
 
         assert not classification.is_correct()
 
@@ -420,7 +649,7 @@ class TestRecallClassification:
         probe = Probe(
             header=ProbeHeader.from_string(query_name), full_sequence=sequence
         )
-        classification = RecallClassification(truth_probe=probe, record=record)
+        classification = RecallClassification(record=record)
 
         assert not classification.is_correct()
 
@@ -441,7 +670,7 @@ class TestRecallClassification:
         probe = Probe(
             header=ProbeHeader.from_string(query_name), full_sequence=sequence
         )
-        classification = RecallClassification(truth_probe=probe, record=record)
+        classification = RecallClassification(record=record)
 
         assert classification.is_correct()
 
@@ -462,7 +691,7 @@ class TestRecallClassification:
         probe = Probe(
             header=ProbeHeader.from_string(query_name), full_sequence=sequence
         )
-        classification = RecallClassification(truth_probe=probe, record=record)
+        classification = RecallClassification(record=record)
 
         assert not classification.is_correct()
 
@@ -483,7 +712,7 @@ class TestRecallClassification:
         probe = Probe(
             header=ProbeHeader.from_string(query_name), full_sequence=sequence
         )
-        classification = RecallClassification(truth_probe=probe, record=record)
+        classification = RecallClassification(record=record)
 
         assert classification.is_correct()
 
@@ -504,7 +733,7 @@ class TestRecallClassification:
         probe = Probe(
             header=ProbeHeader.from_string(query_name), full_sequence=sequence
         )
-        classification = RecallClassification(truth_probe=probe, record=record)
+        classification = RecallClassification(record=record)
 
         assert not classification.is_correct()
 
@@ -525,7 +754,7 @@ class TestRecallClassification:
         probe = Probe(
             header=ProbeHeader.from_string(query_name), full_sequence=sequence
         )
-        classification = RecallClassification(truth_probe=probe, record=record)
+        classification = RecallClassification(record=record)
 
         assert not classification.is_correct()
 
@@ -546,7 +775,7 @@ class TestRecallClassification:
         probe = Probe(
             header=ProbeHeader.from_string(query_name), full_sequence=sequence
         )
-        classification = RecallClassification(truth_probe=probe, record=record)
+        classification = RecallClassification(record=record)
 
         assert not classification.is_correct()
 
@@ -567,7 +796,7 @@ class TestRecallClassification:
         probe = Probe(
             header=ProbeHeader.from_string(query_name), full_sequence=sequence
         )
-        classification = RecallClassification(truth_probe=probe, record=record)
+        classification = RecallClassification(record=record)
 
         assert classification.is_correct()
 
@@ -588,20 +817,12 @@ class TestRecallClassification:
         probe = Probe(
             header=ProbeHeader.from_string(query_name), full_sequence=sequence
         )
-        classification = RecallClassification(truth_probe=probe, record=record)
+        classification = RecallClassification(record=record)
 
         assert not classification.is_correct()
 
     def test_assessment_unmappedRecordReturnsUnmapped(self):
-        header = create_sam_header(
-            "GC00000422_2_SAMPLE=CFT073_POS=603_CALL_INTERVAL=[25,32)_SVTYPE=PH_SNPs_MEAN_FWD_COVG=23_MEAN_REV_COVG=13_GT_CONF=89.5987",
-            57,
-        )
-        record = pysam.AlignedSegment.fromstring(
-            ""
-            "3_POS=14788_CALL_INTERVAL=[21,22)\t4\t*\t0\t0\t*\t*\t0\t0\tCGCGAAAGCCCTGACCATCTGCACCGTGTCTGACCACATCCGC\t*\tAS:i:0\tXS:i:0",
-            header,
-        )
+        record = create_unmapped_sam_record()
         classification = RecallClassification(record=record)
 
         actual = classification.assessment()
@@ -612,25 +833,8 @@ class TestRecallClassification:
     def test_assessment_recordWithCoreProbeOnlyPartiallyMappedReturnsPartiallyMapped(
         self
     ):
-        ref_name = "reference"
-        ref_length = 59
-        header = create_sam_header(ref_name, ref_length)
-        flag = 0
-        cigar = "30M38S"
-        nm = "NM:i:0"
-        md = "MD:Z:30"
-        mapq = 60
-        pos = 6
-        query_name = "INTERVAL=[23,33);"
-        sequence = (
-            "AAAAAAAAAAAAAAAAAAAAAAACGGCTCGCATAGACACGACGACGACACGTACGATCGATCAGTCAT"
-        )
-        sam_string = f"{query_name}\t{flag}\t{ref_name}\t{pos}\t{mapq}\t{cigar}\t*\t0\t0\t{sequence}\t*\t{nm}\t{md}\tAS:i:0\tXS:i:0"
-        record = pysam.AlignedSegment.fromstring(sam_string, header)
-        probe = Probe(
-            header=ProbeHeader.from_string(query_name), full_sequence=sequence
-        )
-        classification = RecallClassification(truth_probe=probe, record=record)
+        record = create_partially_mapped_sam_record()
+        classification = RecallClassification(record=record)
 
         actual = classification.assessment()
         expected = "partially_mapped"
@@ -638,31 +842,8 @@ class TestRecallClassification:
         assert actual == expected
 
     def test_assessment_incorrectSecondayAlignmentMismatchReturnsIncorrect(self):
-        flag = 256
-        cigar = "43M"
-        nm = "NM:i:1"
-        md = "MD:Z:21T21"
-        mapq = 0
-        pos = 5
-        query_header = ProbeHeader(chrom="3", pos=14788, interval=Interval(21, 22))
-        ref_header = ProbeHeader(
-            chrom="GC00000422_2",
-            sample="CFT073",
-            pos=603,
-            interval=Interval(25, 32),
-            svtype="PH_SNPs",
-            mean_fwd_covg=23,
-            mean_rev_covg=13,
-            gt_conf=89.5987,
-        )
-        sequence = "CGCGAAAGCCCTGACCATCTGCACCGTGTCTGACCACATCCGC"
-        header = create_sam_header(str(ref_header), 57)
-        record = pysam.AlignedSegment.fromstring(
-            f"{query_header}\t{flag}\t{ref_header}\t{pos}\t{mapq}\t{cigar}\t*\t0\t0\t{sequence}\t*\t{nm}\t{md}\tAS:i:43\tXS:i:32",
-            header,
-        )
-        probe = Probe(header=query_header, full_sequence=sequence)
-        classification = RecallClassification(truth_probe=probe, record=record)
+        record = create_incorrect_secondary_sam_record()
+        classification = RecallClassification(record=record)
 
         actual = classification.assessment()
         expected = "secondary_incorrect"
@@ -670,31 +851,8 @@ class TestRecallClassification:
         assert actual == expected
 
     def test_assessment_correctSecondayAlignmentReturnsCorrect(self):
-        flag = 256
-        cigar = "43M"
-        nm = "NM:i:1"
-        md = "MD:Z:19T23"
-        mapq = 0
-        pos = 5
-        query_header = ProbeHeader(chrom="3", pos=14788, interval=Interval(21, 22))
-        ref_header = ProbeHeader(
-            chrom="GC00000422_2",
-            sample="CFT073",
-            pos=603,
-            interval=Interval(25, 32),
-            svtype="PH_SNPs",
-            mean_fwd_covg=23,
-            mean_rev_covg=13,
-            gt_conf=89.5987,
-        )
-        sequence = "CGCGAAAGCCCTGACCATCTGCACCGTGTCTGACCACATCCGC"
-        header = create_sam_header(str(ref_header), 57)
-        record = pysam.AlignedSegment.fromstring(
-            f"{query_header}\t{flag}\t{ref_header}\t{pos}\t{mapq}\t{cigar}\t*\t0\t0\t{sequence}\t*\t{nm}\t{md}\tAS:i:43\tXS:i:32",
-            header,
-        )
-        probe = Probe(header=query_header, full_sequence=sequence)
-        classification = RecallClassification(truth_probe=probe, record=record)
+        record = create_correct_secondary_sam_record()
+        classification = RecallClassification(record=record)
 
         actual = classification.assessment()
         expected = "secondary_correct"
@@ -702,31 +860,8 @@ class TestRecallClassification:
         assert actual == expected
 
     def test_assessment_incorrectSupplementaryAlignmentMismatchReturnsIncorrect(self):
-        flag = 2048
-        cigar = "43M"
-        nm = "NM:i:1"
-        md = "MD:Z:21T21"
-        mapq = 0
-        pos = 5
-        query_header = ProbeHeader(chrom="3", pos=14788, interval=Interval(21, 22))
-        ref_header = ProbeHeader(
-            chrom="GC00000422_2",
-            sample="CFT073",
-            pos=603,
-            interval=Interval(25, 32),
-            svtype="PH_SNPs",
-            mean_fwd_covg=23,
-            mean_rev_covg=13,
-            gt_conf=89.5987,
-        )
-        sequence = "CGCGAAAGCCCTGACCATCTGCACCGTGTCTGACCACATCCGC"
-        header = create_sam_header(str(ref_header), 57)
-        record = pysam.AlignedSegment.fromstring(
-            f"{query_header}\t{flag}\t{ref_header}\t{pos}\t{mapq}\t{cigar}\t*\t0\t0\t{sequence}\t*\t{nm}\t{md}\tAS:i:43\tXS:i:32",
-            header,
-        )
-        probe = Probe(header=query_header, full_sequence=sequence)
-        classification = RecallClassification(truth_probe=probe, record=record)
+        record = create_incorrect_supplementary_sam_record()
+        classification = RecallClassification(record=record)
 
         actual = classification.assessment()
         expected = "supplementary_incorrect"
@@ -734,31 +869,8 @@ class TestRecallClassification:
         assert actual == expected
 
     def test_assessment_correctSupplementaryAlignmentReturnsCorrect(self):
-        flag = 2048
-        cigar = "43M"
-        nm = "NM:i:1"
-        md = "MD:Z:19T23"
-        mapq = 0
-        pos = 5
-        query_header = ProbeHeader(chrom="3", pos=14788, interval=Interval(21, 22))
-        ref_header = ProbeHeader(
-            chrom="GC00000422_2",
-            sample="CFT073",
-            pos=603,
-            interval=Interval(25, 32),
-            svtype="PH_SNPs",
-            mean_fwd_covg=23,
-            mean_rev_covg=13,
-            gt_conf=89.5987,
-        )
-        sequence = "CGCGAAAGCCCTGACCATCTGCACCGTGTCTGACCACATCCGC"
-        header = create_sam_header(str(ref_header), 57)
-        record = pysam.AlignedSegment.fromstring(
-            f"{query_header}\t{flag}\t{ref_header}\t{pos}\t{mapq}\t{cigar}\t*\t0\t0\t{sequence}\t*\t{nm}\t{md}\tAS:i:43\tXS:i:32",
-            header,
-        )
-        probe = Probe(header=query_header, full_sequence=sequence)
-        classification = RecallClassification(truth_probe=probe, record=record)
+        record = create_correct_supplementary_sam_record()
+        classification = RecallClassification(record=record)
 
         actual = classification.assessment()
         expected = "supplementary_correct"
@@ -766,22 +878,8 @@ class TestRecallClassification:
         assert actual == expected
 
     def test_assessment_correctPrimaryAlignmenReturnsCorrect(self):
-        flag = 0
-        cigar = "56M"
-        nm = "NM:i:0"
-        md = "MD:Z:56"
-        mapq = 60
-        pos = 1
-        query_header = ProbeHeader(interval=Interval(12, 17))
-        ref_header = "reference"
-        sequence = "AAAAAAAAAAACGGCTCGCATAGACACGACGACGACACGTACGATCGATCAGTCAT"
-        header = create_sam_header(str(ref_header), 64)
-        record = pysam.AlignedSegment.fromstring(
-            f"{query_header}\t{flag}\t{ref_header}\t{pos}\t{mapq}\t{cigar}\t*\t0\t0\t{sequence}\t*\t{nm}\t{md}\tAS:i:43\tXS:i:32",
-            header,
-        )
-        probe = Probe(header=query_header, full_sequence=sequence)
-        classification = RecallClassification(truth_probe=probe, record=record)
+        record = create_correct_primary_sam_record()
+        classification = RecallClassification(record=record)
 
         actual = classification.assessment()
         expected = "correct"
@@ -789,22 +887,8 @@ class TestRecallClassification:
         assert actual == expected
 
     def test_assessment_incorrectPrimaryAlignmentMismatchReturnsIncorrect(self):
-        flag = 0
-        cigar = "56M"
-        nm = "NM:i:1"
-        md = "MD:Z:12T43"
-        mapq = 60
-        pos = 1
-        query_header = ProbeHeader(interval=Interval(12, 13))
-        ref_header = "reference"
-        sequence = "AAAAAAAAAAACGGCTCGCATAGACACGACGACGACACGTACGATCGATCAGTCAT"
-        header = create_sam_header(str(ref_header), 64)
-        record = pysam.AlignedSegment.fromstring(
-            f"{query_header}\t{flag}\t{ref_header}\t{pos}\t{mapq}\t{cigar}\t*\t0\t0\t{sequence}\t*\t{nm}\t{md}\tAS:i:43\tXS:i:32",
-            header,
-        )
-        probe = Probe(header=query_header, full_sequence=sequence)
-        classification = RecallClassification(truth_probe=probe, record=record)
+        record = create_incorrect_primary_sam_record()
+        classification = RecallClassification(record=record)
 
         actual = classification.assessment()
         expected = "incorrect"
@@ -812,75 +896,202 @@ class TestRecallClassification:
         assert actual == expected
 
 
-def create_tmp_sam(contents: str) -> pysam.AlignmentFile:
-    with tempfile.NamedTemporaryFile(mode="r+") as tmp:
-        tmp.write(contents)
-        tmp.truncate()
-        return pysam.AlignmentFile(tmp.name)
-
-
 class TestRecallClassifier:
-    def test_classify(self):
-        flag = 0
-        cigar = "56M"
-        nm = "NM:i:0"
-        md = "MD:Z:56"
-        mapq = 60
-        pos = 1
-        query_header = ProbeHeader(interval=Interval(12, 17))
-        sequence = "AAAAAAAAAAACGGCTCGCATAGACACGACGACGACACGTACGATCGATCAGTCAT"
-        ref_header = ProbeHeader(
-            chrom="GC00000422_2",
-            sample="CFT073",
-            pos=603,
-            interval=Interval(25, 32),
-            svtype="PH_SNPs",
-            mean_fwd_covg=23,
-            mean_rev_covg=13,
-            gt_conf=89.5987,
-        )
-        header = create_sam_header(str(ref_header), 64)
-        contents = str(header) + "\n"
-        record1 = pysam.AlignedSegment.fromstring(
-            f"{query_header}\t{flag}\t{ref_header}\t{pos}\t{mapq}\t{cigar}\t*\t0\t0\t{sequence}\t*\t{nm}\t{md}\tAS:i:43\tXS:i:32",
-            header,
-        )
-        contents += record1.to_string() + "\n"
+    def test_classify_noAlignmentFileReturnsEmpty(self):
+        classifier = RecallClassifier()
 
-        flag = 2048
-        cigar = "43M"
-        nm = "NM:i:1"
-        md = "MD:Z:21T21"
-        mapq = 0
-        pos = 5
-        query_header = ProbeHeader(chrom="3", pos=14788, interval=Interval(21, 22))
-        sequence = "CGCGAAAGCCCTGACCATCTGCACCGTGTCTGACCACATCCGC"
-        header = create_sam_header(str(ref_header), 57)
-        record2 = pysam.AlignedSegment.fromstring(
-            f"{query_header}\t{flag}\t{ref_header}\t{pos}\t{mapq}\t{cigar}\t*\t0\t0\t{sequence}\t*\t{nm}\t{md}\tAS:i:43\tXS:i:32",
-            header,
-        )
-        contents += record2.to_string() + "\n"
-        sam = create_tmp_sam(contents)
-        classifier = RecallClassifier(sam)
+        actual = classifier.classify()
+        expected = []
+
+        assert actual == expected
+
+    def test_classify(self):
+        classifier = create_recall_classifier_with_two_entries()
 
         actual = classifier.classify()
         expected = [
-            RecallClassification(
-                truth_probe=Probe(
-                    ProbeHeader.from_string(record1.query_name),
-                    full_sequence=record1.query_sequence,
-                )
-            ),
-            RecallClassification(
-                truth_probe=Probe(
-                    ProbeHeader.from_string(record2.query_name),
-                    full_sequence=record2.query_sequence,
-                )
-            ),
+            RecallClassification(record=create_correct_primary_sam_record()),
+            RecallClassification(record=create_incorrect_supplementary_sam_record()),
         ]
 
         assert actual == expected
 
         expected_classifications = ["correct", "supplementary_incorrect"]
         assert [x.assessment() for x in actual] == expected_classifications
+
+
+class TestRecallReporter:
+    def test_generateReport_noClassifierReturnsEmpty(self):
+        sample = "sample"
+        classifier = RecallClassifier(name=sample)
+        reporter = RecallReporter(classifiers=[classifier])
+
+        actual = reporter.generate_report()
+        expected = pd.DataFrame(
+            [],
+            columns=[
+                "sample",
+                "truth_probe_header",
+                "vcf_probe_header",
+                "classification",
+            ],
+        )
+
+        assert actual.equals(expected)
+
+    def test_generateReport_twoClassificationsReturnsDataframeWithTwoEntries(self):
+        classifier = create_recall_classifier_with_two_entries()
+        sample = "sample"
+        classifier.name = sample
+        reporter = RecallReporter(classifiers=[classifier])
+
+        actual = reporter.generate_report()
+        expected_data = []
+        for assessment, record in [
+            ("correct", create_correct_primary_sam_record()),
+            ("supplementary_incorrect", create_incorrect_supplementary_sam_record()),
+        ]:
+            expected_data.append(
+                [sample, record.query_name, record.reference_name, assessment]
+            )
+        expected = pd.DataFrame(
+            expected_data,
+            columns=[
+                "sample",
+                "truth_probe_header",
+                "vcf_probe_header",
+                "classification",
+            ],
+        )
+
+        assert actual.equals(expected)
+
+    def test_save_emptyReporterReturnsHeadersOnly(self):
+        delim = "\t"
+        reporter = RecallReporter(classifiers=[RecallClassifier()], delim=delim)
+        fh = StringIO(newline="")
+        reporter.save(fh)
+
+        fh.seek(0)
+        actual = fh.read()
+        expected = delim.join(reporter.columns) + "\n"
+
+        assert actual == expected
+
+    def test_save_reporterWithTwoClassificationsWritesHeadersAndTwoRows(self):
+        primary_correct_record = create_correct_primary_sam_record()
+        suppl_incorrect_record = create_incorrect_supplementary_sam_record()
+        delim = "\t"
+        classifier = create_recall_classifier_with_two_entries()
+        sample = "sample"
+        classifier.name = sample
+        reporter = RecallReporter(classifiers=[classifier], delim=delim)
+
+        fh = StringIO(newline="")
+        reporter.save(fh)
+
+        fh.seek(0)
+        actual = fh.read()
+        expected_data = []
+        for assessment, record in [
+            ("correct", primary_correct_record),
+            ("supplementary_incorrect", suppl_incorrect_record),
+        ]:
+            expected_data.append(
+                [sample, record.query_name, record.reference_name, assessment]
+            )
+        expected = StringIO(newline="")
+        pd.DataFrame(
+            expected_data,
+            columns=[
+                "sample",
+                "truth_probe_header",
+                "vcf_probe_header",
+                "classification",
+            ],
+        ).to_csv(expected, sep=delim, header=True, index=False)
+        expected.seek(0)
+        expected = expected.read()
+
+        assert actual == expected
+
+    def test_save_reporterWithTwoClassificationsWritesHeadersAndTwoRowsWithCommaDelim(
+        self
+    ):
+        primary_correct_record = create_correct_primary_sam_record()
+        suppl_incorrect_record = create_incorrect_supplementary_sam_record()
+        delim = ","
+        classifier = create_recall_classifier_with_two_entries()
+        sample = "sample"
+        classifier.name = sample
+        reporter = RecallReporter(classifiers=[classifier], delim=delim)
+
+        fh = StringIO(newline="")
+        reporter.save(fh)
+
+        fh.seek(0)
+        actual = fh.read()
+        expected_data = []
+        for assessment, record in [
+            ("correct", primary_correct_record),
+            ("supplementary_incorrect", suppl_incorrect_record),
+        ]:
+            expected_data.append(
+                [sample, record.query_name, record.reference_name, assessment]
+            )
+        expected = StringIO(newline="")
+        pd.DataFrame(
+            expected_data,
+            columns=[
+                "sample",
+                "truth_probe_header",
+                "vcf_probe_header",
+                "classification",
+            ],
+        ).to_csv(expected, sep=delim, header=True, index=False)
+        expected.seek(0)
+        expected = expected.read()
+
+        assert actual == expected
+
+    def test_save_reporterWithTwoClassifiersWritesTwoSamplesWithTwoRows(self):
+        primary_correct_record = create_correct_primary_sam_record()
+        suppl_incorrect_record = create_incorrect_supplementary_sam_record()
+        delim = ","
+        classifier1 = create_recall_classifier_with_two_entries()
+        sample = "sample"
+        classifier1.name = sample
+        classifier2 = create_recall_classifier_with_two_entries()
+        sample2 = "sample2"
+        classifier2.name = sample2
+
+        reporter = RecallReporter(classifiers=[classifier1, classifier2], delim=delim)
+
+        fh = StringIO(newline="")
+        reporter.save(fh)
+
+        fh.seek(0)
+        actual = fh.read()
+        expected_data = []
+        for s in [sample, sample2]:
+            for assessment, record in [
+                ("correct", primary_correct_record),
+                ("supplementary_incorrect", suppl_incorrect_record),
+            ]:
+                expected_data.append(
+                    [s, record.query_name, record.reference_name, assessment]
+                )
+        expected = StringIO(newline="")
+        pd.DataFrame(
+            expected_data,
+            columns=[
+                "sample",
+                "truth_probe_header",
+                "vcf_probe_header",
+                "classification",
+            ],
+        ).to_csv(expected, sep=delim, header=True, index=False)
+        expected.seek(0)
+        expected = expected.read()
+
+        assert actual == expected
