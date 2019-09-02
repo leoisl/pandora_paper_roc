@@ -3,6 +3,7 @@
 import argparse
 import logging
 import sys
+from typing import Iterable
 from pathlib import Path
 
 GT_MAX = 300
@@ -21,7 +22,7 @@ LOGGING_LEVELS = {
 DEFAULT_LOG_LVL = 4
 
 
-def cli() -> argparse.Namespace:
+def parse_args(cli_args: Iterable[str] = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
         "-1",
@@ -107,7 +108,7 @@ def cli() -> argparse.Namespace:
         type=int,
         choices=range(6),
     )
-    args = parser.parse_args()
+    args = parser.parse_args(args=cli_args)
 
     log_level = LOGGING_LEVELS[args.log_level]
     logging.basicConfig(
@@ -133,3 +134,7 @@ def cli() -> argparse.Namespace:
     logging.debug(args)
 
     return args
+
+
+def cli() -> argparse.Namespace:
+    return parse_args()
