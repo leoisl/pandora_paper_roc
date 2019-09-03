@@ -1,4 +1,6 @@
 from typing import List, TextIO, Iterable
+import logging
+from collections import Counter
 from enum import Enum
 
 import pandas as pd
@@ -160,9 +162,10 @@ class RecallReporter:
 
         return pd.DataFrame(data=report_entries, columns=self.columns)
 
-    def save(self, file_handle: TextIO) -> None:
+    def save(self, file_handle: TextIO) -> pd.DataFrame:
         report = self.generate_report()
         report.to_csv(file_handle, sep=self.delim, header=True, index=False)
+        return report
 
 
 class StatisticalClassification(Enum):
@@ -173,6 +176,30 @@ class StatisticalClassification(Enum):
 
 
 class RecallCalculator:
+    def __init__(self, reports: Iterable[pd.DataFrame]):
+        self.report = pd.concat(reports)
+
+    def calculate_recall(self, conf_threshold: float = 0) -> float:
+        counter = Counter()
+        for index, row in self.report.iterrows():
+            classification = self.statistical_classification(row, conf_threshold)
+            counter[classification] += 1
+
+        true_positives = counter[StatisticalClassification.TRUE_POSITIVE]
+        false_negatives = counter[StatisticalClassification.FALSE_NEGATIVE]
+
+        logging.info(
+            (
+                f"Got {true_positives} true positives and {false_negatives}"
+                " false negatives when calculating recall."
+            )
+        )
+
+        try:
+            return true_positives / (true_positives + false_negatives)
+        except ZeroDivisionError:
+            return 0
+
     @staticmethod
     def statistical_classification(
         row: pd.Series, conf_threshold: float = 0

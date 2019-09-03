@@ -1136,14 +1136,15 @@ class TestRecallCalculator:
 
         assert actual == expected
 
-
     def test_statisticalClassification_incorrectAboveConfReturnsFalsePositive(self):
         classification = "incorrect"
         gt_conf = 10
         row = create_report_row(classification, gt_conf)
         threshold = 5
 
-        actual = RecallCalculator.statistical_classification(row, conf_threshold=threshold)
+        actual = RecallCalculator.statistical_classification(
+            row, conf_threshold=threshold
+        )
         expected = StatisticalClassification.FALSE_POSITIVE
 
         assert actual == expected
@@ -1154,7 +1155,9 @@ class TestRecallCalculator:
         row = create_report_row(classification, gt_conf)
         threshold = 50
 
-        actual = RecallCalculator.statistical_classification(row, conf_threshold=threshold)
+        actual = RecallCalculator.statistical_classification(
+            row, conf_threshold=threshold
+        )
         expected = StatisticalClassification.FALSE_NEGATIVE
 
         assert actual == expected
@@ -1165,7 +1168,9 @@ class TestRecallCalculator:
         row = create_report_row(classification, gt_conf)
         threshold = 5
 
-        actual = RecallCalculator.statistical_classification(row, conf_threshold=threshold)
+        actual = RecallCalculator.statistical_classification(
+            row, conf_threshold=threshold
+        )
         expected = StatisticalClassification.TRUE_POSITIVE
 
         assert actual == expected
@@ -1176,7 +1181,9 @@ class TestRecallCalculator:
         row = create_report_row(classification, gt_conf)
         threshold = 50
 
-        actual = RecallCalculator.statistical_classification(row, conf_threshold=threshold)
+        actual = RecallCalculator.statistical_classification(
+            row, conf_threshold=threshold
+        )
         expected = StatisticalClassification.FALSE_NEGATIVE
 
         assert actual == expected
@@ -1189,7 +1196,9 @@ class TestRecallCalculator:
         row = create_report_row(classification, gt_conf)
         threshold = 5
 
-        actual = RecallCalculator.statistical_classification(row, conf_threshold=threshold)
+        actual = RecallCalculator.statistical_classification(
+            row, conf_threshold=threshold
+        )
         expected = StatisticalClassification.FALSE_POSITIVE
 
         assert actual == expected
@@ -1202,7 +1211,9 @@ class TestRecallCalculator:
         row = create_report_row(classification, gt_conf)
         threshold = 50
 
-        actual = RecallCalculator.statistical_classification(row, conf_threshold=threshold)
+        actual = RecallCalculator.statistical_classification(
+            row, conf_threshold=threshold
+        )
         expected = StatisticalClassification.FALSE_NEGATIVE
 
         assert actual == expected
@@ -1215,7 +1226,9 @@ class TestRecallCalculator:
         row = create_report_row(classification, gt_conf)
         threshold = 5
 
-        actual = RecallCalculator.statistical_classification(row, conf_threshold=threshold)
+        actual = RecallCalculator.statistical_classification(
+            row, conf_threshold=threshold
+        )
         expected = StatisticalClassification.TRUE_POSITIVE
 
         assert actual == expected
@@ -1228,7 +1241,9 @@ class TestRecallCalculator:
         row = create_report_row(classification, gt_conf)
         threshold = 50
 
-        actual = RecallCalculator.statistical_classification(row, conf_threshold=threshold)
+        actual = RecallCalculator.statistical_classification(
+            row, conf_threshold=threshold
+        )
         expected = StatisticalClassification.FALSE_NEGATIVE
 
         assert actual == expected
@@ -1241,7 +1256,9 @@ class TestRecallCalculator:
         row = create_report_row(classification, gt_conf)
         threshold = 5
 
-        actual = RecallCalculator.statistical_classification(row, conf_threshold=threshold)
+        actual = RecallCalculator.statistical_classification(
+            row, conf_threshold=threshold
+        )
         expected = StatisticalClassification.FALSE_POSITIVE
 
         assert actual == expected
@@ -1254,7 +1271,9 @@ class TestRecallCalculator:
         row = create_report_row(classification, gt_conf)
         threshold = 50
 
-        actual = RecallCalculator.statistical_classification(row, conf_threshold=threshold)
+        actual = RecallCalculator.statistical_classification(
+            row, conf_threshold=threshold
+        )
         expected = StatisticalClassification.FALSE_NEGATIVE
 
         assert actual == expected
@@ -1267,7 +1286,9 @@ class TestRecallCalculator:
         row = create_report_row(classification, gt_conf)
         threshold = 5
 
-        actual = RecallCalculator.statistical_classification(row, conf_threshold=threshold)
+        actual = RecallCalculator.statistical_classification(
+            row, conf_threshold=threshold
+        )
         expected = StatisticalClassification.TRUE_POSITIVE
 
         assert actual == expected
@@ -1280,7 +1301,130 @@ class TestRecallCalculator:
         row = create_report_row(classification, gt_conf)
         threshold = 50
 
-        actual = RecallCalculator.statistical_classification(row, conf_threshold=threshold)
+        actual = RecallCalculator.statistical_classification(
+            row, conf_threshold=threshold
+        )
         expected = StatisticalClassification.FALSE_NEGATIVE
+
+        assert actual == expected
+
+    def test_calculateRecall_noReportsReturnsZero(self):
+        columns = ["sample", "truth_probe_header", "vcf_probe_header", "classification"]
+        report = pd.DataFrame(columns=columns)
+        calculator = RecallCalculator([report])
+        threshold = 0
+
+        actual = calculator.calculate_recall(conf_threshold=threshold)
+        expected = 0
+
+        assert actual == expected
+
+    def test_calculateRecall_oneReportNoTruePositivesReturnsZero(self):
+        columns = ["sample", "truth_probe_header", "vcf_probe_header", "classification"]
+        report = pd.DataFrame(
+            data=[
+                create_report_row("unmapped", gt_conf=100),
+                create_report_row("unmapped", gt_conf=100),
+                create_report_row("correct", gt_conf=10),
+                create_report_row("incorrect", gt_conf=100),
+            ],
+            columns=columns,
+        )
+        calculator = RecallCalculator([report])
+        threshold = 60
+
+        actual = calculator.calculate_recall(conf_threshold=threshold)
+        expected = 0
+
+        assert actual == expected
+
+    def test_calculateRecall_oneReportNoFalseNegativesReturnsOne(self):
+        columns = ["sample", "truth_probe_header", "vcf_probe_header", "classification"]
+        report = pd.DataFrame(
+            data=[
+                create_report_row("correct", gt_conf=100),
+                create_report_row("correct", gt_conf=100),
+                create_report_row("incorrect", gt_conf=100),
+            ],
+            columns=columns,
+        )
+        calculator = RecallCalculator([report])
+        threshold = 60
+
+        actual = calculator.calculate_recall(conf_threshold=threshold)
+        expected = 1
+
+        assert actual == expected
+
+    def test_calculateRecall_oneReportHalfTruePositiveHalfFalseNegativeReturnsFifty(
+        self
+    ):
+        columns = ["sample", "truth_probe_header", "vcf_probe_header", "classification"]
+        report = pd.DataFrame(
+            data=[
+                create_report_row("correct", gt_conf=10),
+                create_report_row("correct", gt_conf=100),
+                create_report_row("correct", gt_conf=100),
+                create_report_row("unmapped", gt_conf=100),
+                create_report_row("supplementary_incorrect", gt_conf=10),
+                create_report_row("secondary_correct", gt_conf=100),
+                create_report_row("incorrect", gt_conf=100),
+            ],
+            columns=columns,
+        )
+        calculator = RecallCalculator([report])
+        threshold = 60
+
+        actual = calculator.calculate_recall(conf_threshold=threshold)
+        expected = 0.5
+
+        assert actual == expected
+
+    def test_calculateRecall_oneReportNoTruePositivesOrFalseNegativesReturnsZero(self):
+        columns = ["sample", "truth_probe_header", "vcf_probe_header", "classification"]
+        report = pd.DataFrame(
+            data=[
+                create_report_row("supplementary_incorrect", gt_conf=100),
+                create_report_row("incorrect", gt_conf=100),
+            ],
+            columns=columns,
+        )
+        calculator = RecallCalculator([report])
+        threshold = 60
+
+        actual = calculator.calculate_recall(conf_threshold=threshold)
+        expected = 0
+
+        assert actual == expected
+
+    def test_calculateRecall_twoReportsHalfTruePositiveHalfFalseNegativeReturnsFifty(
+        self
+    ):
+        columns = ["sample", "truth_probe_header", "vcf_probe_header", "classification"]
+        report1 = pd.DataFrame(
+            data=[
+                create_report_row("correct", gt_conf=10),
+                create_report_row("correct", gt_conf=100),
+                create_report_row("correct", gt_conf=100),
+                create_report_row("unmapped", gt_conf=100),
+                create_report_row("supplementary_incorrect", gt_conf=10),
+                create_report_row("secondary_correct", gt_conf=100),
+                create_report_row("incorrect", gt_conf=100),
+            ],
+            columns=columns,
+        )
+        report2 = pd.DataFrame(
+            data=[
+                create_report_row("correct", gt_conf=100),
+                create_report_row("unmapped", gt_conf=100),
+                create_report_row("incorrect", gt_conf=100),
+            ],
+            columns=columns,
+        )
+        calculator = RecallCalculator([report1, report2])
+        threshold = 60
+
+        actual = calculator.calculate_recall(conf_threshold=threshold)
+        expected = 0.5
 
         assert actual == expected
