@@ -56,7 +56,7 @@ def generate_mummer_snps(
 
     return StringIO(showsnps_content)
 
-# todo: write tests
+
 def write_vcf_probes_to_file(
     vcf_probes: Dict[str, str], query_name: str, tempdir: Path
 ) -> Path:

@@ -1,11 +1,17 @@
-import pysam
-from io import StringIO
-import pytest
-from pathlib import Path
 import tempfile
-from evaluate.probe import *
-from evaluate.recall import *
-from tests.test_evaluation import create_sam_header
+from io import StringIO
+
+import pandas as pd
+import pysam
+
+from evaluate.probe import Interval, ProbeHeader
+from evaluate.recall import (
+    RecallReporter,
+    RecallClassifier,
+    RecallClassification,
+    RecallCalculator,
+    StatisticalClassification,
+)
 from .test_evaluation import create_sam_header
 
 
@@ -1093,5 +1099,188 @@ class TestRecallReporter:
         ).to_csv(expected, sep=delim, header=True, index=False)
         expected.seek(0)
         expected = expected.read()
+
+        assert actual == expected
+
+
+def create_report_row(
+    classification: str, gt_conf: float = 0, sample: str = "sample1"
+) -> pd.Series:
+    truth_probe_header = ProbeHeader()
+    vcf_probe_header = ProbeHeader(gt_conf=gt_conf)
+    data = {
+        "sample": sample,
+        "truth_probe_header": str(truth_probe_header),
+        "vcf_probe_header": str(vcf_probe_header),
+        "classification": classification,
+    }
+    return pd.Series(data=data)
+
+
+class TestRecallCalculator:
+    def test_statisticalClassification_unmappedReturnsFalseNegative(self):
+        classification = "unmapped"
+        row = create_report_row(classification)
+
+        actual = RecallCalculator.statistical_classification(row)
+        expected = StatisticalClassification.FALSE_NEGATIVE
+
+        assert actual == expected
+
+    def test_statisticalClassification_partiallyMappedReturnsFalseNegative(self):
+        classification = "partially_mapped"
+        row = create_report_row(classification)
+
+        actual = RecallCalculator.statistical_classification(row)
+        expected = StatisticalClassification.FALSE_NEGATIVE
+
+        assert actual == expected
+
+
+    def test_statisticalClassification_incorrectAboveConfReturnsFalsePositive(self):
+        classification = "incorrect"
+        gt_conf = 10
+        row = create_report_row(classification, gt_conf)
+        threshold = 5
+
+        actual = RecallCalculator.statistical_classification(row, conf_threshold=threshold)
+        expected = StatisticalClassification.FALSE_POSITIVE
+
+        assert actual == expected
+
+    def test_statisticalClassification_incorrectBelowConfReturnsFalseNegative(self):
+        classification = "incorrect"
+        gt_conf = 10
+        row = create_report_row(classification, gt_conf)
+        threshold = 50
+
+        actual = RecallCalculator.statistical_classification(row, conf_threshold=threshold)
+        expected = StatisticalClassification.FALSE_NEGATIVE
+
+        assert actual == expected
+
+    def test_statisticalClassification_correctAboveConfReturnsTruePositive(self):
+        classification = "correct"
+        gt_conf = 10
+        row = create_report_row(classification, gt_conf)
+        threshold = 5
+
+        actual = RecallCalculator.statistical_classification(row, conf_threshold=threshold)
+        expected = StatisticalClassification.TRUE_POSITIVE
+
+        assert actual == expected
+
+    def test_statisticalClassification_correctBelowConfReturnsFalseNegative(self):
+        classification = "correct"
+        gt_conf = 10
+        row = create_report_row(classification, gt_conf)
+        threshold = 50
+
+        actual = RecallCalculator.statistical_classification(row, conf_threshold=threshold)
+        expected = StatisticalClassification.FALSE_NEGATIVE
+
+        assert actual == expected
+
+    def test_statisticalClassification_secondaryIncorrectAboveConfReturnsFalsePositive(
+        self
+    ):
+        classification = "secondary_incorrect"
+        gt_conf = 10
+        row = create_report_row(classification, gt_conf)
+        threshold = 5
+
+        actual = RecallCalculator.statistical_classification(row, conf_threshold=threshold)
+        expected = StatisticalClassification.FALSE_POSITIVE
+
+        assert actual == expected
+
+    def test_statisticalClassification_secondaryIncorrectBelowConfReturnsFalseNegative(
+        self
+    ):
+        classification = "secondary_incorrect"
+        gt_conf = 10
+        row = create_report_row(classification, gt_conf)
+        threshold = 50
+
+        actual = RecallCalculator.statistical_classification(row, conf_threshold=threshold)
+        expected = StatisticalClassification.FALSE_NEGATIVE
+
+        assert actual == expected
+
+    def test_statisticalClassification_secondaryCorrectAboveConfReturnsTruePositive(
+        self
+    ):
+        classification = "secondary_correct"
+        gt_conf = 10
+        row = create_report_row(classification, gt_conf)
+        threshold = 5
+
+        actual = RecallCalculator.statistical_classification(row, conf_threshold=threshold)
+        expected = StatisticalClassification.TRUE_POSITIVE
+
+        assert actual == expected
+
+    def test_statisticalClassification_secondaryCorrectBelowConfReturnsFalseNegative(
+        self
+    ):
+        classification = "secondary_correct"
+        gt_conf = 10
+        row = create_report_row(classification, gt_conf)
+        threshold = 50
+
+        actual = RecallCalculator.statistical_classification(row, conf_threshold=threshold)
+        expected = StatisticalClassification.FALSE_NEGATIVE
+
+        assert actual == expected
+
+    def test_statisticalClassification_supplementaryIncorrectAboveConfReturnsFalsePositive(
+        self
+    ):
+        classification = "supplementary_incorrect"
+        gt_conf = 10
+        row = create_report_row(classification, gt_conf)
+        threshold = 5
+
+        actual = RecallCalculator.statistical_classification(row, conf_threshold=threshold)
+        expected = StatisticalClassification.FALSE_POSITIVE
+
+        assert actual == expected
+
+    def test_statisticalClassification_supplementaryIncorrectBelowConfReturnsFalseNegative(
+        self
+    ):
+        classification = "supplementary_incorrect"
+        gt_conf = 10
+        row = create_report_row(classification, gt_conf)
+        threshold = 50
+
+        actual = RecallCalculator.statistical_classification(row, conf_threshold=threshold)
+        expected = StatisticalClassification.FALSE_NEGATIVE
+
+        assert actual == expected
+
+    def test_statisticalClassification_supplementaryCorrectAboveConfReturnsTruePositive(
+        self
+    ):
+        classification = "supplementary_correct"
+        gt_conf = 10
+        row = create_report_row(classification, gt_conf)
+        threshold = 5
+
+        actual = RecallCalculator.statistical_classification(row, conf_threshold=threshold)
+        expected = StatisticalClassification.TRUE_POSITIVE
+
+        assert actual == expected
+
+    def test_statisticalClassification_supplementaryCorrectBelowConfReturnsFalseNegative(
+        self
+    ):
+        classification = "supplementary_correct"
+        gt_conf = 10
+        row = create_report_row(classification, gt_conf)
+        threshold = 50
+
+        actual = RecallCalculator.statistical_classification(row, conf_threshold=threshold)
+        expected = StatisticalClassification.FALSE_NEGATIVE
 
         assert actual == expected

@@ -1,4 +1,5 @@
 from typing import List, TextIO, Iterable
+from enum import Enum
 
 import pandas as pd
 import pysam
@@ -162,3 +163,31 @@ class RecallReporter:
     def save(self, file_handle: TextIO) -> None:
         report = self.generate_report()
         report.to_csv(file_handle, sep=self.delim, header=True, index=False)
+
+
+class StatisticalClassification(Enum):
+    FALSE_NEGATIVE = "fn"
+    FALSE_POSITIVE = "fp"
+    TRUE_POSITIVE = "tp"
+    TRUE_NEGATIVE = "tn"
+
+
+class RecallCalculator:
+    @staticmethod
+    def statistical_classification(
+        row: pd.Series, conf_threshold: float = 0
+    ) -> StatisticalClassification:
+        gt_conf = ProbeHeader.from_string(row.vcf_probe_header).gt_conf
+        if gt_conf < conf_threshold:
+            return StatisticalClassification.FALSE_NEGATIVE
+        else:
+            return {
+                "unmapped": StatisticalClassification.FALSE_NEGATIVE,
+                "partially_mapped": StatisticalClassification.FALSE_NEGATIVE,
+                "correct": StatisticalClassification.TRUE_POSITIVE,
+                "incorrect": StatisticalClassification.FALSE_POSITIVE,
+                "secondary_correct": StatisticalClassification.TRUE_POSITIVE,
+                "secondary_incorrect": StatisticalClassification.FALSE_POSITIVE,
+                "supplementary_correct": StatisticalClassification.TRUE_POSITIVE,
+                "supplementary_incorrect": StatisticalClassification.FALSE_POSITIVE,
+            }[row.classification]
