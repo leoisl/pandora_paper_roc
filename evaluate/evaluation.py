@@ -70,15 +70,7 @@ def write_vcf_probes_to_file(
 def map_panel_to_probes(
     panel: Path, probes: Path, output: Path = Path(), threads: int = 1
 ) -> Tuple[pysam.VariantHeader, List[pysam.AlignedSegment]]:
-    bwa = BWA(threads)
-    bwa.index(str(probes))
-    stdout, stderr = bwa.align(panel.read_text())
-
-    # write sam to file if output path given
-    if output.name:
-        output.write_text(stdout)
-
-    return bwa.parse_sam_string(stdout)
+    return BWA.map_query_to_ref(panel, probes, output, threads)
 
 
 def is_mapping_invalid(record: pysam.AlignedSegment) -> bool:
