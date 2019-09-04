@@ -137,6 +137,8 @@ class PositionedSNPsIndex:
         :param genome_2: a string with genome_2 name
         '''
 
+        print(f"[DEBUG_add_SNPs_from_csv]: add_SNPs_from_csv('{csv_file}', '{genome_1}', '{genome_2}')")
+
         '''
         # nice engineered solution, but too slow
         snps_dataframe = pd.read_csv(csv_file, sep = "\t")
