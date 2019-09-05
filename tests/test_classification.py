@@ -656,4 +656,421 @@ class TestRecallClassification:
         assert actual == expected
 
 
-#class TestPrecisionClassification:
+class TestPrecisionClassification:
+    def test_assessment_probeIsSnpAndIsMismatch(self):
+        ref_name = "reference"
+        ref_length = 64
+        header = create_sam_header(ref_name, ref_length)
+        flag = 0
+        cigar = "56M"
+        nm = "NM:i:1"
+        md = "MD:Z:11A44"
+        mapq = 60
+        pos = 6
+        query_name = "INTERVAL=[11,12);"
+        sequence = "AAAAAAAAAAACGGCTCGCATAGACACGACGACGACACGTACGATCGATCAGTCAT"
+        sam_string = f"{query_name}\t{flag}\t{ref_name}\t{pos}\t{mapq}\t{cigar}\t*\t0\t0\t{sequence}\t*\t{nm}\t{md}\tAS:i:0\tXS:i:0"
+        record = pysam.AlignedSegment.fromstring(sam_string, header)
+        probe = Probe(
+            header=ProbeHeader.from_string(query_name), full_sequence=sequence
+        )
+        classification = PrecisionClassification(record=record)
+
+        expected = 0.0
+        actual = classification.assessment()
+        assert actual == expected
+
+    def test_assessment_probeIsSnpAndIsHasMismatchToLeft(self):
+        ref_name = "reference"
+        ref_length = 64
+        header = create_sam_header(ref_name, ref_length)
+        flag = 0
+        cigar = "56M"
+        nm = "NM:i:1"
+        md = "MD:Z:10C45"
+        mapq = 60
+        pos = 6
+        query_name = "INTERVAL=[11,12);"
+        sequence = "AAAAAAAAAAACGGCTCGCATAGACACGACGACGACACGTACGATCGATCAGTCAT"
+        sam_string = f"{query_name}\t{flag}\t{ref_name}\t{pos}\t{mapq}\t{cigar}\t*\t0\t0\t{sequence}\t*\t{nm}\t{md}\tAS:i:0\tXS:i:0"
+        record = pysam.AlignedSegment.fromstring(sam_string, header)
+        probe = Probe(
+            header=ProbeHeader.from_string(query_name), full_sequence=sequence
+        )
+        classification = PrecisionClassification(record=record)
+
+        expected = 1.0
+        actual = classification.assessment()
+        assert actual == expected
+
+
+    def test_assessment_probeIsSnpAndIsHasMismatchToRight(self):
+        ref_name = "reference"
+        ref_length = 64
+        header = create_sam_header(ref_name, ref_length)
+        flag = 0
+        cigar = "56M"
+        nm = "NM:i:1"
+        md = "MD:Z:12C43"
+        mapq = 60
+        pos = 6
+        query_name = "INTERVAL=[11,12);"
+        sequence = "AAAAAAAAAAACGGCTCGCATAGACACGACGACGACACGTACGATCGATCAGTCAT"
+        sam_string = f"{query_name}\t{flag}\t{ref_name}\t{pos}\t{mapq}\t{cigar}\t*\t0\t0\t{sequence}\t*\t{nm}\t{md}\tAS:i:0\tXS:i:0"
+        record = pysam.AlignedSegment.fromstring(sam_string, header)
+        probe = Probe(
+            header=ProbeHeader.from_string(query_name), full_sequence=sequence
+        )
+        classification = PrecisionClassification(record=record)
+
+        expected = 1.0
+        actual = classification.assessment()
+        assert actual == expected
+
+    def test_assessment_probesMatchPerfectly(self):
+        ref_name = "reference"
+        ref_length = 59
+        header = create_sam_header(ref_name, ref_length)
+        flag = 0
+        cigar = "33M35S"
+        nm = "NM:i:0"
+        md = "MD:Z:33"
+        mapq = 60
+        pos = 6
+        query_name = "INTERVAL=[23,33);"
+        sequence = (
+            "AAAAAAAAAAAAAAAAAAAAAAACGGCTCGCATAGACACGACGACGACACGTACGATCGATCAGTCAT"
+        )
+        sam_string = f"{query_name}\t{flag}\t{ref_name}\t{pos}\t{mapq}\t{cigar}\t*\t0\t0\t{sequence}\t*\t{nm}\t{md}\tAS:i:0\tXS:i:0"
+        record = pysam.AlignedSegment.fromstring(sam_string, header)
+        probe = Probe(
+            header=ProbeHeader.from_string(query_name), full_sequence=sequence
+        )
+        classification = PrecisionClassification(record=record)
+
+        expected = 1.0
+        actual = classification.assessment()
+        assert actual == expected
+
+    def test_assessment_probeIsDeletionBasesEitherSideMatch(self):
+        ref_name = "reference"
+        ref_length = 64
+        header = create_sam_header(ref_name, ref_length)
+        flag = 0
+        cigar = "56M"
+        nm = "NM:i:0"
+        md = "MD:Z:56"
+        mapq = 60
+        pos = 6
+        query_name = "INTERVAL=[12,12);"
+        sequence = "AAAAAAAAAAACGGCTCGCATAGACACGACGACGACACGTACGATCGATCAGTCAT"
+        sam_string = f"{query_name}\t{flag}\t{ref_name}\t{pos}\t{mapq}\t{cigar}\t*\t0\t0\t{sequence}\t*\t{nm}\t{md}\tAS:i:0\tXS:i:0"
+        record = pysam.AlignedSegment.fromstring(sam_string, header)
+        probe = Probe(
+            header=ProbeHeader.from_string(query_name), full_sequence=sequence
+        )
+        classification = PrecisionClassification(record=record)
+
+        expected = 1.0
+        actual = classification.assessment()
+        assert actual == expected
+
+    def test_assessment_probeIsDeletionBaseToLeftIsMismatch(self):
+        ref_name = "reference"
+        ref_length = 64
+        header = create_sam_header(ref_name, ref_length)
+        flag = 0
+        cigar = "56M"
+        nm = "NM:i:1"
+        md = "MD:Z:11T44"
+        mapq = 60
+        pos = 6
+        query_name = "INTERVAL=[12,12);"
+        sequence = "AAAAAAAAAAACGGCTCGCATAGACACGACGACGACACGTACGATCGATCAGTCAT"
+        sam_string = f"{query_name}\t{flag}\t{ref_name}\t{pos}\t{mapq}\t{cigar}\t*\t0\t0\t{sequence}\t*\t{nm}\t{md}\tAS:i:0\tXS:i:0"
+        record = pysam.AlignedSegment.fromstring(sam_string, header)
+        probe = Probe(
+            header=ProbeHeader.from_string(query_name), full_sequence=sequence
+        )
+        classification = PrecisionClassification(record=record)
+
+        expected = 0.5
+        actual = classification.assessment()
+        assert actual == expected
+
+    def test_assessment_probeIsDeletionBaseToRightIsMismatch(self):
+        ref_name = "reference"
+        ref_length = 64
+        header = create_sam_header(ref_name, ref_length)
+        flag = 0
+        cigar = "56M"
+        nm = "NM:i:1"
+        md = "MD:Z:12T43"
+        mapq = 60
+        pos = 6
+        query_name = "INTERVAL=[12,12);"
+        sequence = "AAAAAAAAAAACGGCTCGCATAGACACGACGACGACACGTACGATCGATCAGTCAT"
+        sam_string = f"{query_name}\t{flag}\t{ref_name}\t{pos}\t{mapq}\t{cigar}\t*\t0\t0\t{sequence}\t*\t{nm}\t{md}\tAS:i:0\tXS:i:0"
+        record = pysam.AlignedSegment.fromstring(sam_string, header)
+        probe = Probe(
+            header=ProbeHeader.from_string(query_name), full_sequence=sequence
+        )
+        classification = PrecisionClassification(record=record)
+
+        expected = 0.5
+        actual = classification.assessment()
+        assert actual == expected
+
+    def test_assessment_mismatchInFirstCoreProbeBase(self):
+        ref_name = "reference"
+        ref_length = 64
+        header = create_sam_header(ref_name, ref_length)
+        flag = 0
+        cigar = "56M"
+        nm = "NM:i:1"
+        md = "MD:Z:11A44"
+        mapq = 60
+        pos = 1
+        query_name = "INTERVAL=[11,21);"
+        sequence = "AAAAAAAAAAACGGCTCGCATAGACACGACGACGACACGTACGATCGATCAGTCAT"
+        sam_string = f"{query_name}\t{flag}\t{ref_name}\t{pos}\t{mapq}\t{cigar}\t*\t0\t0\t{sequence}\t*\t{nm}\t{md}\tAS:i:0\tXS:i:0"
+        record = pysam.AlignedSegment.fromstring(sam_string, header)
+        probe = Probe(
+            header=ProbeHeader.from_string(query_name), full_sequence=sequence
+        )
+        classification = PrecisionClassification(record=record)
+
+        expected = 0.9
+        actual = classification.assessment()
+        assert actual == expected
+
+    def test_assessment_mismatchInBaseBeforeCoreProbeStarts(self):
+        ref_name = "reference"
+        ref_length = 64
+        header = create_sam_header(ref_name, ref_length)
+        flag = 0
+        cigar = "56M"
+        nm = "NM:i:1"
+        md = "MD:Z:10T45"
+        mapq = 60
+        pos = 1
+        query_name = "INTERVAL=[11,21);"
+        sequence = "AAAAAAAAAAACGGCTCGCATAGACACGACGACGACACGTACGATCGATCAGTCAT"
+        sam_string = f"{query_name}\t{flag}\t{ref_name}\t{pos}\t{mapq}\t{cigar}\t*\t0\t0\t{sequence}\t*\t{nm}\t{md}\tAS:i:0\tXS:i:0"
+        record = pysam.AlignedSegment.fromstring(sam_string, header)
+        probe = Probe(
+            header=ProbeHeader.from_string(query_name), full_sequence=sequence
+        )
+        classification = PrecisionClassification(record=record)
+
+        expected = 1.0
+        actual = classification.assessment()
+        assert actual == expected
+
+    def test_assessment_mismatchInLastCoreProbeBase(self):
+        ref_name = "reference"
+        ref_length = 64
+        header = create_sam_header(ref_name, ref_length)
+        flag = 0
+        cigar = "56M"
+        nm = "NM:i:1"
+        md = "MD:Z:20C35"
+        mapq = 60
+        pos = 1
+        query_name = "INTERVAL=[11,21);"
+        sequence = "AAAAAAAAAAACGGCTCGCATAGACACGACGACGACACGTACGATCGATCAGTCAT"
+        sam_string = f"{query_name}\t{flag}\t{ref_name}\t{pos}\t{mapq}\t{cigar}\t*\t0\t0\t{sequence}\t*\t{nm}\t{md}\tAS:i:0\tXS:i:0"
+        record = pysam.AlignedSegment.fromstring(sam_string, header)
+        probe = Probe(
+            header=ProbeHeader.from_string(query_name), full_sequence=sequence
+        )
+        classification = PrecisionClassification(record=record)
+
+        expected = 0.9
+        actual = classification.assessment()
+        assert actual == expected
+
+    def test_assessment_mismatchInBaseAfterCoreProbeEnds(self):
+        ref_name = "reference"
+        ref_length = 64
+        header = create_sam_header(ref_name, ref_length)
+        flag = 0
+        cigar = "56M"
+        nm = "NM:i:1"
+        md = "MD:Z:21C34"
+        mapq = 60
+        pos = 1
+        query_name = "INTERVAL=[11,21);"
+        sequence = "AAAAAAAAAAACGGCTCGCATAGACACGACGACGACACGTACGATCGATCAGTCAT"
+        sam_string = f"{query_name}\t{flag}\t{ref_name}\t{pos}\t{mapq}\t{cigar}\t*\t0\t0\t{sequence}\t*\t{nm}\t{md}\tAS:i:0\tXS:i:0"
+        record = pysam.AlignedSegment.fromstring(sam_string, header)
+        probe = Probe(
+            header=ProbeHeader.from_string(query_name), full_sequence=sequence
+        )
+        classification = PrecisionClassification(record=record)
+
+        expected = 1.0
+        actual = classification.assessment()
+        assert actual == expected
+
+    def test_assessment_insertionInRefAfterFirstProbeCoreBase(self):
+        ref_name = "reference"
+        ref_length = 64
+        header = create_sam_header(ref_name, ref_length)
+        flag = 0
+        cigar = "12M1D44M"
+        nm = "NM:i:1"
+        md = "MD:Z:12^G44"
+        mapq = 60
+        pos = 1
+        query_name = "INTERVAL=[11,21);"
+        sequence = "AAAAAAAAAAACGGCTCGCATAGACACGACGACGACACGTACGATCGATCAGTCAT"
+        sam_string = f"{query_name}\t{flag}\t{ref_name}\t{pos}\t{mapq}\t{cigar}\t*\t0\t0\t{sequence}\t*\t{nm}\t{md}\tAS:i:0\tXS:i:0"
+        record = pysam.AlignedSegment.fromstring(sam_string, header)
+        probe = Probe(
+            header=ProbeHeader.from_string(query_name), full_sequence=sequence
+        )
+        classification = PrecisionClassification(record=record)
+
+        expected = 10/11
+        actual = classification.assessment()
+        assert actual == expected
+
+    def test_assessment_deletionInRefOfFirstProbeCoreBase(self):
+        ref_name = "reference"
+        ref_length = 63
+        header = create_sam_header(ref_name, ref_length)
+        flag = 0
+        cigar = "11M1I44M"
+        nm = "NM:i:1"
+        md = "MD:Z:55"
+        mapq = 60
+        pos = 1
+        query_name = "INTERVAL=[11,21);"
+        sequence = "AAAAAAAAAAACGGCTCGCATAGACACGACGACGACACGTACGATCGATCAGTCAT"
+        sam_string = f"{query_name}\t{flag}\t{ref_name}\t{pos}\t{mapq}\t{cigar}\t*\t0\t0\t{sequence}\t*\t{nm}\t{md}\tAS:i:0\tXS:i:0"
+        record = pysam.AlignedSegment.fromstring(sam_string, header)
+        probe = Probe(
+            header=ProbeHeader.from_string(query_name), full_sequence=sequence
+        )
+        classification = PrecisionClassification(record=record)
+
+        expected = 9/10
+        actual = classification.assessment()
+        assert actual == expected
+
+    def test_assessment_insertionInRefBeforeLastProbeCoreBase(self):
+        ref_name = "reference"
+        ref_length = 65
+        header = create_sam_header(ref_name, ref_length)
+        flag = 0
+        cigar = "20M1D36M"
+        nm = "NM:i:1"
+        md = "MD:Z:20^C36"
+        mapq = 60
+        pos = 1
+        query_name = "INTERVAL=[11,21);"
+        sequence = "AAAAAAAAAAACGGCTCGCATAGACACGACGACGACACGTACGATCGATCAGTCAT"
+        sam_string = f"{query_name}\t{flag}\t{ref_name}\t{pos}\t{mapq}\t{cigar}\t*\t0\t0\t{sequence}\t*\t{nm}\t{md}\tAS:i:0\tXS:i:0"
+        record = pysam.AlignedSegment.fromstring(sam_string, header)
+        probe = Probe(
+            header=ProbeHeader.from_string(query_name), full_sequence=sequence
+        )
+        classification = PrecisionClassification(record=record)
+
+        expected = 10/11
+        actual = classification.assessment()
+        assert actual == expected
+
+    def test_assessment_insertionInRefAfterLastProbeCoreBase(self):
+        ref_name = "reference"
+        ref_length = 65
+        header = create_sam_header(ref_name, ref_length)
+        flag = 0
+        cigar = "21M1D35M"
+        nm = "NM:i:1"
+        md = "MD:Z:21^G35"
+        mapq = 60
+        pos = 1
+        query_name = "INTERVAL=[11,21);"
+        sequence = "AAAAAAAAAAACGGCTCGCATAGACACGACGACGACACGTACGATCGATCAGTCAT"
+        sam_string = f"{query_name}\t{flag}\t{ref_name}\t{pos}\t{mapq}\t{cigar}\t*\t0\t0\t{sequence}\t*\t{nm}\t{md}\tAS:i:0\tXS:i:0"
+        record = pysam.AlignedSegment.fromstring(sam_string, header)
+        probe = Probe(
+            header=ProbeHeader.from_string(query_name), full_sequence=sequence
+        )
+        classification = PrecisionClassification(record=record)
+
+        expected = 1.0
+        actual = classification.assessment()
+        assert actual == expected
+
+    def test_assessment_deletionInRefOfLastProbeCoreBase(self):
+        ref_name = "reference"
+        ref_length = 63
+        header = create_sam_header(ref_name, ref_length)
+        flag = 0
+        cigar = "20M1I35M"
+        nm = "NM:i:1"
+        md = "MD:Z:55"
+        mapq = 60
+        pos = 1
+        query_name = "INTERVAL=[11,21);"
+        sequence = "AAAAAAAAAAACGGCTCGCATAGACACGACGACGACACGTACGATCGATCAGTCAT"
+        sam_string = f"{query_name}\t{flag}\t{ref_name}\t{pos}\t{mapq}\t{cigar}\t*\t0\t0\t{sequence}\t*\t{nm}\t{md}\tAS:i:0\tXS:i:0"
+        record = pysam.AlignedSegment.fromstring(sam_string, header)
+        probe = Probe(
+            header=ProbeHeader.from_string(query_name), full_sequence=sequence
+        )
+        classification = PrecisionClassification(record=record)
+
+        expected = 9/10
+        actual = classification.assessment()
+        assert actual == expected
+
+
+    def test_assessment_mismatch4ProbeBases(self):
+        ref_name = "reference"
+        ref_length = 64
+        header = create_sam_header(ref_name, ref_length)
+        flag = 0
+        cigar = "56M"
+        nm = "NM:i:1"
+        md = "MD:Z:12A2AGC38"
+        mapq = 60
+        pos = 1
+        query_name = "INTERVAL=[11,21);"
+        sequence = "AAAAAAAAAAACGGCTCGCATAGACACGACGACGACACGTACGATCGATCAGTCAT"
+        sam_string = f"{query_name}\t{flag}\t{ref_name}\t{pos}\t{mapq}\t{cigar}\t*\t0\t0\t{sequence}\t*\t{nm}\t{md}\tAS:i:0\tXS:i:0"
+        record = pysam.AlignedSegment.fromstring(sam_string, header)
+        probe = Probe(
+            header=ProbeHeader.from_string(query_name), full_sequence=sequence
+        )
+        classification = PrecisionClassification(record=record)
+
+        expected = 0.6
+        actual = classification.assessment()
+        assert actual == expected
+
+    def test_assessment_mismatch1insertion1deletion1ProbeBases(self):
+        ref_name = "reference"
+        ref_length = 56
+        header = create_sam_header(ref_name, ref_length)
+        flag = 0
+        cigar = "11M1I8M1D36M"
+        nm = "NM:i:3"
+        md = "MD:Z:15G3^T36"
+        mapq = 60
+        pos = 1
+        query_name = "INTERVAL=[11,21);"
+        sequence = "AAAAAAAAAAACGGCTCGCATAGACACGACGACGACACGTACGATCGATCAGTCAT"
+        sam_string = f"{query_name}\t{flag}\t{ref_name}\t{pos}\t{mapq}\t{cigar}\t*\t0\t0\t{sequence}\t*\t{nm}\t{md}\tAS:i:0\tXS:i:0"
+        record = pysam.AlignedSegment.fromstring(sam_string, header)
+        probe = Probe(
+            header=ProbeHeader.from_string(query_name), full_sequence=sequence
+        )
+        classification = PrecisionClassification(record=record)
+
+        expected = 8/11
+        actual = classification.assessment()
+        assert actual == expected

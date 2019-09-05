@@ -1,9 +1,11 @@
 from pathlib import Path
-from typing import Tuple, List
+from typing import List
+from typing import Tuple
 
 import pysam
 
 from .bwa import BWA
+from .classification import PrecisionClassification
 
 
 def map_probes_to_truth(

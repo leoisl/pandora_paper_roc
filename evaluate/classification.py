@@ -167,3 +167,12 @@ class RecallClassification(Classification):
                 )
 
         return assessment
+
+
+
+class PrecisionClassification(Classification):
+    def __init__(self, record: pysam.AlignedSegment = None):
+        super().__init__(record)
+
+    def assessment(self) -> AlignmentAssessment:
+        return self.get_query_probe_mapping_score()
