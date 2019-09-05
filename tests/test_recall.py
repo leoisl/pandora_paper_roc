@@ -12,6 +12,7 @@ from evaluate.recall import (
     RecallCalculator,
     StatisticalClassification,
 )
+from evaluate.classification import AlignmentAssessment
 from .test_evaluation import create_sam_header
 
 
@@ -279,7 +280,7 @@ class TestRecallClassifier:
 
         assert actual == expected
 
-        expected_classifications = ["correct", "supplementary_incorrect"]
+        expected_classifications = [AlignmentAssessment.PRIMARY_CORRECT, AlignmentAssessment.SUPPLEMENTARY_INCORRECT]
         assert [x.assessment() for x in actual] == expected_classifications
 
 
@@ -311,8 +312,8 @@ class TestRecallReporter:
         actual = reporter.generate_report()
         expected_data = []
         for assessment, record in [
-            ("correct", create_correct_primary_sam_record()),
-            ("supplementary_incorrect", create_incorrect_supplementary_sam_record()),
+            (AlignmentAssessment.PRIMARY_CORRECT, create_correct_primary_sam_record()),
+            (AlignmentAssessment.SUPPLEMENTARY_INCORRECT, create_incorrect_supplementary_sam_record()),
         ]:
             expected_data.append(
                 [sample, record.query_name, record.reference_name, assessment]
@@ -357,8 +358,8 @@ class TestRecallReporter:
         actual = fh.read()
         expected_data = []
         for assessment, record in [
-            ("correct", primary_correct_record),
-            ("supplementary_incorrect", suppl_incorrect_record),
+            (AlignmentAssessment.PRIMARY_CORRECT, primary_correct_record),
+            (AlignmentAssessment.SUPPLEMENTARY_INCORRECT, suppl_incorrect_record),
         ]:
             expected_data.append(
                 [sample, record.query_name, record.reference_name, assessment]
@@ -396,8 +397,8 @@ class TestRecallReporter:
         actual = fh.read()
         expected_data = []
         for assessment, record in [
-            ("correct", primary_correct_record),
-            ("supplementary_incorrect", suppl_incorrect_record),
+            (AlignmentAssessment.PRIMARY_CORRECT, primary_correct_record),
+            (AlignmentAssessment.SUPPLEMENTARY_INCORRECT, suppl_incorrect_record),
         ]:
             expected_data.append(
                 [sample, record.query_name, record.reference_name, assessment]
@@ -438,8 +439,8 @@ class TestRecallReporter:
         expected_data = []
         for s in [sample, sample2]:
             for assessment, record in [
-                ("correct", primary_correct_record),
-                ("supplementary_incorrect", suppl_incorrect_record),
+                (AlignmentAssessment.PRIMARY_CORRECT, primary_correct_record),
+                (AlignmentAssessment.SUPPLEMENTARY_INCORRECT, suppl_incorrect_record),
             ]:
                 expected_data.append(
                     [s, record.query_name, record.reference_name, assessment]
@@ -461,7 +462,7 @@ class TestRecallReporter:
 
 
 def create_report_row(
-    classification: str, gt_conf: float = 0, sample: str = "sample1"
+    classification: AlignmentAssessment, gt_conf: float = 0, sample: str = "sample1"
 ) -> pd.Series:
     truth_probe_header = ProbeHeader()
     vcf_probe_header = ProbeHeader(gt_conf=gt_conf)
@@ -494,7 +495,7 @@ class TestRecallCalculator:
         assert actual == expected
 
     def test_statisticalClassification_incorrectAboveConfReturnsFalsePositive(self):
-        classification = "incorrect"
+        classification = AlignmentAssessment.PRIMARY_INCORRECT
         gt_conf = 10
         row = create_report_row(classification, gt_conf)
         threshold = 5
@@ -507,7 +508,7 @@ class TestRecallCalculator:
         assert actual == expected
 
     def test_statisticalClassification_incorrectBelowConfReturnsFalseNegative(self):
-        classification = "incorrect"
+        classification = AlignmentAssessment.PRIMARY_INCORRECT
         gt_conf = 10
         row = create_report_row(classification, gt_conf)
         threshold = 50
@@ -520,7 +521,7 @@ class TestRecallCalculator:
         assert actual == expected
 
     def test_statisticalClassification_correctAboveConfReturnsTruePositive(self):
-        classification = "correct"
+        classification = AlignmentAssessment.PRIMARY_CORRECT
         gt_conf = 10
         row = create_report_row(classification, gt_conf)
         threshold = 5
@@ -533,7 +534,7 @@ class TestRecallCalculator:
         assert actual == expected
 
     def test_statisticalClassification_correctBelowConfReturnsFalseNegative(self):
-        classification = "correct"
+        classification = AlignmentAssessment.PRIMARY_CORRECT
         gt_conf = 10
         row = create_report_row(classification, gt_conf)
         threshold = 50
@@ -548,7 +549,7 @@ class TestRecallCalculator:
     def test_statisticalClassification_secondaryIncorrectAboveConfReturnsFalsePositive(
         self
     ):
-        classification = "secondary_incorrect"
+        classification = AlignmentAssessment.SECONDARY_INCORRECT
         gt_conf = 10
         row = create_report_row(classification, gt_conf)
         threshold = 5
@@ -563,7 +564,7 @@ class TestRecallCalculator:
     def test_statisticalClassification_secondaryIncorrectBelowConfReturnsFalseNegative(
         self
     ):
-        classification = "secondary_incorrect"
+        classification = AlignmentAssessment.SECONDARY_INCORRECT
         gt_conf = 10
         row = create_report_row(classification, gt_conf)
         threshold = 50
@@ -578,7 +579,7 @@ class TestRecallCalculator:
     def test_statisticalClassification_secondaryCorrectAboveConfReturnsTruePositive(
         self
     ):
-        classification = "secondary_correct"
+        classification = AlignmentAssessment.SECONDARY_CORRECT
         gt_conf = 10
         row = create_report_row(classification, gt_conf)
         threshold = 5
@@ -593,7 +594,7 @@ class TestRecallCalculator:
     def test_statisticalClassification_secondaryCorrectBelowConfReturnsFalseNegative(
         self
     ):
-        classification = "secondary_correct"
+        classification = AlignmentAssessment.SECONDARY_CORRECT
         gt_conf = 10
         row = create_report_row(classification, gt_conf)
         threshold = 50
@@ -608,7 +609,7 @@ class TestRecallCalculator:
     def test_statisticalClassification_supplementaryIncorrectAboveConfReturnsFalsePositive(
         self
     ):
-        classification = "supplementary_incorrect"
+        classification = AlignmentAssessment.SUPPLEMENTARY_INCORRECT
         gt_conf = 10
         row = create_report_row(classification, gt_conf)
         threshold = 5
@@ -623,7 +624,7 @@ class TestRecallCalculator:
     def test_statisticalClassification_supplementaryIncorrectBelowConfReturnsFalseNegative(
         self
     ):
-        classification = "supplementary_incorrect"
+        classification = AlignmentAssessment.SUPPLEMENTARY_INCORRECT
         gt_conf = 10
         row = create_report_row(classification, gt_conf)
         threshold = 50
@@ -638,7 +639,7 @@ class TestRecallCalculator:
     def test_statisticalClassification_supplementaryCorrectAboveConfReturnsTruePositive(
         self
     ):
-        classification = "supplementary_correct"
+        classification = AlignmentAssessment.SUPPLEMENTARY_CORRECT
         gt_conf = 10
         row = create_report_row(classification, gt_conf)
         threshold = 5
@@ -653,7 +654,7 @@ class TestRecallCalculator:
     def test_statisticalClassification_supplementaryCorrectBelowConfReturnsFalseNegative(
         self
     ):
-        classification = "supplementary_correct"
+        classification = AlignmentAssessment.SUPPLEMENTARY_CORRECT
         gt_conf = 10
         row = create_report_row(classification, gt_conf)
         threshold = 50
@@ -680,10 +681,10 @@ class TestRecallCalculator:
         columns = ["sample", "truth_probe_header", "vcf_probe_header", "classification"]
         report = pd.DataFrame(
             data=[
-                create_report_row("unmapped", gt_conf=100),
-                create_report_row("unmapped", gt_conf=100),
-                create_report_row("correct", gt_conf=10),
-                create_report_row("incorrect", gt_conf=100),
+                create_report_row(AlignmentAssessment.UNMAPPED, gt_conf=100),
+                create_report_row(AlignmentAssessment.UNMAPPED, gt_conf=100),
+                create_report_row(AlignmentAssessment.PRIMARY_CORRECT, gt_conf=10),
+                create_report_row(AlignmentAssessment.PRIMARY_INCORRECT, gt_conf=100),
             ],
             columns=columns,
         )
@@ -699,9 +700,9 @@ class TestRecallCalculator:
         columns = ["sample", "truth_probe_header", "vcf_probe_header", "classification"]
         report = pd.DataFrame(
             data=[
-                create_report_row("correct", gt_conf=100),
-                create_report_row("correct", gt_conf=100),
-                create_report_row("incorrect", gt_conf=100),
+                create_report_row(AlignmentAssessment.PRIMARY_CORRECT, gt_conf=100),
+                create_report_row(AlignmentAssessment.PRIMARY_CORRECT, gt_conf=100),
+                create_report_row(AlignmentAssessment.PRIMARY_INCORRECT, gt_conf=100),
             ],
             columns=columns,
         )
@@ -719,13 +720,13 @@ class TestRecallCalculator:
         columns = ["sample", "truth_probe_header", "vcf_probe_header", "classification"]
         report = pd.DataFrame(
             data=[
-                create_report_row("correct", gt_conf=10),
-                create_report_row("correct", gt_conf=100),
-                create_report_row("correct", gt_conf=100),
-                create_report_row("unmapped", gt_conf=100),
+                create_report_row(AlignmentAssessment.PRIMARY_CORRECT, gt_conf=10),
+                create_report_row(AlignmentAssessment.PRIMARY_CORRECT, gt_conf=100),
+                create_report_row(AlignmentAssessment.PRIMARY_CORRECT, gt_conf=100),
+                create_report_row(AlignmentAssessment.UNMAPPED, gt_conf=100),
                 create_report_row("supplementary_incorrect", gt_conf=10),
                 create_report_row("secondary_correct", gt_conf=100),
-                create_report_row("incorrect", gt_conf=100),
+                create_report_row(AlignmentAssessment.PRIMARY_INCORRECT, gt_conf=100),
             ],
             columns=columns,
         )
@@ -742,7 +743,7 @@ class TestRecallCalculator:
         report = pd.DataFrame(
             data=[
                 create_report_row("supplementary_incorrect", gt_conf=100),
-                create_report_row("incorrect", gt_conf=100),
+                create_report_row(AlignmentAssessment.PRIMARY_INCORRECT, gt_conf=100),
             ],
             columns=columns,
         )
@@ -760,21 +761,21 @@ class TestRecallCalculator:
         columns = ["sample", "truth_probe_header", "vcf_probe_header", "classification"]
         report1 = pd.DataFrame(
             data=[
-                create_report_row("correct", gt_conf=10),
-                create_report_row("correct", gt_conf=100),
-                create_report_row("correct", gt_conf=100),
-                create_report_row("unmapped", gt_conf=100),
+                create_report_row(AlignmentAssessment.PRIMARY_CORRECT, gt_conf=10),
+                create_report_row(AlignmentAssessment.PRIMARY_CORRECT, gt_conf=100),
+                create_report_row(AlignmentAssessment.PRIMARY_CORRECT, gt_conf=100),
+                create_report_row(AlignmentAssessment.UNMAPPED, gt_conf=100),
                 create_report_row("supplementary_incorrect", gt_conf=10),
                 create_report_row("secondary_correct", gt_conf=100),
-                create_report_row("incorrect", gt_conf=100),
+                create_report_row(AlignmentAssessment.PRIMARY_INCORRECT, gt_conf=100),
             ],
             columns=columns,
         )
         report2 = pd.DataFrame(
             data=[
-                create_report_row("correct", gt_conf=100),
-                create_report_row("unmapped", gt_conf=100),
-                create_report_row("incorrect", gt_conf=100),
+                create_report_row(AlignmentAssessment.PRIMARY_CORRECT, gt_conf=100),
+                create_report_row(AlignmentAssessment.UNMAPPED, gt_conf=100),
+                create_report_row(AlignmentAssessment.PRIMARY_INCORRECT, gt_conf=100),
             ],
             columns=columns,
         )

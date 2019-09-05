@@ -7,7 +7,7 @@ import pandas as pd
 import pysam
 
 from .probe import Probe, ProbeHeader
-from .classification import RecallClassification
+from .classification import RecallClassification, AlignmentAssessment
 
 
 class RecallClassifier:
@@ -43,8 +43,8 @@ class RecallReporter:
             classifications = classifier.classify()
             for classification in classifications:
                 assessment = classification.assessment()
-                truth_probe_header = str(classification.truth_probe.header)
-                vcf_probe_header = str(classification.vcf_probe.header)
+                truth_probe_header = str(classification.query_probe.header)
+                vcf_probe_header = str(classification.ref_probe.header)
                 report_entries.append(
                     [classifier.name, truth_probe_header, vcf_probe_header, assessment]
                 )
@@ -98,12 +98,12 @@ class RecallCalculator:
             return StatisticalClassification.FALSE_NEGATIVE
         else:
             return {
-                "unmapped": StatisticalClassification.FALSE_NEGATIVE,
-                "partially_mapped": StatisticalClassification.FALSE_NEGATIVE,
-                "correct": StatisticalClassification.TRUE_POSITIVE,
-                "incorrect": StatisticalClassification.FALSE_POSITIVE,
-                "secondary_correct": StatisticalClassification.TRUE_POSITIVE,
-                "secondary_incorrect": StatisticalClassification.FALSE_POSITIVE,
-                "supplementary_correct": StatisticalClassification.TRUE_POSITIVE,
-                "supplementary_incorrect": StatisticalClassification.FALSE_POSITIVE,
-            }[row.classification]
+                AlignmentAssessment.UNMAPPED: StatisticalClassification.FALSE_NEGATIVE,
+                AlignmentAssessment.PARTIALLY_MAPPED: StatisticalClassification.FALSE_NEGATIVE,
+                AlignmentAssessment.PRIMARY_CORRECT: StatisticalClassification.TRUE_POSITIVE,
+                AlignmentAssessment.PRIMARY_INCORRECT: StatisticalClassification.FALSE_POSITIVE,
+                AlignmentAssessment.SECONDARY_CORRECT: StatisticalClassification.TRUE_POSITIVE,
+                AlignmentAssessment.SECONDARY_INCORRECT: StatisticalClassification.FALSE_POSITIVE,
+                AlignmentAssessment.SUPPLEMENTARY_CORRECT: StatisticalClassification.TRUE_POSITIVE,
+                AlignmentAssessment.SUPPLEMENTARY_INCORRECT: StatisticalClassification.FALSE_POSITIVE,
+            }[AlignmentAssessment(row.classification)]

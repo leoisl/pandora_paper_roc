@@ -40,7 +40,7 @@ class TestClassification:
         record = pysam.AlignedSegment.fromstring(sam_string, header)
         classification = Classification(record=record)
 
-        assert not classification._whole_probe_maps()
+        assert not classification._whole_query_probe_maps()
 
     def test_wholeProbeMaps_probeCompletelyMapsReturnsTrue(self):
         ref_name = "reference"
@@ -58,7 +58,7 @@ class TestClassification:
         record = pysam.AlignedSegment.fromstring(sam_string, header)
         classification = Classification(record=record)
 
-        assert classification._whole_probe_maps()
+        assert classification._whole_query_probe_maps()
 
     def test_wholeProbeMaps_probeStartsAtFirstAlignmentPositionMapsReturnsTrue(self):
         ref_name = "reference"
@@ -76,7 +76,7 @@ class TestClassification:
         record = pysam.AlignedSegment.fromstring(sam_string, header)
         classification = Classification(record=record)
 
-        assert classification._whole_probe_maps()
+        assert classification._whole_query_probe_maps()
 
     def test_wholeProbeMaps_probeStartOneBaseBeforeFirstAlignmentPositionMapsReturnsFalse(
         self
@@ -96,7 +96,7 @@ class TestClassification:
         record = pysam.AlignedSegment.fromstring(sam_string, header)
         classification = Classification(record=record)
 
-        assert not classification._whole_probe_maps()
+        assert not classification._whole_query_probe_maps()
 
     def test_wholeProbeMaps_probeStartsThreeBaseBeforeFirstAlignmentPositionMapsReturnsFalse(
         self
@@ -116,7 +116,7 @@ class TestClassification:
         record = pysam.AlignedSegment.fromstring(sam_string, header)
         classification = Classification(record=record)
 
-        assert not classification._whole_probe_maps()
+        assert not classification._whole_query_probe_maps()
 
     def test_wholeProbeMaps_ProbeEndsOneBaseBeforeAlignmentStartsReturnsFalse(self):
         ref_name = "reference"
@@ -134,7 +134,7 @@ class TestClassification:
         record = pysam.AlignedSegment.fromstring(sam_string, header)
         classification = Classification(record=record)
 
-        assert not classification._whole_probe_maps()
+        assert not classification._whole_query_probe_maps()
 
     def test_wholeProbeMaps_probeEndsThreeBasesBeforeAlignmentStartsReturnsFalse(self):
         ref_name = "reference"
@@ -152,7 +152,7 @@ class TestClassification:
         record = pysam.AlignedSegment.fromstring(sam_string, header)
         classification = Classification(record=record)
 
-        assert not classification._whole_probe_maps()
+        assert not classification._whole_query_probe_maps()
 
     def test_wholeProbeMaps_probeEndsOnLastBaseOfAlignmentReturnsTrue(self):
         ref_name = "reference"
@@ -172,7 +172,7 @@ class TestClassification:
         record = pysam.AlignedSegment.fromstring(sam_string, header)
         classification = Classification(record=record)
 
-        assert classification._whole_probe_maps()
+        assert classification._whole_query_probe_maps()
 
     def test_wholeProbeMaps_probeEndsOneBaseAfterLastBaseOfAlignmentReturnsFalse(self):
         ref_name = "reference"
@@ -192,7 +192,7 @@ class TestClassification:
         record = pysam.AlignedSegment.fromstring(sam_string, header)
         classification = Classification(record=record)
 
-        assert not classification._whole_probe_maps()
+        assert not classification._whole_query_probe_maps()
 
     def test_wholeProbeMaps_probeEndsThreeBasesAfterLastBaseOfAlignmentReturnsFalse(
         self
@@ -214,7 +214,7 @@ class TestClassification:
         record = pysam.AlignedSegment.fromstring(sam_string, header)
         classification = Classification(record=record)
 
-        assert not classification._whole_probe_maps()
+        assert not classification._whole_query_probe_maps()
 
     def test_wholeProbeMaps_probeStartsAfterLastBaseOfAlignmentReturnsFalse(self):
         ref_name = "reference"
@@ -234,7 +234,7 @@ class TestClassification:
         record = pysam.AlignedSegment.fromstring(sam_string, header)
         classification = Classification(record=record)
 
-        assert not classification._whole_probe_maps()
+        assert not classification._whole_query_probe_maps()
 
     def test_assessment_raisesNotImplementedError(self):
         classification = Classification()
@@ -586,7 +586,7 @@ class TestRecallClassification:
         classification = RecallClassification(record=record)
 
         actual = classification.assessment()
-        expected = "unmapped"
+        expected = AlignmentAssessment.UNMAPPED
 
         assert actual == expected
 
@@ -597,7 +597,7 @@ class TestRecallClassification:
         classification = RecallClassification(record=record)
 
         actual = classification.assessment()
-        expected = "partially_mapped"
+        expected = AlignmentAssessment.PARTIALLY_MAPPED
 
         assert actual == expected
 
@@ -606,7 +606,7 @@ class TestRecallClassification:
         classification = RecallClassification(record=record)
 
         actual = classification.assessment()
-        expected = "secondary_incorrect"
+        expected = AlignmentAssessment.SECONDARY_INCORRECT
 
         assert actual == expected
 
@@ -615,7 +615,7 @@ class TestRecallClassification:
         classification = RecallClassification(record=record)
 
         actual = classification.assessment()
-        expected = "secondary_correct"
+        expected = AlignmentAssessment.SECONDARY_CORRECT
 
         assert actual == expected
 
@@ -624,7 +624,7 @@ class TestRecallClassification:
         classification = RecallClassification(record=record)
 
         actual = classification.assessment()
-        expected = "supplementary_incorrect"
+        expected = AlignmentAssessment.SUPPLEMENTARY_INCORRECT
 
         assert actual == expected
 
@@ -633,7 +633,7 @@ class TestRecallClassification:
         classification = RecallClassification(record=record)
 
         actual = classification.assessment()
-        expected = "supplementary_correct"
+        expected = AlignmentAssessment.SUPPLEMENTARY_CORRECT
 
         assert actual == expected
 
@@ -642,7 +642,7 @@ class TestRecallClassification:
         classification = RecallClassification(record=record)
 
         actual = classification.assessment()
-        expected = "correct"
+        expected = AlignmentAssessment.PRIMARY_CORRECT
 
         assert actual == expected
 
@@ -651,7 +651,7 @@ class TestRecallClassification:
         classification = RecallClassification(record=record)
 
         actual = classification.assessment()
-        expected = "incorrect"
+        expected = AlignmentAssessment.PRIMARY_INCORRECT
 
         assert actual == expected
 
