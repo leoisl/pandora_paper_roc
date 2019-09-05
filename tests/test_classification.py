@@ -1,10 +1,17 @@
 from tests.test_evaluation import create_sam_header
-from tests.test_recall import create_unmapped_sam_record, create_partially_mapped_sam_record, \
-    create_incorrect_secondary_sam_record, create_correct_secondary_sam_record, \
-    create_incorrect_supplementary_sam_record, create_correct_supplementary_sam_record, \
-    create_correct_primary_sam_record, create_incorrect_primary_sam_record
+from tests.common import (
+    create_unmapped_sam_record,
+    create_partially_mapped_sam_record,
+    create_incorrect_secondary_sam_record,
+    create_correct_secondary_sam_record,
+    create_incorrect_supplementary_sam_record,
+    create_correct_supplementary_sam_record,
+    create_correct_primary_sam_record,
+    create_incorrect_primary_sam_record,
+)
 from evaluate.classification import *
 import pytest
+
 
 class TestClassification:
     def test_equality_twoEqualReturnsTrue(self):
@@ -703,7 +710,6 @@ class TestPrecisionClassification:
         actual = classification.assessment()
         assert actual == expected
 
-
     def test_assessment_probeIsSnpAndIsHasMismatchToRight(self):
         ref_name = "reference"
         ref_length = 64
@@ -932,7 +938,7 @@ class TestPrecisionClassification:
         )
         classification = PrecisionClassification(record=record)
 
-        expected = 10/11
+        expected = 10 / 11
         actual = classification.assessment()
         assert actual == expected
 
@@ -955,7 +961,7 @@ class TestPrecisionClassification:
         )
         classification = PrecisionClassification(record=record)
 
-        expected = 9/10
+        expected = 9 / 10
         actual = classification.assessment()
         assert actual == expected
 
@@ -978,7 +984,7 @@ class TestPrecisionClassification:
         )
         classification = PrecisionClassification(record=record)
 
-        expected = 10/11
+        expected = 10 / 11
         actual = classification.assessment()
         assert actual == expected
 
@@ -1024,10 +1030,9 @@ class TestPrecisionClassification:
         )
         classification = PrecisionClassification(record=record)
 
-        expected = 9/10
+        expected = 9 / 10
         actual = classification.assessment()
         assert actual == expected
-
 
     def test_assessment_mismatch4ProbeBases(self):
         ref_name = "reference"
@@ -1071,6 +1076,6 @@ class TestPrecisionClassification:
         )
         classification = PrecisionClassification(record=record)
 
-        expected = 8/11
+        expected = 8 / 11
         actual = classification.assessment()
         assert actual == expected

@@ -23,7 +23,7 @@ class Classification:
                 full_sequence=self.record.query_sequence,
             )
 
-            reference_name = self.record.reference_name or ''
+            reference_name = self.record.reference_name or ""
             if reference_name.startswith(">"):
                 reference_name = self.record.reference_name
             else:
@@ -134,9 +134,6 @@ class AlignmentAssessment(Enum):
 
 
 class RecallClassification(Classification):
-    def __init__(self, record: pysam.AlignedSegment = None):
-        super().__init__(record)
-
     def is_correct(self) -> bool:
         return self.get_query_probe_mapping_score() == 1.0
 
@@ -169,10 +166,6 @@ class RecallClassification(Classification):
         return assessment
 
 
-
 class PrecisionClassification(Classification):
-    def __init__(self, record: pysam.AlignedSegment = None):
-        super().__init__(record)
-
-    def assessment(self) -> AlignmentAssessment:
+    def assessment(self) -> float:
         return self.get_query_probe_mapping_score()

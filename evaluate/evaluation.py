@@ -10,7 +10,8 @@ from .cli import cli
 from .mummer import Nucmer, DeltaFilter, ShowSnps
 from .query import Query
 from .utils import strip_extensions
-from .recall import RecallReporter, RecallClassifier
+from .recall import RecallReporter
+from evaluate.classifier import RecallClassifier
 
 
 def generate_mummer_snps(

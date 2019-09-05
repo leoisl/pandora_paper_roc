@@ -1,29 +1,10 @@
-from typing import List, TextIO, Iterable
+from typing import TextIO, Iterable
 import logging
-from collections import Counter
-from enum import Enum
 
 import pandas as pd
-import pysam
 
-from .probe import Probe, ProbeHeader
-from .classification import RecallClassification, AlignmentAssessment
-
-
-class RecallClassifier:
-    def __init__(self, sam: Iterable[pysam.AlignedSegment] = None, name: str = ""):
-        if sam is None:
-            sam = []
-        self.sam = sam
-        self.name = name
-
-    def classify(self) -> List[RecallClassification]:
-        classifications = []
-        for record in self.sam:
-            classification = RecallClassification(record=record)
-            classifications.append(classification)
-
-        return classifications
+from evaluate.classifier import RecallClassifier
+from .classification import *
 
 
 class RecallReporter:
