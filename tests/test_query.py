@@ -145,28 +145,6 @@ class TestQuery:
 
         assert actual == expected
 
-    @pytest.mark.xfail(reason="We are ignoring overlapping reads at the moment")
-    def test_makeProbes_oneGeneTwoOverlappingVcfRecordsInGeneRaisesException(self):
-        vcf = TEST_CASES / "make_probes_2.vcf"
-        genes = TEST_CASES / "make_probes_1.fa"
-        min_probe_length = 3
-        query = Query(vcf, genes, min_probe_length)
-
-        with pytest.raises(OverlappingRecordsError):
-            query.make_probes()
-
-    @pytest.mark.xfail(reason="We are ignoring overlapping reads at the moment")
-    def test_makeProbes_oneGeneTwoCloseVcfRecordsInGeneReturnsOneProbe(self):
-        vcf = TEST_CASES / "make_probes_3.vcf"
-        genes = TEST_CASES / "make_probes_2.fa"
-        min_probe_length = 7
-        query = Query(vcf, genes, min_probe_length)
-
-        actual = query.make_probes()
-        expected = ">gene1_interval=(1, 11)\nxxFOOxxFOOxx\n"
-
-        assert actual == expected
-
     def test_makeProbes_oneGeneTwoNonCloseVcfRecordsInGeneReturnsTwoProbes(self):
         vcf = TEST_CASES / "make_probes_3.vcf"
         genes = TEST_CASES / "make_probes_2.fa"

@@ -664,6 +664,24 @@ class TestRecallClassification:
 
 
 class TestPrecisionClassification:
+    def test_assessment_unmappedRecordReturnsZero(self):
+        record = create_unmapped_sam_record()
+        classification = PrecisionClassification(record=record)
+
+        actual = classification.assessment()
+        expected = 0.0
+
+        assert actual == expected
+
+    def test_assessment_recordWithCoreProbeOnlyPartiallyMappedReturnsZero(self):
+        record = create_partially_mapped_sam_record()
+        classification = PrecisionClassification(record=record)
+
+        actual = classification.assessment()
+        expected = 0.0
+
+        assert actual == expected
+
     def test_assessment_probeIsSnpAndIsMismatch(self):
         ref_name = "reference"
         ref_length = 64

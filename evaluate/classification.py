@@ -116,6 +116,9 @@ class Classification:
         query_probe_mapping_score = (
             alignment_type_count[AlignmentType.MATCH] / total_nb_of_alignments_checked
         )
+
+        assert 0.0 <= query_probe_mapping_score <= 1.0
+
         return query_probe_mapping_score
 
     def assessment(self) -> str:
@@ -168,4 +171,13 @@ class RecallClassification(Classification):
 
 class PrecisionClassification(Classification):
     def assessment(self) -> float:
-        return self.get_query_probe_mapping_score()
+        query_probe_does_not_map_completely = (
+            self.is_unmapped or not self._whole_query_probe_maps()
+        )
+
+        if query_probe_does_not_map_completely:
+            assessment = 0.0
+        else:
+            assessment = self.get_query_probe_mapping_score()
+
+        return assessment
