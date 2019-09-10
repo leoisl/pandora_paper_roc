@@ -147,3 +147,5 @@ tests/test_cases/H131800734.ref.pilon.fa
 tests/test_cases/pandora_multisample*
 
 evaluate/cmake-build-debug/
+
+cmake-build-debug/
