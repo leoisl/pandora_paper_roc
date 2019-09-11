@@ -8,6 +8,7 @@ pandas = "*"
 pysam = "==0.15.2"
 jupyter = "*"
 seaborn = "*"
+intervaltree = "*"
 
 [dev-packages]
 pytest = "*"
