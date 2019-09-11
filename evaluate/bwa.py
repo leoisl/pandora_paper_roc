@@ -2,6 +2,7 @@ import subprocess
 from typing import Tuple, List
 
 import pysam
+from pathlib import Path
 
 
 class BWA:
@@ -60,3 +61,17 @@ class BWA:
             header,
             [pysam.AlignedSegment.fromstring(sam, header) for sam in sam_lines if sam],
         )
+
+    @staticmethod
+    def map_query_to_ref(
+        query: Path, ref: Path, output: Path = Path(), threads: int = 1
+    ) -> Tuple[pysam.VariantHeader, List[pysam.AlignedSegment]]:
+        bwa = BWA(threads)
+        bwa.index(str(ref))
+        stdout, stderr = bwa.align(query.read_text())
+
+        # write sam to file if output path given
+        if output.name:
+            output.write_text(stdout)
+
+        return bwa.parse_sam_string(stdout)

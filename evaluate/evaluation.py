@@ -10,7 +10,8 @@ from .cli import cli
 from .mummer import Nucmer, DeltaFilter, ShowSnps
 from .query import Query
 from .utils import strip_extensions
-from .recall import RecallReporter, RecallClassifier
+from evaluate.reporter import RecallReporter
+from evaluate.classifier import RecallClassifier
 
 
 def generate_mummer_snps(
@@ -70,15 +71,7 @@ def write_vcf_probes_to_file(
 def map_panel_to_probes(
     panel: Path, probes: Path, output: Path = Path(), threads: int = 1
 ) -> Tuple[pysam.VariantHeader, List[pysam.AlignedSegment]]:
-    bwa = BWA(threads)
-    bwa.index(str(probes))
-    stdout, stderr = bwa.align(panel.read_text())
-
-    # write sam to file if output path given
-    if output.name:
-        output.write_text(stdout)
-
-    return bwa.parse_sam_string(stdout)
+    return BWA.map_query_to_ref(panel, probes, output, threads)
 
 
 def is_mapping_invalid(record: pysam.AlignedSegment) -> bool:

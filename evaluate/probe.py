@@ -150,6 +150,10 @@ class Probe:
     def gt_conf(self) -> float:
         return self.header.gt_conf
 
+    @property
+    def is_deletion(self) -> bool:
+        return len(self.interval) == 0
+
     @staticmethod
     def from_string(string: str) -> "Probe":
         if not string:
