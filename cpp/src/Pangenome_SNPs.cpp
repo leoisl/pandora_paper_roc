@@ -1,10 +1,16 @@
 #include "Pangenome_SNPs.h"
 
 PangenomeSNP PangenomeSNP::merge(const PangenomeSNP &other) const {
-    assert(this->allele_1 == other.allele_1 && this->allele_2 == other.allele_2); // we should not merge PangenomeSNPs that do not have the same alleles
+    bool both_SNPs_have_the_same_pair_of_alleles = this->allele_1 == other.allele_1 && this->allele_2 == other.allele_2;
+    assert(both_SNPs_have_the_same_pair_of_alleles); // we should not merge PangenomeSNPs that do not have the same alleles
+
     PangenomeSNP new_PangenomeSNP(this->allele_1, this->allele_2);
     new_PangenomeSNP.genomic_coordinates.insert(this->genomic_coordinates.begin(), this->genomic_coordinates.end());
     new_PangenomeSNP.genomic_coordinates.insert(other.genomic_coordinates.begin(), other.genomic_coordinates.end());
+
+    bool there_is_at_least_one_genomic_coordinate_in_common_between_both_SNPs = new_PangenomeSNP.genomic_coordinates.size() < this->genomic_coordinates.size() + other.genomic_coordinates.size();
+    assert(there_is_at_least_one_genomic_coordinate_in_common_between_both_SNPs);
+
     return new_PangenomeSNP;
 }
 

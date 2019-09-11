@@ -48,6 +48,14 @@ public:
         return !(*this < rhs);
     }
 
+    bool operator==(const GenomicCoordinate &rhs) const {
+        return std::tie(genome, chrom, pos) == std::tie(rhs.genome, rhs.chrom, rhs.pos);
+    }
+
+    bool operator!=(const GenomicCoordinate &rhs) const {
+        return !(rhs == *this);
+    }
+
     const std::string &get_genome() const {
         return genome;
     }
@@ -82,7 +90,8 @@ public:
     PangenomeSNP(){}
 
     PangenomeSNP(const char allele_1, const char allele_2) : allele_1(allele_1), allele_2(allele_2), genomic_coordinates() {
-        assert(allele_1 < allele_2);
+        bool alleles_are_ordered = allele_1 < allele_2;
+        assert(alleles_are_ordered);
     }
 
     void add_genomic_coordinate (const GenomicCoordinate &genomic_coordinate) {
@@ -115,6 +124,14 @@ public:
         return !(*this < rhs);
     }
 
+    bool operator==(const PangenomeSNP &rhs) const {
+        return std::tie(allele_1, allele_2, genomic_coordinates) ==
+               std::tie(rhs.allele_1, rhs.allele_2, rhs.genomic_coordinates);
+    }
+
+    bool operator!=(const PangenomeSNP &rhs) const {
+        return !(rhs == *this);
+    }
 
 private:
     friend class boost::serialization::access;
@@ -168,6 +185,15 @@ public:
 
     bool operator>=(const PangenomeSNPsIndexKeyType &rhs) const {
         return !(*this < rhs);
+    }
+
+    bool operator==(const PangenomeSNPsIndexKeyType &rhs) const {
+        return std::tie(genomic_coordinate, allele_1, allele_2) ==
+               std::tie(rhs.genomic_coordinate, rhs.allele_1, rhs.allele_2);
+    }
+
+    bool operator!=(const PangenomeSNPsIndexKeyType &rhs) const {
+        return !(rhs == *this);
     }
 
 private:
@@ -233,6 +259,14 @@ public:
     static PangenomeSNPsIndex load (const std::string &filename);
 
     PangenomeSNPsIndex save (const std::string &filename) const;
+
+    bool operator==(const PangenomeSNPsIndex &rhs) const {
+        return position_To_Key_To_PangenomeSNP == rhs.position_To_Key_To_PangenomeSNP;
+    }
+
+    bool operator!=(const PangenomeSNPsIndex &rhs) const {
+        return !(rhs == *this);
+    }
 
 private:
     friend class boost::serialization::access;
