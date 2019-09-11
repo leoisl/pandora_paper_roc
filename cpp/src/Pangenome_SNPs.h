@@ -18,7 +18,6 @@
 #include <boost/serialization/shared_ptr.hpp>
 #include <boost/smart_ptr/shared_ptr.hpp>
 #include <boost/smart_ptr/make_shared.hpp>
-//#include <boost/python.hpp>
 
 class GenomicCoordinate {
 private:
@@ -242,23 +241,6 @@ private:
         ar & position_To_Key_To_PangenomeSNP;
     }
 };
-
-
-//#define COMPILE_PYTHON_INTERFACE
-#ifdef COMPILE_PYTHON_INTERFACE
-    //exposing PangenomeSNPsIndex to python
-    BOOST_PYTHON_MODULE(PangenomeSNPsIndex)
-    {
-        using namespace boost::python;
-        class_<PangenomeSNPsIndex>("PangenomeSNPsIndex", init<uint32_t>())
-            .def("add_Positioned_SNP", &PangenomeSNPsIndex::add_Positioned_SNP)
-            .def("get_nb_SNPs_that_can_be_found_with_the_given_genomes", &PangenomeSNPsIndex::get_nb_SNPs_that_can_be_found_with_the_given_genomes)
-            .def("load", &PangenomeSNPsIndex::load)
-            .def("save", &PangenomeSNPsIndex::save)
-        ;
-    }
-#endif
-
 
 
 #endif //PANDORA1_PAPER_PANGENOME_SNPS_H
