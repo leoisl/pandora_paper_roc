@@ -3,7 +3,7 @@ from evaluate.probe import *
 
 class TestInterval:
     def test_str_nullIntervalReturnsEmptyString(self):
-        interval = Interval()
+        interval = ProbeInterval()
 
         actual = str(interval)
         expected = ""
@@ -11,7 +11,7 @@ class TestInterval:
         assert actual == expected
 
     def test_str_nonNullIntervalReturnsExpectedString(self):
-        interval = Interval(1, 5)
+        interval = ProbeInterval(1, 5)
 
         actual = str(interval)
         expected = "[1,5)"
@@ -19,7 +19,7 @@ class TestInterval:
         assert actual == expected
 
     def test_len_isZeroLengthReturnsZero(self):
-        interval = Interval(2, 2)
+        interval = ProbeInterval(2, 2)
 
         actual = len(interval)
         expected = 0
@@ -27,7 +27,7 @@ class TestInterval:
         assert actual == expected
 
     def test_len_isTwoReturnsTwo(self):
-        interval = Interval(4, 6)
+        interval = ProbeInterval(4, 6)
 
         actual = len(interval)
         expected = 2
@@ -35,7 +35,7 @@ class TestInterval:
         assert actual == expected
 
     def test_len_isNullReturnsZero(self):
-        interval = Interval()
+        interval = ProbeInterval()
 
         actual = len(interval)
         expected = 0
@@ -43,37 +43,37 @@ class TestInterval:
         assert actual == expected
 
     def test_isNull_nullIntervalReturnsTrue(self):
-        assert Interval(-1, -1).is_null()
+        assert ProbeInterval(-1, -1).is_null()
 
     def test_isNull_nonNullIntervalReturnsFalse(self):
-        assert not Interval(0, -1).is_null()
+        assert not ProbeInterval(0, -1).is_null()
 
     def test_fromString_emptyStringReturnsNullInterval(self):
         string = ""
 
-        actual = Interval.from_string(string)
+        actual = ProbeInterval.from_string(string)
 
         assert actual.is_null()
 
     def test_fromString_invalidStringReturnsNullInterval(self):
         string = "[10,20]"
 
-        actual = Interval.from_string(string)
+        actual = ProbeInterval.from_string(string)
 
         assert actual.is_null()
 
     def test_fromString_validStringWithSpaceAfterCommaReturnsNullInterval(self):
         string = "[10, 20)"
 
-        actual = Interval.from_string(string)
+        actual = ProbeInterval.from_string(string)
 
         assert actual.is_null()
 
     def test_fromString_validStringReturnsInterval(self):
         string = "[10,20)"
 
-        actual = Interval.from_string(string)
-        expected = Interval(10, 20)
+        actual = ProbeInterval.from_string(string)
+        expected = ProbeInterval(10, 20)
 
         assert actual == expected
 
@@ -86,8 +86,8 @@ class TestProbeHeader:
         assert p1 == p2
 
     def test_equality_notEqualReturnsFalse(self):
-        p1 = ProbeHeader(interval=Interval(2, 5))
-        p2 = ProbeHeader(interval=Interval(2, 4))
+        p1 = ProbeHeader(interval=ProbeInterval(2, 5))
+        p2 = ProbeHeader(interval=ProbeInterval(2, 4))
 
         assert p1 != p2
 
@@ -107,7 +107,7 @@ class TestProbeHeader:
             sample="CFT073",
             chrom="1",
             pos=1,
-            interval=Interval(0, 72),
+            interval=ProbeInterval(0, 72),
             svtype="INDEL",
             mean_fwd_covg=2,
             mean_rev_covg=3,
@@ -172,7 +172,7 @@ class TestProbeHeader:
             gt_conf=2.2,
             chrom="4",
             sample="foo",
-            interval=Interval(5, 6),
+            interval=ProbeInterval(5, 6),
             svtype="SNP",
         )
 
@@ -213,26 +213,26 @@ class TestProbe:
 
     def test_equality_twoEqualProbesReturnsTrue(self):
         p1 = Probe(
-            ProbeHeader(sample="foo", interval=Interval(1, 2)), full_sequence="bar"
+            ProbeHeader(sample="foo", interval=ProbeInterval(1, 2)), full_sequence="bar"
         )
         p2 = Probe(
-            ProbeHeader(sample="foo", interval=Interval(1, 2)), full_sequence="bar"
+            ProbeHeader(sample="foo", interval=ProbeInterval(1, 2)), full_sequence="bar"
         )
 
         assert p1 == p2
 
     def test_equality_twoNonEqualProbesReturnsFalse(self):
         p1 = Probe(
-            ProbeHeader(sample="foo", interval=Interval(1, 2)), full_sequence="barr"
+            ProbeHeader(sample="foo", interval=ProbeInterval(1, 2)), full_sequence="barr"
         )
         p2 = Probe(
-            ProbeHeader(sample="foo", interval=Interval(1, 2)), full_sequence="bar"
+            ProbeHeader(sample="foo", interval=ProbeInterval(1, 2)), full_sequence="bar"
         )
 
         assert p1 != p2
 
     def test_getLeftFlank_emptyFullSequenceReturnsEmptyFlank(self):
-        header = ProbeHeader(interval=Interval(4, 5))
+        header = ProbeHeader(interval=ProbeInterval(4, 5))
         full_sequence = ""
         probe = Probe(header, full_sequence)
 
@@ -242,7 +242,7 @@ class TestProbe:
         assert actual == expected
 
     def test_getLeftFlank_noLeftFlankInFullSequenceReturnsEmptyFlank(self):
-        header = ProbeHeader(interval=Interval(0, 5))
+        header = ProbeHeader(interval=ProbeInterval(0, 5))
         full_sequence = "abcdefg"
         probe = Probe(header, full_sequence)
 
@@ -252,7 +252,7 @@ class TestProbe:
         assert actual == expected
 
     def test_getLeftFlank_singleBaseLeftFlankInFullSequenceReturnsLeftFlank(self):
-        header = ProbeHeader(interval=Interval(1, 5))
+        header = ProbeHeader(interval=ProbeInterval(1, 5))
         full_sequence = "abcdefg"
         probe = Probe(header, full_sequence)
 
@@ -262,7 +262,7 @@ class TestProbe:
         assert actual == expected
 
     def test_getLeftFlank_multiBaseLeftFlankInFullSequenceReturnsLeftFlank(self):
-        header = ProbeHeader(interval=Interval(3, 5))
+        header = ProbeHeader(interval=ProbeInterval(3, 5))
         full_sequence = "abcdefg"
         probe = Probe(header, full_sequence)
 
@@ -272,7 +272,7 @@ class TestProbe:
         assert actual == expected
 
     def test_getRightFlank_emptyFullSequenceReturnsEmptyFlank(self):
-        header = ProbeHeader(interval=Interval(4, 5))
+        header = ProbeHeader(interval=ProbeInterval(4, 5))
         full_sequence = ""
         probe = Probe(header, full_sequence)
 
@@ -282,7 +282,7 @@ class TestProbe:
         assert actual == expected
 
     def test_getRightFlank_noRightFlankInFullSequenceReturnsEmptyFlank(self):
-        header = ProbeHeader(interval=Interval(2, 7))
+        header = ProbeHeader(interval=ProbeInterval(2, 7))
         full_sequence = "abcdefg"
         probe = Probe(header, full_sequence)
 
@@ -292,7 +292,7 @@ class TestProbe:
         assert actual == expected
 
     def test_getRightFlank_singleBaseRightFlankInFullSequenceReturnsRightFlank(self):
-        header = ProbeHeader(interval=Interval(1, 6))
+        header = ProbeHeader(interval=ProbeInterval(1, 6))
         full_sequence = "abcdefg"
         probe = Probe(header, full_sequence)
 
@@ -302,7 +302,7 @@ class TestProbe:
         assert actual == expected
 
     def test_getRightFlank_multiBaseRightFlankInFullSequenceReturnsRightFlank(self):
-        header = ProbeHeader(interval=Interval(3, 4))
+        header = ProbeHeader(interval=ProbeInterval(3, 4))
         full_sequence = "abcdefg"
         probe = Probe(header, full_sequence)
 
@@ -312,7 +312,7 @@ class TestProbe:
         assert actual == expected
 
     def test_getCoreSequence_emptyFullSequenceReturnsEmptyString(self):
-        header = ProbeHeader(interval=Interval(3, 4))
+        header = ProbeHeader(interval=ProbeInterval(3, 4))
         full_sequence = ""
         probe = Probe(header, full_sequence)
 
@@ -322,7 +322,7 @@ class TestProbe:
         assert actual == expected
 
     def test_getCoreSequence_intervalForDeletionReturnsEmptyString(self):
-        header = ProbeHeader(interval=Interval(3, 3))
+        header = ProbeHeader(interval=ProbeInterval(3, 3))
         full_sequence = "abcdefg"
         probe = Probe(header, full_sequence)
 
@@ -332,7 +332,7 @@ class TestProbe:
         assert actual == expected
 
     def test_getCoreSequence_intervalForSingleBaseReturnsSingleBase(self):
-        header = ProbeHeader(interval=Interval(3, 4))
+        header = ProbeHeader(interval=ProbeInterval(3, 4))
         full_sequence = "abcdefg"
         probe = Probe(header, full_sequence)
 
@@ -344,7 +344,7 @@ class TestProbe:
     def test_getCoreSequence_intervalForSingleBaseAtStartOfSequenceReturnsSingleBase(
         self
     ):
-        header = ProbeHeader(interval=Interval(0, 1))
+        header = ProbeHeader(interval=ProbeInterval(0, 1))
         full_sequence = "abcdefg"
         probe = Probe(header, full_sequence)
 
@@ -356,7 +356,7 @@ class TestProbe:
     def test_getCoreSequence_intervalForSingleBaseAtEndOfSequenceReturnsSingleBase(
         self
     ):
-        header = ProbeHeader(interval=Interval(6, 7))
+        header = ProbeHeader(interval=ProbeInterval(6, 7))
         full_sequence = "abcdefg"
         probe = Probe(header, full_sequence)
 
@@ -366,7 +366,7 @@ class TestProbe:
         assert actual == expected
 
     def test_getCoreSequence_intervalForMultiBaseSequenceReturnsMultiBase(self):
-        header = ProbeHeader(interval=Interval(2, 5))
+        header = ProbeHeader(interval=ProbeInterval(2, 5))
         full_sequence = "abcdefg"
         probe = Probe(header, full_sequence)
 
@@ -376,7 +376,7 @@ class TestProbe:
         assert actual == expected
 
     def test_getCoreSequence_intervalOutOfRangeReturnsEmptyString(self):
-        header = ProbeHeader(interval=Interval(8, 9))
+        header = ProbeHeader(interval=ProbeInterval(8, 9))
         full_sequence = "abcdefg"
         probe = Probe(header, full_sequence)
 
@@ -397,7 +397,7 @@ class TestProbe:
         string = ">CHROM=1;INTERVAL=[3,5);"
 
         actual = Probe.from_string(string)
-        expected = Probe(header=ProbeHeader(chrom="1", interval=Interval(3, 5)))
+        expected = Probe(header=ProbeHeader(chrom="1", interval=ProbeInterval(3, 5)))
 
         assert actual == expected
 
@@ -407,7 +407,7 @@ class TestProbe:
         string = ">CHROM=1;INTERVAL=[3,5);\n"
 
         actual = Probe.from_string(string)
-        expected = Probe(header=ProbeHeader(chrom="1", interval=Interval(3, 5)))
+        expected = Probe(header=ProbeHeader(chrom="1", interval=ProbeInterval(3, 5)))
 
         assert actual == expected
 
@@ -416,7 +416,7 @@ class TestProbe:
 
         actual = Probe.from_string(string)
         expected = Probe(
-            header=ProbeHeader(chrom="1", interval=Interval(3, 5)), full_sequence="foo"
+            header=ProbeHeader(chrom="1", interval=ProbeInterval(3, 5)), full_sequence="foo"
         )
 
         assert actual == expected
@@ -430,9 +430,9 @@ class TestProbe:
         assert actual == expected
 
     def test_interval(self):
-        probe = Probe(header=ProbeHeader(interval=Interval(4, 6)))
+        probe = Probe(header=ProbeHeader(interval=ProbeInterval(4, 6)))
 
         actual = probe.interval
-        expected = Interval(4, 6)
+        expected = ProbeInterval(4, 6)
 
         assert actual == expected

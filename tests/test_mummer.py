@@ -293,27 +293,27 @@ NUCMER
         expected = (
             str(
                 Probe(
-                    ProbeHeader(chrom="ref", pos=39, interval=Interval(3, 4)),
+                    ProbeHeader(chrom="ref", pos=39, interval=ProbeInterval(3, 4)),
                     full_sequence="GTAGTAG",
                 )
             )
             + "\n"
             + str(
                 Probe(
-                    ProbeHeader(chrom="ref", pos=73, interval=Interval(3, 4)),
+                    ProbeHeader(chrom="ref", pos=73, interval=ProbeInterval(3, 4)),
                     full_sequence="GGATTGA",
                 )
             ),
             str(
                 Probe(
-                    ProbeHeader(chrom="query", pos=38, interval=Interval(3, 3)),
+                    ProbeHeader(chrom="query", pos=38, interval=ProbeInterval(3, 3)),
                     full_sequence="GTATAG",
                 )
             )
             + "\n"
             + str(
                 Probe(
-                    ProbeHeader(chrom="query", pos=72, interval=Interval(3, 4)),
+                    ProbeHeader(chrom="query", pos=72, interval=ProbeInterval(3, 4)),
                     full_sequence="GGAATGA",
                 )
             ),
@@ -338,13 +338,13 @@ NUCMER
         actual = df.get_probes()
         expected_ref = str(
             Probe(
-                ProbeHeader(chrom="ref", pos=2, interval=Interval(1, 2)),
+                ProbeHeader(chrom="ref", pos=2, interval=ProbeInterval(1, 2)),
                 full_sequence="AGTAG",
             )
         )
         expected_query = str(
             Probe(
-                ProbeHeader(chrom="query", pos=3, interval=Interval(2, 2)),
+                ProbeHeader(chrom="query", pos=3, interval=ProbeInterval(2, 2)),
                 full_sequence="TATAG",
             )
         )
@@ -369,13 +369,13 @@ NUCMER
         actual = df.get_probes()
         expected_ref = str(
             Probe(
-                ProbeHeader(chrom="ref", pos=12, interval=Interval(3, 4)),
+                ProbeHeader(chrom="ref", pos=12, interval=ProbeInterval(3, 4)),
                 full_sequence="AAAGTA",
             )
         )
         expected_query = str(
             Probe(
-                ProbeHeader(chrom="query", pos=13, interval=Interval(3, 3)),
+                ProbeHeader(chrom="query", pos=13, interval=ProbeInterval(3, 3)),
                 full_sequence="ATAT",
             )
         )
@@ -400,13 +400,13 @@ NUCMER
         actual = df.get_probes()
         expected_ref = str(
             Probe(
-                ProbeHeader(chrom="ref", pos=1, interval=Interval(0, 1)),
+                ProbeHeader(chrom="ref", pos=1, interval=ProbeInterval(0, 1)),
                 full_sequence="GTAG",
             )
         )
         expected_query = str(
             Probe(
-                ProbeHeader(chrom="query", pos=1, interval=Interval(0, 0)),
+                ProbeHeader(chrom="query", pos=1, interval=ProbeInterval(0, 0)),
                 full_sequence="TAG",
             )
         )
@@ -431,13 +431,13 @@ NUCMER
         actual = df.get_probes()
         expected_ref = str(
             Probe(
-                ProbeHeader(chrom="ref", pos=10, interval=Interval(3, 4)),
+                ProbeHeader(chrom="ref", pos=10, interval=ProbeInterval(3, 4)),
                 full_sequence="AAAG",
             )
         )
         expected_query = str(
             Probe(
-                ProbeHeader(chrom="query", pos=10, interval=Interval(3, 3)),
+                ProbeHeader(chrom="query", pos=10, interval=ProbeInterval(3, 3)),
                 full_sequence="AAA",
             )
         )
@@ -466,37 +466,37 @@ NUCMER
         actual = df.get_probes()
         expected_ref = str(
             Probe(
-                ProbeHeader(chrom="ref", pos=39, interval=Interval(3, 4)),
+                ProbeHeader(chrom="ref", pos=39, interval=ProbeInterval(3, 4)),
                 full_sequence="GTAGTAG",
             )
         )
         expected_ref += "\n" + str(
             Probe(
-                ProbeHeader(chrom="ref", pos=73, interval=Interval(3, 6)),
+                ProbeHeader(chrom="ref", pos=73, interval=ProbeInterval(3, 6)),
                 full_sequence="GGATTTGAA",
             )
         )
         expected_ref += "\n" + str(
             Probe(
-                ProbeHeader(chrom="ref", pos=79, interval=Interval(3, 4)),
+                ProbeHeader(chrom="ref", pos=79, interval=ProbeInterval(3, 4)),
                 full_sequence="GGATTGA",
             )
         )
         expected_query = str(
             Probe(
-                ProbeHeader(chrom="query", pos=38, interval=Interval(3, 3)),
+                ProbeHeader(chrom="query", pos=38, interval=ProbeInterval(3, 3)),
                 full_sequence="GTATAG",
             )
         )
         expected_query += "\n" + str(
             Probe(
-                ProbeHeader(chrom="query", pos=72, interval=Interval(3, 3)),
+                ProbeHeader(chrom="query", pos=72, interval=ProbeInterval(3, 3)),
                 full_sequence="GGATGA",
             )
         )
         expected_query += "\n" + str(
             Probe(
-                ProbeHeader(chrom="query", pos=78, interval=Interval(3, 4)),
+                ProbeHeader(chrom="query", pos=78, interval=ProbeInterval(3, 4)),
                 full_sequence="GGAATGA",
             )
         )
@@ -523,37 +523,37 @@ NUCMER
         actual = df.get_probes()
         expected_ref = str(
             Probe(
-                ProbeHeader(chrom="ref", pos=39, interval=Interval(3, 4)),
+                ProbeHeader(chrom="ref", pos=39, interval=ProbeInterval(3, 4)),
                 full_sequence="GTAGTAG",
             )
         )
         expected_ref += "\n" + str(
             Probe(
-                ProbeHeader(chrom="ref", pos=72, interval=Interval(3, 3)),
+                ProbeHeader(chrom="ref", pos=72, interval=ProbeInterval(3, 3)),
                 full_sequence="GGATGA",
             )
         )
         expected_ref += "\n" + str(
             Probe(
-                ProbeHeader(chrom="ref", pos=79, interval=Interval(3, 4)),
+                ProbeHeader(chrom="ref", pos=79, interval=ProbeInterval(3, 4)),
                 full_sequence="GGATTGA",
             )
         )
         expected_query = str(
             Probe(
-                ProbeHeader(chrom="query", pos=38, interval=Interval(3, 3)),
+                ProbeHeader(chrom="query", pos=38, interval=ProbeInterval(3, 3)),
                 full_sequence="GTATAG",
             )
         )
         expected_query += "\n" + str(
             Probe(
-                ProbeHeader(chrom="query", pos=73, interval=Interval(3, 6)),
+                ProbeHeader(chrom="query", pos=73, interval=ProbeInterval(3, 6)),
                 full_sequence="GGATTTGAA",
             )
         )
         expected_query += "\n" + str(
             Probe(
-                ProbeHeader(chrom="query", pos=78, interval=Interval(3, 4)),
+                ProbeHeader(chrom="query", pos=78, interval=ProbeInterval(3, 4)),
                 full_sequence="GGAATGA",
             )
         )
@@ -580,37 +580,37 @@ NUCMER
         actual = df.get_probes()
         expected_ref = str(
             Probe(
-                ProbeHeader(chrom="ref", pos=39, interval=Interval(3, 4)),
+                ProbeHeader(chrom="ref", pos=39, interval=ProbeInterval(3, 4)),
                 full_sequence="GTAGTAG",
             )
         )
         expected_ref += "\n" + str(
             Probe(
-                ProbeHeader(chrom="ref", pos=72, interval=Interval(3, 6)),
+                ProbeHeader(chrom="ref", pos=72, interval=ProbeInterval(3, 6)),
                 full_sequence="GGAAGCAAA",
             )
         )
         expected_ref += "\n" + str(
             Probe(
-                ProbeHeader(chrom="ref", pos=79, interval=Interval(3, 4)),
+                ProbeHeader(chrom="ref", pos=79, interval=ProbeInterval(3, 4)),
                 full_sequence="GGATTGA",
             )
         )
         expected_query = str(
             Probe(
-                ProbeHeader(chrom="query", pos=38, interval=Interval(3, 3)),
+                ProbeHeader(chrom="query", pos=38, interval=ProbeInterval(3, 3)),
                 full_sequence="GTATAG",
             )
         )
         expected_query += "\n" + str(
             Probe(
-                ProbeHeader(chrom="query", pos=73, interval=Interval(3, 6)),
+                ProbeHeader(chrom="query", pos=73, interval=ProbeInterval(3, 6)),
                 full_sequence="GGATTTGAA",
             )
         )
         expected_query += "\n" + str(
             Probe(
-                ProbeHeader(chrom="query", pos=78, interval=Interval(3, 4)),
+                ProbeHeader(chrom="query", pos=78, interval=ProbeInterval(3, 4)),
                 full_sequence="GGAATGA",
             )
         )

@@ -5,7 +5,7 @@ from pathlib import Path
 from typing import List, TextIO, Tuple
 
 import pandas as pd
-from .probe import Probe, ProbeHeader, Interval
+from .probe import Probe, ProbeHeader, ProbeInterval
 from .utils import arg_ranges
 
 
@@ -218,7 +218,7 @@ class ShowSNPsDataframe(pd.DataFrame):
             header = ProbeHeader(
                 chrom=first_row[f"{prefix}_chrom"],
                 pos=first_row[f"{prefix}_pos"],
-                interval=Interval(call_start_idx, call_end_idx),
+                interval=ProbeInterval(call_start_idx, call_end_idx),
             )
             full_sequence = left_flank + core_sequence + right_flank
             probes.append(Probe(header=header, full_sequence=full_sequence))

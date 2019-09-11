@@ -8,7 +8,7 @@ class RegexError(Exception):
     pass
 
 
-class Interval(NamedTuple):
+class ProbeInterval(NamedTuple):
     start: int = -1
     end: int = -1
 
@@ -28,13 +28,13 @@ class Interval(NamedTuple):
         return self.start == -1 and self.end == -1
 
     @staticmethod
-    def from_string(string: str) -> "Interval":
+    def from_string(string: str) -> "ProbeInterval":
         regex = re.compile(r"\[(\d+),(\d+)\)")
         match = regex.search(string)
         if not match:
-            return Interval()
+            return ProbeInterval()
 
-        return Interval(int(match.group(1)), int(match.group(2)))
+        return ProbeInterval(int(match.group(1)), int(match.group(2)))
 
 
 class ProbeHeader:
@@ -43,7 +43,7 @@ class ProbeHeader:
         sample: str = "",
         chrom: str = "",
         pos: int = 0,
-        interval: Interval = Interval(),
+        interval: ProbeInterval = ProbeInterval(),
         svtype: str = "",
         mean_fwd_covg: int = 0,
         mean_rev_covg: int = 0,
@@ -103,7 +103,7 @@ class ProbeHeader:
             "MEAN_REV_COVG", string, return_type=int
         )
         gt_conf = parse_field_from_header("GT_CONF", string, return_type=float)
-        interval = Interval.from_string(parse_field_from_header("INTERVAL", string))
+        interval = ProbeInterval.from_string(parse_field_from_header("INTERVAL", string))
 
         return ProbeHeader(
             sample, chrom, pos, interval, svtype, mean_fwd_covg, mean_rev_covg, gt_conf
@@ -143,7 +143,7 @@ class Probe:
         return self.full_sequence[slice(*self.interval)]
 
     @property
-    def interval(self) -> Interval:
+    def interval(self) -> ProbeInterval:
         return self.header.interval
 
     @property

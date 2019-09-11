@@ -3,7 +3,7 @@ from typing import Type
 import pysam
 
 from evaluate.classifier import Classifier, RecallClassifier
-from evaluate.probe import ProbeHeader, Interval
+from evaluate.probe import ProbeHeader, ProbeInterval
 from tests.test_evaluation import create_sam_header
 
 
@@ -14,13 +14,13 @@ def create_classifier_with_two_entries(cls: Type) -> Type[Classifier]:
     md = "MD:Z:56"
     mapq = 60
     pos = 1
-    query_header = ProbeHeader(interval=Interval(12, 17))
+    query_header = ProbeHeader(interval=ProbeInterval(12, 17))
     sequence = "AAAAAAAAAAACGGCTCGCATAGACACGACGACGACACGTACGATCGATCAGTCAT"
     ref_header = ProbeHeader(
         chrom="GC00000422_2",
         sample="CFT073",
         pos=603,
-        interval=Interval(25, 32),
+        interval=ProbeInterval(25, 32),
         svtype="PH_SNPs",
         mean_fwd_covg=23,
         mean_rev_covg=13,
@@ -40,7 +40,7 @@ def create_classifier_with_two_entries(cls: Type) -> Type[Classifier]:
     md = "MD:Z:21T21"
     mapq = 0
     pos = 5
-    query_header = ProbeHeader(chrom="3", pos=14788, interval=Interval(21, 22))
+    query_header = ProbeHeader(chrom="3", pos=14788, interval=ProbeInterval(21, 22))
     sequence = "CGCGAAAGCCCTGACCATCTGCACCGTGTCTGACCACATCCGC"
     header = create_sam_header(str(ref_header), 57)
     record2 = pysam.AlignedSegment.fromstring(
@@ -96,12 +96,12 @@ def create_incorrect_secondary_sam_record() -> pysam.AlignedSegment:
     md = "MD:Z:21T21"
     mapq = 0
     pos = 5
-    query_header = ProbeHeader(chrom="3", pos=14788, interval=Interval(21, 22))
+    query_header = ProbeHeader(chrom="3", pos=14788, interval=ProbeInterval(21, 22))
     ref_header = ProbeHeader(
         chrom="GC00000422_2",
         sample="CFT073",
         pos=603,
-        interval=Interval(25, 32),
+        interval=ProbeInterval(25, 32),
         svtype="PH_SNPs",
         mean_fwd_covg=23,
         mean_rev_covg=13,
@@ -123,12 +123,12 @@ def create_correct_secondary_sam_record() -> pysam.AlignedSegment:
     md = "MD:Z:19T23"
     mapq = 0
     pos = 5
-    query_header = ProbeHeader(chrom="3", pos=14788, interval=Interval(21, 22))
+    query_header = ProbeHeader(chrom="3", pos=14788, interval=ProbeInterval(21, 22))
     ref_header = ProbeHeader(
         chrom="GC00000422_2",
         sample="CFT073",
         pos=603,
-        interval=Interval(25, 32),
+        interval=ProbeInterval(25, 32),
         svtype="PH_SNPs",
         mean_fwd_covg=23,
         mean_rev_covg=13,
@@ -150,12 +150,12 @@ def create_incorrect_supplementary_sam_record() -> pysam.AlignedSegment:
     md = "MD:Z:21T21"
     mapq = 0
     pos = 5
-    query_header = ProbeHeader(chrom="3", pos=14788, interval=Interval(21, 22))
+    query_header = ProbeHeader(chrom="3", pos=14788, interval=ProbeInterval(21, 22))
     ref_header = ProbeHeader(
         chrom="GC00000422_2",
         sample="CFT073",
         pos=603,
-        interval=Interval(25, 32),
+        interval=ProbeInterval(25, 32),
         svtype="PH_SNPs",
         mean_fwd_covg=23,
         mean_rev_covg=13,
@@ -177,12 +177,12 @@ def create_correct_supplementary_sam_record() -> pysam.AlignedSegment:
     md = "MD:Z:19T23"
     mapq = 0
     pos = 5
-    query_header = ProbeHeader(chrom="3", pos=14788, interval=Interval(21, 22))
+    query_header = ProbeHeader(chrom="3", pos=14788, interval=ProbeInterval(21, 22))
     ref_header = ProbeHeader(
         chrom="GC00000422_2",
         sample="CFT073",
         pos=603,
-        interval=Interval(25, 32),
+        interval=ProbeInterval(25, 32),
         svtype="PH_SNPs",
         mean_fwd_covg=23,
         mean_rev_covg=13,
@@ -204,12 +204,12 @@ def create_correct_primary_sam_record() -> pysam.AlignedSegment:
     md = "MD:Z:56"
     mapq = 60
     pos = 1
-    query_header = ProbeHeader(interval=Interval(12, 17))
+    query_header = ProbeHeader(interval=ProbeInterval(12, 17))
     ref_header = ProbeHeader(
         chrom="GC00000422_2",
         sample="CFT073",
         pos=603,
-        interval=Interval(25, 32),
+        interval=ProbeInterval(25, 32),
         svtype="PH_SNPs",
         mean_fwd_covg=23,
         mean_rev_covg=13,
@@ -231,12 +231,12 @@ def create_incorrect_primary_sam_record() -> pysam.AlignedSegment:
     md = "MD:Z:12T43"
     mapq = 60
     pos = 1
-    query_header = ProbeHeader(interval=Interval(12, 13))
+    query_header = ProbeHeader(interval=ProbeInterval(12, 13))
     ref_header = ProbeHeader(
         chrom="GC00000422_2",
         sample="CFT073",
         pos=603,
-        interval=Interval(25, 32),
+        interval=ProbeInterval(25, 32),
         svtype="PH_SNPs",
         mean_fwd_covg=23,
         mean_rev_covg=13,

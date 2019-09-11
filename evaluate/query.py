@@ -4,7 +4,7 @@ from typing import Tuple, List, Dict
 
 import pysam
 
-from .probe import ProbeHeader, Probe, Interval
+from .probe import ProbeHeader, Probe, ProbeInterval
 
 
 class OverlappingRecordsError(Exception):
@@ -54,7 +54,7 @@ class Query:
         """Note: An assumption is made with this function that the variants you pass in
         are from the gene passed with them."""
         probes = {s: "" for s in self.samples}
-        intervals_to_probes: Dict[str, Dict[Interval, Probe]] = {
+        intervals_to_probes: Dict[str, Dict[ProbeInterval, Probe]] = {
             s: {} for s in self.samples
         }
 
@@ -94,19 +94,19 @@ class Query:
 
     def calculate_probe_boundaries_for_entry(
         self, entry: pysam.VariantRecord
-    ) -> Interval:
+    ) -> ProbeInterval:
         probe_start = max(0, entry.start - self.flank_width)
         probe_stop = entry.stop + self.flank_width
 
-        return Interval(probe_start, probe_stop)
+        return ProbeInterval(probe_start, probe_stop)
 
     @staticmethod
     def _create_probe_header(
-        sample: str, variant: pysam.VariantRecord, interval: Interval
+        sample: str, variant: pysam.VariantRecord, interval: ProbeInterval
     ) -> ProbeHeader:
         call_start_idx = max(0, variant.start - interval[0])
         call_end_idx = call_start_idx + get_variant_length(variant, sample)
-        call_interval = Interval(call_start_idx, call_end_idx)
+        call_interval = ProbeInterval(call_start_idx, call_end_idx)
         return ProbeHeader(
             chrom=variant.chrom,
             sample=sample,

@@ -2,7 +2,7 @@ import pytest
 
 from evaluate.evaluation import *
 from evaluate.mummer import NucmerError
-from evaluate.probe import Interval
+from evaluate.probe import ProbeInterval
 
 TEST_DIR = Path("tests/test_cases")
 REF = TEST_DIR / "ref.fa"
