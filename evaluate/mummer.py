@@ -86,30 +86,6 @@ class DeltaFilter:
         )
 
 
-class ShowSNPsDataframe(pd.DataFrame):
-    @property
-    def _constructor(self):
-        return ShowSNPsDataframe
-
-    def translate_to_FWD_strand(self):
-        def fix_position(position, strand_aln, length):
-            if strand_aln == 1:
-                return position
-            else:
-                return length - position + 1
-
-        def translate_to_FWD_strand_core(line):
-            line.ref_pos = fix_position(line.ref_pos, line.ref_strand, line.ref_len)
-            line.ref_strand = 1
-            line.query_pos = fix_position(
-                line.query_pos, line.query_strand, line.query_len
-            )
-            line.query_strand = 1
-            return line
-
-        return self.apply(translate_to_FWD_strand_core, axis=1)
-
-
 class ShowSnps:
     def __init__(
         self,
