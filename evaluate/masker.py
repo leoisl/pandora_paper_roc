@@ -1,4 +1,5 @@
 from intervaltree import IntervalTree
+from typing import TextIO
 
 
 class Masker:
@@ -7,3 +8,11 @@ class Masker:
 
     def __eq__(self, other: "Masker") -> bool:
         return self.tree == other.tree
+
+    @staticmethod
+    def from_bed(bed: TextIO) -> "Masker":
+        tree = IntervalTree()
+        for region in bed:
+            chrom, start, end = region.strip().split("\t")
+            tree.addi(int(start), int(end), chrom)
+        return Masker()
