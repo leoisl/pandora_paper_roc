@@ -25,6 +25,7 @@ class TestMasker:
         expected = Masker()
 
         assert actual == expected
+
     def test_fromBed_oneLineBedReturnsMaskerWithOneInterval(self):
         bed = StringIO("chrom\t3\t7")
 
@@ -33,4 +34,34 @@ class TestMasker:
 
         assert actual == expected
 
-# todo: add tests for different chromsomes
+    def test_fromBed_twoLinesBedReturnsMaskerWithTwoIntervals(self):
+        bed = StringIO("chrom\t3\t7\nchrom\t8\t10")
+
+        actual = Masker.from_bed(bed)
+        expected = Masker(
+            IntervalTree([Interval(3, 7, "chrom"), Interval(8, 10, "chrom")])
+        )
+
+        assert actual == expected
+
+    def test_fromBed_twoLinesBedSameIntervalDiffChromosomeReturnsMaskerWithTwoIntervals(
+        self
+    ):
+        bed = StringIO("chrom1\t3\t7\nchrom2\t3\t7")
+
+        actual = Masker.from_bed(bed)
+        expected = Masker(
+            IntervalTree([Interval(3, 7, "chrom1"), Interval(3, 7, "chrom2")])
+        )
+
+        assert actual == expected
+
+    def test_fromBed_twoLinesBedSameIntervalAndChromosomeReturnsMaskerWithOneInterval(
+        self
+    ):
+        bed = StringIO("chrom\t3\t7\nchrom\t3\t7")
+
+        actual = Masker.from_bed(bed)
+        expected = Masker(IntervalTree([Interval(3, 7, "chrom")]))
+
+        assert actual == expected

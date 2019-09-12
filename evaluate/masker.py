@@ -4,6 +4,8 @@ from typing import TextIO
 
 class Masker:
     def __init__(self, tree: IntervalTree = None):
+        if tree is None:
+            tree = IntervalTree()
         self.tree = tree
 
     def __eq__(self, other: "Masker") -> bool:
@@ -15,4 +17,4 @@ class Masker:
         for region in bed:
             chrom, start, end = region.strip().split("\t")
             tree.addi(int(start), int(end), chrom)
-        return Masker()
+        return Masker(tree=tree)
