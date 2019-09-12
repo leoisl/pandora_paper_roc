@@ -1,4 +1,6 @@
 from evaluate.masker import Masker
+from unittest.mock import patch
+import pysam
 from intervaltree import IntervalTree, Interval
 from io import StringIO
 
@@ -65,3 +67,73 @@ class TestMasker:
         expected = Masker(IntervalTree([Interval(3, 7, "chrom")]))
 
         assert actual == expected
+
+    def test_filterRecords_noRecordsNoMaskReturnsEmpty(self):
+        records = []
+        masker = Masker()
+
+        actual = masker.filter_records(records)
+        expected = []
+
+        assert actual == expected
+
+    @patch.object(Masker, "record_overlaps_mask", return_value=False)
+    def test_filterRecords_oneRecordDoesNotOverlapMaskReturnsRecord(self, *mock):
+        records = [pysam.AlignedSegment()]
+        masker = Masker()
+
+        actual = masker.filter_records(records)
+        expected = [pysam.AlignedSegment()]
+
+        assert actual == expected
+
+    @patch.object(Masker, "record_overlaps_mask", return_value=True)
+    def test_filterRecords_oneRecordDoesOverlapMaskReturnsEmpty(self, *mock):
+        records = [pysam.AlignedSegment()]
+        masker = Masker()
+
+        actual = masker.filter_records(records)
+        expected = []
+
+        assert actual == expected
+
+    @patch.object(Masker, "record_overlaps_mask", side_effect=[True, False])
+    def test_filterRecords_twoRecordsOneDoesOverlapMaskOneDoesntReturnsOneRecord(
+        self, *mock
+    ):
+        record = pysam.AlignedSegment()
+        record.query_name = "foo"
+        records = [pysam.AlignedSegment(), record]
+        masker = Masker()
+
+        actual = masker.filter_records(records)
+        expected = [record]
+
+        assert actual == expected
+
+    @patch.object(Masker, "record_overlaps_mask", return_value=False)
+    def test_filterRecords_twoRecordsNoneOverlapMaskReturnsTwoRecords(self, *mock):
+        record = pysam.AlignedSegment()
+        record.query_name = "foo"
+        records = [pysam.AlignedSegment(), record]
+        masker = Masker()
+
+        actual = masker.filter_records(records)
+        expected = records
+
+        assert actual == expected
+
+    @patch.object(Masker, "record_overlaps_mask", return_value=True)
+    def test_filterRecords_twoRecordsAllOverlapMaskReturnsNoRecords(self, *mock):
+        record = pysam.AlignedSegment()
+        record.query_name = "foo"
+        records = [pysam.AlignedSegment(), record]
+        masker = Masker()
+
+        actual = masker.filter_records(records)
+        expected = []
+
+        assert actual == expected
+
+    def test_recordOverlapsMask(self):
+        pass

@@ -223,7 +223,8 @@ class TestProbe:
 
     def test_equality_twoNonEqualProbesReturnsFalse(self):
         p1 = Probe(
-            ProbeHeader(sample="foo", interval=ProbeInterval(1, 2)), full_sequence="barr"
+            ProbeHeader(sample="foo", interval=ProbeInterval(1, 2)),
+            full_sequence="barr",
         )
         p2 = Probe(
             ProbeHeader(sample="foo", interval=ProbeInterval(1, 2)), full_sequence="bar"
@@ -416,7 +417,8 @@ class TestProbe:
 
         actual = Probe.from_string(string)
         expected = Probe(
-            header=ProbeHeader(chrom="1", interval=ProbeInterval(3, 5)), full_sequence="foo"
+            header=ProbeHeader(chrom="1", interval=ProbeInterval(3, 5)),
+            full_sequence="foo",
         )
 
         assert actual == expected

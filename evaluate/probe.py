@@ -103,7 +103,9 @@ class ProbeHeader:
             "MEAN_REV_COVG", string, return_type=int
         )
         gt_conf = parse_field_from_header("GT_CONF", string, return_type=float)
-        interval = ProbeInterval.from_string(parse_field_from_header("INTERVAL", string))
+        interval = ProbeInterval.from_string(
+            parse_field_from_header("INTERVAL", string)
+        )
 
         return ProbeHeader(
             sample, chrom, pos, interval, svtype, mean_fwd_covg, mean_rev_covg, gt_conf
