@@ -153,6 +153,10 @@ class Probe:
         return self.header.gt_conf
 
     @property
+    def chrom(self) -> str:
+        return self.header.chrom
+
+    @property
     def is_deletion(self) -> bool:
         return len(self.interval) == 0
 

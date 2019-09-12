@@ -90,7 +90,7 @@ class Classification:
             return AlignmentType.MATCH
 
     def _get_query_probe_mapping_score(self) -> float:
-        probe_aligned_pairs = self._get_probe_aligned_pairs()
+        probe_aligned_pairs = self.get_probe_aligned_pairs()
         alignment_types = [
             self.__get_alignment_type(query_pos, ref_base)
             for query_pos, _, ref_base in probe_aligned_pairs
@@ -106,7 +106,7 @@ class Classification:
 
         return query_probe_mapping_score
 
-    def _get_probe_aligned_pairs(self) -> Iterable[Tuple[int, int, str]]:
+    def get_probe_aligned_pairs(self) -> Iterable[Tuple[int, int, str]]:
         if not self.query_probe.is_deletion:
             query_start = self.query_probe.interval.start
             query_stop = self.query_probe.interval.end - 1

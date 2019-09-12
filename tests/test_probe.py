@@ -430,6 +430,13 @@ class TestProbe:
         expected = 5.5
 
         assert actual == expected
+    def test_chrom(self):
+        probe = Probe(header=ProbeHeader(chrom="chrom1"))
+
+        actual = probe.chrom
+        expected = "chrom1"
+
+        assert actual == expected
 
     def test_interval(self):
         probe = Probe(header=ProbeHeader(interval=ProbeInterval(4, 6)))

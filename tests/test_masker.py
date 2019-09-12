@@ -1,7 +1,12 @@
-from evaluate.masker import Masker
-from unittest.mock import patch
-import pysam
+from evaluate.masker import Masker, PrecisionMasker
+from unittest.mock import patch, PropertyMock
 from intervaltree import IntervalTree, Interval
+from evaluate.probe import ProbeHeader, Probe
+from evaluate.classification import (
+    Classification,
+    RecallClassification,
+    PrecisionClassification,
+)
 from io import StringIO
 
 
@@ -79,17 +84,17 @@ class TestMasker:
 
     @patch.object(Masker, "record_overlaps_mask", return_value=False)
     def test_filterRecords_oneRecordDoesNotOverlapMaskReturnsRecord(self, *mock):
-        records = [pysam.AlignedSegment()]
+        records = [Classification()]
         masker = Masker()
 
         actual = masker.filter_records(records)
-        expected = [pysam.AlignedSegment()]
+        expected = [Classification()]
 
         assert actual == expected
 
     @patch.object(Masker, "record_overlaps_mask", return_value=True)
     def test_filterRecords_oneRecordDoesOverlapMaskReturnsEmpty(self, *mock):
-        records = [pysam.AlignedSegment()]
+        records = [Classification()]
         masker = Masker()
 
         actual = masker.filter_records(records)
@@ -101,9 +106,9 @@ class TestMasker:
     def test_filterRecords_twoRecordsOneDoesOverlapMaskOneDoesntReturnsOneRecord(
         self, *mock
     ):
-        record = pysam.AlignedSegment()
-        record.query_name = "foo"
-        records = [pysam.AlignedSegment(), record]
+        record = Classification()
+        record.query_probe = Probe(header=ProbeHeader(pos=4))
+        records = [Classification(), record]
         masker = Masker()
 
         actual = masker.filter_records(records)
@@ -113,9 +118,9 @@ class TestMasker:
 
     @patch.object(Masker, "record_overlaps_mask", return_value=False)
     def test_filterRecords_twoRecordsNoneOverlapMaskReturnsTwoRecords(self, *mock):
-        record = pysam.AlignedSegment()
-        record.query_name = "foo"
-        records = [pysam.AlignedSegment(), record]
+        record = Classification()
+        record.query_probe = Probe(header=ProbeHeader(pos=4))
+        records = [Classification(), record]
         masker = Masker()
 
         actual = masker.filter_records(records)
@@ -125,9 +130,9 @@ class TestMasker:
 
     @patch.object(Masker, "record_overlaps_mask", return_value=True)
     def test_filterRecords_twoRecordsAllOverlapMaskReturnsNoRecords(self, *mock):
-        record = pysam.AlignedSegment()
-        record.query_name = "foo"
-        records = [pysam.AlignedSegment(), record]
+        record = Classification()
+        record.query_probe = Probe(header=ProbeHeader(pos=4))
+        records = [Classification(), record]
         masker = Masker()
 
         actual = masker.filter_records(records)
@@ -135,5 +140,178 @@ class TestMasker:
 
         assert actual == expected
 
-    def test_recordOverlapsMask(self):
-        pass
+    @patch.object(
+        Masker,
+        "get_interval_where_probe_aligns_to_truth",
+        return_value=Interval(30, 40, "chrom1"),
+    )
+    def test_recordOverlapsMask_recordDoesNotOverlapReturnsFalse(self, *mock):
+        masker = Masker(tree=IntervalTree([Interval(10, 20, "chrom1")]))
+        record = Classification()
+
+        actual = masker.record_overlaps_mask(record)
+        expected = False
+
+        assert actual == expected
+
+    @patch.object(
+        Masker,
+        "get_interval_where_probe_aligns_to_truth",
+        return_value=Interval(10, 20, "chrom2"),
+    )
+    def test_recordOverlapsMask_recordOverlapsButDifferentChromReturnsFalse(
+        self, *mock
+    ):
+        masker = Masker(tree=IntervalTree([Interval(10, 20, "chrom1")]))
+        record = Classification()
+
+        actual = masker.record_overlaps_mask(record)
+        expected = False
+
+        assert actual == expected
+
+    @patch.object(
+        Masker,
+        "get_interval_where_probe_aligns_to_truth",
+        return_value=Interval(10, 20, "chrom1"),
+    )
+    def test_recordOverlapsMask_maskExactlyRecordReturnsTrue(self, *mock):
+        masker = Masker(tree=IntervalTree([Interval(10, 20, "chrom1")]))
+        record = Classification()
+
+        actual = masker.record_overlaps_mask(record)
+        expected = True
+
+        assert actual == expected
+
+    @patch.object(
+        Masker,
+        "get_interval_where_probe_aligns_to_truth",
+        return_value=Interval(12, 18, "chrom1"),
+    )
+    def test_recordOverlapsMask_maskEnvelopsRecordReturnsTrue(self, *mock):
+        masker = Masker(tree=IntervalTree([Interval(10, 20, "chrom1")]))
+        record = Classification()
+
+        actual = masker.record_overlaps_mask(record)
+        expected = True
+
+        assert actual == expected
+
+    @patch.object(
+        Masker,
+        "get_interval_where_probe_aligns_to_truth",
+        return_value=Interval(2, 23, "chrom1"),
+    )
+    def test_recordOverlapsMask_maskSpannedByRecordReturnsTrue(self, *mock):
+        masker = Masker(tree=IntervalTree([Interval(10, 20, "chrom1")]))
+        record = Classification()
+
+        actual = masker.record_overlaps_mask(record)
+        expected = True
+
+        assert actual == expected
+
+    @patch.object(
+        Masker,
+        "get_interval_where_probe_aligns_to_truth",
+        return_value=Interval(2, 11, "chrom1"),
+    )
+    def test_recordOverlapsMask_recordOverlapsLeftEdgeOfMaskReturnsTrue(self, *mock):
+        masker = Masker(tree=IntervalTree([Interval(10, 20, "chrom1")]))
+        record = Classification()
+
+        actual = masker.record_overlaps_mask(record)
+        expected = True
+
+        assert actual == expected
+
+    @patch.object(
+        Masker,
+        "get_interval_where_probe_aligns_to_truth",
+        return_value=Interval(2, 10, "chrom1"),
+    )
+    def test_recordOverlapsMask_recordMissesLeftEdgeOfMaskByOneReturnsFalse(
+        self, *mock
+    ):
+        masker = Masker(tree=IntervalTree([Interval(10, 20, "chrom1")]))
+        record = Classification()
+
+        actual = masker.record_overlaps_mask(record)
+        expected = False
+
+        assert actual == expected
+
+    @patch.object(
+        Masker,
+        "get_interval_where_probe_aligns_to_truth",
+        return_value=Interval(19, 31, "chrom1"),
+    )
+    def test_recordOverlapsMask_recordOverlapsRightEdgeOfMaskReturnsTrue(self, *mock):
+        masker = Masker(tree=IntervalTree([Interval(10, 20, "chrom1")]))
+        record = Classification()
+
+        actual = masker.record_overlaps_mask(record)
+        expected = True
+
+        assert actual == expected
+
+    @patch.object(
+        Masker,
+        "get_interval_where_probe_aligns_to_truth",
+        return_value=Interval(20, 30, "chrom1"),
+    )
+    def test_recordOverlapsMask_recordMissesRightEdgeOfMaskByOneReturnsFalse(
+        self, *mock
+    ):
+        masker = Masker(tree=IntervalTree([Interval(10, 20, "chrom1")]))
+        record = Classification()
+
+        actual = masker.record_overlaps_mask(record)
+        expected = False
+
+        assert actual == expected
+
+    @patch.object(Masker, "get_interval_where_probe_aligns_to_truth", return_value=None)
+    def test_recordOverlapsMask_recordIsUnmappedReturnsFalse(self, *mock):
+        masker = Masker(tree=IntervalTree([Interval(10, 20, "chrom1")]))
+        record = Classification()
+
+        actual = masker.record_overlaps_mask(record)
+        expected = False
+
+        assert actual == expected
+
+
+class TestPrecisionMasker:
+    @patch.object(
+        Classification, "is_unmapped", return_value=True, new_callable=PropertyMock
+    )
+    def test_getIntervalWhereProbeAlignsToTruth_ProbeIsUnmappedReturnsNone(self, *mock):
+        classification = Classification()
+
+        actual = PrecisionMasker.get_interval_where_probe_aligns_to_truth(
+            classification
+        )
+        expected = None
+
+        assert actual == expected
+
+    @patch.object(
+        Classification, "is_unmapped", return_value=False, new_callable=PropertyMock
+    )
+    @patch.object(Probe, "chrom", return_value="chrom1", new_callable=PropertyMock)
+    @patch.object(
+        Classification,
+        "get_probe_aligned_pairs",
+        return_value=[(0, 34, "A"), (1, None, None), (2, 35, "A"), (None, 36, "A")],
+    )
+    def test_getIntervalWhereProbeAlignsToTruth_probeMapsReturnsInterval(self, *mock):
+        classification = Classification()
+
+        actual = PrecisionMasker.get_interval_where_probe_aligns_to_truth(
+            classification
+        )
+        expected = Interval(34, 37, "chrom1")
+
+        assert actual == expected
