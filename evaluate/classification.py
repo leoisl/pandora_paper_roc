@@ -1,6 +1,6 @@
 from collections import Counter
 from enum import Enum
-from typing import List
+from typing import List, Iterable, Tuple
 import pysam
 
 from .probe import Probe, ProbeHeader, DELIM
@@ -89,7 +89,24 @@ class Classification:
         else:
             return AlignmentType.MATCH
 
-    def get_query_probe_mapping_score(self) -> float:
+    def _get_query_probe_mapping_score(self) -> float:
+        probe_aligned_pairs = self._get_probe_aligned_pairs()
+        alignment_types = [
+            self.__get_alignment_type(query_pos, ref_base)
+            for query_pos, _, ref_base in probe_aligned_pairs
+        ]
+        alignment_type_count = Counter(alignment_types)
+
+        total_nb_of_alignments_checked = len(probe_aligned_pairs)
+        query_probe_mapping_score = (
+            alignment_type_count[AlignmentType.MATCH] / total_nb_of_alignments_checked
+        )
+
+        assert 0.0 <= query_probe_mapping_score <= 1.0
+
+        return query_probe_mapping_score
+
+    def _get_probe_aligned_pairs(self) -> Iterable[Tuple[int, int, str]]:
         if not self.query_probe.is_deletion:
             query_start = self.query_probe.interval.start
             query_stop = self.query_probe.interval.end - 1
@@ -98,28 +115,22 @@ class Classification:
             query_stop = self.query_probe.interval.end
 
         within_probe = False
-        alignment_type_count = Counter()
-        for query_pos, ref_pos, ref_base in self.get_aligned_pairs(with_seq=True):
+        probe_aligned_pairs = []
+        for current_aligned_pair in self.get_aligned_pairs(with_seq=True):
+            query_pos, ref_pos, ref_base = current_aligned_pair
             arrived_in_the_probe = query_pos is not None and query_pos == query_start
+
             if arrived_in_the_probe:
                 within_probe = True
 
             if within_probe:
-                alignment_type = self.__get_alignment_type(query_pos, ref_base)
-                alignment_type_count[alignment_type] += 1
+                probe_aligned_pairs.append(current_aligned_pair)
 
             exiting_probe = query_pos is not None and query_pos == query_stop
             if exiting_probe:
                 break
 
-        total_nb_of_alignments_checked = sum(alignment_type_count.values())
-        query_probe_mapping_score = (
-            alignment_type_count[AlignmentType.MATCH] / total_nb_of_alignments_checked
-        )
-
-        assert 0.0 <= query_probe_mapping_score <= 1.0
-
-        return query_probe_mapping_score
+        return probe_aligned_pairs
 
     def assessment(self) -> str:
         raise NotImplementedError()
@@ -138,7 +149,7 @@ class AlignmentAssessment(Enum):
 
 class RecallClassification(Classification):
     def is_correct(self) -> bool:
-        return self.get_query_probe_mapping_score() == 1.0
+        return self._get_query_probe_mapping_score() == 1.0
 
     def assessment(self) -> AlignmentAssessment:
         if self.is_unmapped:
@@ -178,6 +189,6 @@ class PrecisionClassification(Classification):
         if query_probe_does_not_map_completely:
             assessment = 0.0
         else:
-            assessment = self.get_query_probe_mapping_score()
+            assessment = self._get_query_probe_mapping_score()
 
         return assessment
