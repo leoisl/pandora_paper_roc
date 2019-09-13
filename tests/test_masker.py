@@ -7,6 +7,7 @@ from evaluate.classification import (
     RecallClassification,
     PrecisionClassification,
 )
+from evaluate.aligned_pairs import AlignedPairs
 from io import StringIO
 
 
@@ -304,7 +305,7 @@ class TestPrecisionMasker:
     @patch.object(
         Classification,
         "get_probe_aligned_pairs",
-        return_value=[(0, 34, "A"), (1, None, None), (2, 35, "A"), (None, 36, "A")],
+        return_value=AlignedPairs([(0, 34, "A"), (1, None, None), (2, 35, "A"), (None, 36, "A")]),
     )
     def test_getIntervalWhereProbeAlignsToTruth_probeMapsReturnsInterval(self, *mock):
         classification = Classification()
@@ -313,5 +314,31 @@ class TestPrecisionMasker:
             classification
         )
         expected = Interval(34, 37, "chrom1")
+
+        assert actual == expected
+
+    @patch.object(
+        Classification, "is_unmapped", return_value=False, new_callable=PropertyMock
+    )
+    @patch.object(Probe, "chrom", return_value="chrom1", new_callable=PropertyMock)
+    @patch.object(
+        Classification,
+        "get_probe_aligned_pairs",
+        return_value=AlignedPairs([(10, None, None), (11, None, None)]),
+    )
+    @patch.object(
+        Classification,
+        "get_aligned_pairs",
+        return_value=AlignedPairs([(8, 50, 'A'), (9, None, None), (10, None, None), (11, None, None), (12, 51, 'C')]),
+    )
+    def test_getIntervalWhereProbeAlignsToTruth_probeIsInsertionReturnsIntervalAroundInsertion(
+        self, *mock
+    ):
+        classification = Classification()
+
+        actual = PrecisionMasker.get_interval_where_probe_aligns_to_truth(
+            classification
+        )
+        expected = Interval(50, 52, "chrom1")
 
         assert actual == expected

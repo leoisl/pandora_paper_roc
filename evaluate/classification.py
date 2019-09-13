@@ -1,16 +1,11 @@
 from collections import Counter
 from enum import Enum
-from typing import List, Iterable, Tuple
+
 import pysam
+from intervaltree import Interval
 
+from evaluate.aligned_pairs import AlignmentType, AlignedPairs
 from .probe import Probe, ProbeHeader, DELIM
-
-
-class AlignmentType(Enum):
-    INSERTION = 0
-    DELETION = 1
-    MISMATCH = 2
-    MATCH = 3
 
 
 class Classification:
@@ -50,9 +45,9 @@ class Classification:
 
     def get_aligned_pairs(
         self, matches_only: bool = False, with_seq: bool = False
-    ) -> List[tuple]:
-        return self.record.get_aligned_pairs(
-            matches_only=matches_only, with_seq=with_seq
+    ) -> AlignedPairs:
+        return AlignedPairs(
+            self.record.get_aligned_pairs(matches_only=matches_only, with_seq=with_seq)
         )
 
     @property
@@ -78,23 +73,9 @@ class Classification:
 
         return True
 
-    @staticmethod
-    def __get_alignment_type(query_pos: int, ref_base: str) -> AlignmentType:
-        if ref_base is None:
-            return AlignmentType.DELETION
-        elif query_pos is None:
-            return AlignmentType.INSERTION
-        elif ref_base.islower():
-            return AlignmentType.MISMATCH
-        else:
-            return AlignmentType.MATCH
-
     def _get_query_probe_mapping_score(self) -> float:
         probe_aligned_pairs = self.get_probe_aligned_pairs()
-        alignment_types = [
-            self.__get_alignment_type(query_pos, ref_base)
-            for query_pos, _, ref_base in probe_aligned_pairs
-        ]
+        alignment_types = probe_aligned_pairs.get_alignment_types()
         alignment_type_count = Counter(alignment_types)
 
         total_nb_of_alignments_checked = len(probe_aligned_pairs)
@@ -106,31 +87,18 @@ class Classification:
 
         return query_probe_mapping_score
 
-    def get_probe_aligned_pairs(self) -> Iterable[Tuple[int, int, str]]:
+    def get_probe_aligned_pairs(self) -> AlignedPairs:
         if not self.query_probe.is_deletion:
             query_start = self.query_probe.interval.start
-            query_stop = self.query_probe.interval.end - 1
+            query_stop = self.query_probe.interval.end
         else:
             query_start = max(0, self.query_probe.interval.start - 1)
-            query_stop = self.query_probe.interval.end
+            query_stop = self.query_probe.interval.end + 1
 
-        within_probe = False
-        probe_aligned_pairs = []
-        for current_aligned_pair in self.get_aligned_pairs(with_seq=True):
-            query_pos, ref_pos, ref_base = current_aligned_pair
-            arrived_in_the_probe = query_pos is not None and query_pos == query_start
-
-            if arrived_in_the_probe:
-                within_probe = True
-
-            if within_probe:
-                probe_aligned_pairs.append(current_aligned_pair)
-
-            exiting_probe = query_pos is not None and query_pos == query_stop
-            if exiting_probe:
-                break
-
-        return probe_aligned_pairs
+        probe_aligned_pairs = AlignedPairs(self.get_aligned_pairs(with_seq=True))
+        return probe_aligned_pairs.get_pairs_in_query_interval(
+            Interval(query_start, query_stop)
+        )
 
     def assessment(self) -> str:
         raise NotImplementedError()
