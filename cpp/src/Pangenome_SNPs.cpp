@@ -23,10 +23,73 @@ std::set<std::string> PangenomeSNP::get_all_genomes_this_pangenome_snp_is_presen
 }
 
 
+void PangenomeSNPsIndex::add_Positioned_SNP_from_genomic_coordinates(const GenomicCoordinate &genomic_coordinate_1,
+                                                 const GenomicCoordinate &genomic_coordinate_2,
+                                                 const char allele_1, const char allele_2) {
+    PangenomeSNPsIndexKeyType key_of_snp_1(genomic_coordinate_1, allele_1, allele_2);
+    PangenomeSNPsIndexKeyType key_of_snp_2(genomic_coordinate_2, allele_1, allele_2);
+    pangenomeSNPsMap.make_the_two_keys_point_to_the_same_pangenome_SNP(key_of_snp_1, key_of_snp_2, allele_1, allele_2);
+}
 
-PangenomeSNP_Pointer PangenomeSNPsIndex::get_PangenomeSNP(const PangenomeSNPsIndexKeyType &key) const {
+
+
+void PangenomeSNPsIndex::add_Positioned_SNP(
+        const std::string &genome_1,
+        const std::string &chrom_1,
+        const uint32_t pos_1,
+        const std::string &genome_2,
+        const std::string &chrom_2,
+        const uint32_t pos_2,
+        const char allele_1,
+        const char allele_2) {
+    GenomicCoordinate genomic_coordinate_1 (genome_1, chrom_1, pos_1);
+    GenomicCoordinate genomic_coordinate_2 (genome_2, chrom_2, pos_2);
+    add_Positioned_SNP_from_genomic_coordinates(genomic_coordinate_1, genomic_coordinate_2, allele_1, allele_2);
+}
+
+std::map<std::string, uint32_t> PangenomeSNPsIndex::get_nb_SNPs_that_can_be_found_with_the_given_genomes (const std::vector<std::string> &genomes) const {
+    /**
+     * @return: A map with the genome names and the nb of SNPs that can be found in each. Additionally, an entry with "all" is added, with the nb of SNPs in the pangenome
+     */
+    std::map<std::string, uint32_t> genomes_to_nb_of_SNPs;
+    std::set<PangenomeSNP_Raw_Pointer> all_unique_Pangenome_SNPs_as_raw_pointers = pangenomeSNPsMap.get_all_unique_Pangenome_SNPs_as_raw_pointers();
+
+    for (const PangenomeSNP_Raw_Pointer &pangenomeSNP : all_unique_Pangenome_SNPs_as_raw_pointers) {
+        std::set<std::string> all_genomes_this_pangenome_snp_is_present = pangenomeSNP->get_all_genomes_this_pangenome_snp_is_present();
+        for (const std::string &genome : all_genomes_this_pangenome_snp_is_present) {
+            bool genome_should_be_counted = std::find(genomes.begin(), genomes.end(), genome) != genomes.end();
+            if (genome_should_be_counted)
+                genomes_to_nb_of_SNPs[genome]++;
+        }
+    }
+    genomes_to_nb_of_SNPs["all"] = all_unique_Pangenome_SNPs_as_raw_pointers.size();
+
+    return genomes_to_nb_of_SNPs;
+}
+
+
+PangenomeSNPsIndex PangenomeSNPsIndex::load (const std::string &filename) {
+    std::ifstream ifs(filename);
+    boost::archive::text_iarchive ia(ifs);
+    PangenomeSNPsIndex pangenomeSNPsIndex;
+    ia >> pangenomeSNPsIndex;
+    return pangenomeSNPsIndex;
+}
+
+PangenomeSNPsIndex PangenomeSNPsIndex::save (const std::string &filename) const {
+    std::ofstream ofs(filename);
+    boost::archive::text_oarchive oa(ofs);
+    oa << *this;
+}
+
+PangenomeSNP_Pointer PangenomeSNPsMapWithFastPositionAccess::get_PangenomeSNP(const PangenomeSNPsIndexKeyType &key) const {
     /** @return: the PangenomeSNP on the coordinates given by pangenomeSNPsIndexKey, or nullptr if it does not exist */
     uint32_t position = key.get_genomic_coordinate().get_pos();
+
+    if (position_does_not_exist(position)) {
+        throw std::out_of_range("The given key has an a position that is not indexed");
+    }
+
     Key_To_PangenomeSNP_Pointer key_To_PangenomeSNP_Pointer =
             position_To_Key_To_PangenomeSNP[position];
 
@@ -36,10 +99,14 @@ PangenomeSNP_Pointer PangenomeSNPsIndex::get_PangenomeSNP(const PangenomeSNPsInd
         return nullptr;
 }
 
-
-void PangenomeSNPsIndex::set_PangenomeSNP(const PangenomeSNPsIndexKeyType &key, const PangenomeSNP_Pointer &pangenomeSNP) {
+void PangenomeSNPsMapWithFastPositionAccess::set_PangenomeSNP(const PangenomeSNPsIndexKeyType &key, const PangenomeSNP_Pointer &pangenomeSNP) {
     uint32_t position = key.get_genomic_coordinate().get_pos();
-    Key_To_PangenomeSNP_Pointer key_To_PangenomeSNP_Pointer =
+
+    if (position_does_not_exist(position)) {
+        throw std::out_of_range("The given key has an a position that is not indexed");
+    }
+
+    Key_To_PangenomeSNP_Pointer& key_To_PangenomeSNP_Pointer =
             position_To_Key_To_PangenomeSNP[position];
 
     if (key_To_PangenomeSNP_Pointer == nullptr) {
@@ -48,11 +115,10 @@ void PangenomeSNPsIndex::set_PangenomeSNP(const PangenomeSNPsIndexKeyType &key, 
     (*key_To_PangenomeSNP_Pointer)[key] = pangenomeSNP;
 }
 
-
-PangenomeSNP_Pointer PangenomeSNPsIndex::merge_two_PangenomeSNPs(const PangenomeSNP_Pointer &previous_PangenomeSNP_in_key_of_snp_1,
-                                             const PangenomeSNP_Pointer &previous_PangenomeSNP_in_key_of_snp_2,
-                                             const char allele_1, const char allele_2) {
+PangenomeSNP_Pointer PangenomeSNPsMapWithFastPositionAccess::merge_two_PangenomeSNPs(const PangenomeSNP_Pointer &previous_PangenomeSNP_in_key_of_snp_1,
+                                                               const PangenomeSNP_Pointer &previous_PangenomeSNP_in_key_of_snp_2) {
     PangenomeSNP_Pointer merged_SNP = boost::make_shared<PangenomeSNP>(previous_PangenomeSNP_in_key_of_snp_1->merge(*previous_PangenomeSNP_in_key_of_snp_2));
+    const char allele_1 = merged_SNP->
 
     for (const GenomicCoordinate &genomic_coordinate : merged_SNP->get_genomic_coordinates())
         set_PangenomeSNP(PangenomeSNPsIndexKeyType(genomic_coordinate, allele_1, allele_2), merged_SNP);
@@ -61,7 +127,7 @@ PangenomeSNP_Pointer PangenomeSNPsIndex::merge_two_PangenomeSNPs(const Pangenome
 }
 
 //TODO: there is just too much logic in here, maybe a candidate for refactoring
-void PangenomeSNPsIndex::make_the_two_keys_point_to_the_same_pangenome_SNP (
+void PangenomeSNPsMapWithFastPositionAccess::make_the_two_keys_point_to_the_same_pangenome_SNP (
         const PangenomeSNPsIndexKeyType &key_of_snp_1,
         const PangenomeSNPsIndexKeyType &key_of_snp_2,
         const char allele_1, const char allele_2) {
@@ -114,8 +180,7 @@ void PangenomeSNPsIndex::make_the_two_keys_point_to_the_same_pangenome_SNP (
 
 }
 
-
-std::set<PangenomeSNP_Raw_Pointer> PangenomeSNPsIndex::get_all_unique_Pangenome_SNPs_as_raw_pointers() const {
+std::set<PangenomeSNP_Raw_Pointer> PangenomeSNPsMapWithFastPositionAccess::get_all_unique_Pangenome_SNPs_as_raw_pointers() const {
     std::set<PangenomeSNP_Raw_Pointer> all_unique_Pangenome_SNPs_as_raw_pointers;
     for (const auto &key_To_PangenomeSNP_Pointer : position_To_Key_To_PangenomeSNP) {
         for (const auto& [key, pangenomeSNP_Pointer] : *key_To_PangenomeSNP_Pointer) {
@@ -123,64 +188,4 @@ std::set<PangenomeSNP_Raw_Pointer> PangenomeSNPsIndex::get_all_unique_Pangenome_
         }
     }
     return all_unique_Pangenome_SNPs_as_raw_pointers;
-}
-
-
-void PangenomeSNPsIndex::add_Positioned_SNP_from_genomic_coordinates(const GenomicCoordinate &genomic_coordinate_1,
-                                                 const GenomicCoordinate &genomic_coordinate_2,
-                                                 const char allele_1, const char allele_2) {
-    PangenomeSNPsIndexKeyType key_of_snp_1(genomic_coordinate_1, allele_1, allele_2);
-    PangenomeSNPsIndexKeyType key_of_snp_2(genomic_coordinate_2, allele_1, allele_2);
-    make_the_two_keys_point_to_the_same_pangenome_SNP(key_of_snp_1, key_of_snp_2, allele_1, allele_2);
-}
-
-
-
-void PangenomeSNPsIndex::add_Positioned_SNP(
-        const std::string &genome_1,
-        const std::string &chrom_1,
-        const uint32_t pos_1,
-        const std::string &genome_2,
-        const std::string &chrom_2,
-        const uint32_t pos_2,
-        const char allele_1,
-        const char allele_2) {
-    GenomicCoordinate genomic_coordinate_1 (genome_1, chrom_1, pos_1);
-    GenomicCoordinate genomic_coordinate_2 (genome_2, chrom_2, pos_2);
-    add_Positioned_SNP_from_genomic_coordinates(genomic_coordinate_1, genomic_coordinate_2, allele_1, allele_2);
-}
-
-std::map<std::string, uint32_t> PangenomeSNPsIndex::get_nb_SNPs_that_can_be_found_with_the_given_genomes (const std::vector<std::string> &genomes) const {
-    /**
-     * @return: A map with the genome names and the nb of SNPs that can be found in each. Additionally, an entry with "all" is added, with the nb of SNPs in the pangenome
-     */
-    std::map<std::string, uint32_t> genomes_to_nb_of_SNPs;
-    std::set<PangenomeSNP_Raw_Pointer> all_unique_Pangenome_SNPs_as_raw_pointers = get_all_unique_Pangenome_SNPs_as_raw_pointers();
-
-    for (const PangenomeSNP_Raw_Pointer &pangenomeSNP : all_unique_Pangenome_SNPs_as_raw_pointers) {
-        std::set<std::string> all_genomes_this_pangenome_snp_is_present = pangenomeSNP->get_all_genomes_this_pangenome_snp_is_present();
-        for (const std::string &genome : all_genomes_this_pangenome_snp_is_present) {
-            bool genome_should_be_counted = std::find(genomes.begin(), genomes.end(), genome) != genomes.end();
-            if (genome_should_be_counted)
-                genomes_to_nb_of_SNPs[genome]++;
-        }
-    }
-    genomes_to_nb_of_SNPs["all"] = all_unique_Pangenome_SNPs_as_raw_pointers.size();
-
-    return genomes_to_nb_of_SNPs;
-}
-
-
-PangenomeSNPsIndex PangenomeSNPsIndex::load (const std::string &filename) {
-    std::ifstream ifs(filename);
-    boost::archive::text_iarchive ia(ifs);
-    PangenomeSNPsIndex pangenomeSNPsIndex;
-    ia >> pangenomeSNPsIndex;
-    return pangenomeSNPsIndex;
-}
-
-PangenomeSNPsIndex PangenomeSNPsIndex::save (const std::string &filename) const {
-    std::ofstream ofs(filename);
-    boost::archive::text_oarchive oa(ofs);
-    oa << *this;
 }

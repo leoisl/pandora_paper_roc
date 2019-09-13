@@ -23,10 +23,10 @@ class GenomicCoordinate {
 private:
     std::string genome;
     std::string chrom;
-    uint32_t pos;
+    uint32_t pos{};
 
 public:
-    GenomicCoordinate(){}
+    GenomicCoordinate() = default;
 
     GenomicCoordinate (const std::string &genome, const std::string &chrom, uint32_t pos) :
         genome(genome), chrom(chrom), pos(pos) {}
@@ -82,12 +82,12 @@ private:
 // Represents a pangenome SNP: two alleles and several positions in the genomes where this SNP appears
 class PangenomeSNP {
 private:
-    char allele_1;
-    char allele_2;
+    char allele_1{};
+    char allele_2{};
     std::set<GenomicCoordinate> genomic_coordinates;
 
 public:
-    PangenomeSNP(){}
+    PangenomeSNP()= default;
 
     PangenomeSNP(const char allele_1, const char allele_2) : allele_1(allele_1), allele_2(allele_2), genomic_coordinates() {
         bool alleles_are_ordered = allele_1 < allele_2;
@@ -105,7 +105,18 @@ public:
         return this->genomic_coordinates;
     }
 
+    char get_allele_1() const {
+        return allele_1;
+    }
+
+    char get_allele_2() const {
+        return allele_2;
+    }
+
     std::set<std::string> get_all_genomes_this_pangenome_snp_is_present() const;
+
+
+
 
     bool operator<(const PangenomeSNP &rhs) const {
         return std::tie(allele_1, allele_2, genomic_coordinates) <
@@ -143,6 +154,8 @@ private:
     }
 
 };
+using PangenomeSNP_Pointer = boost::shared_ptr<PangenomeSNP>;
+using PangenomeSNP_Raw_Pointer = const PangenomeSNP *;
 
 
 // Represents the key type of the index
@@ -206,42 +219,58 @@ private:
     }
 
 };
-
-using PangenomeSNP_Pointer = boost::shared_ptr<PangenomeSNP>;
-using PangenomeSNP_Raw_Pointer = const PangenomeSNP *;
 using Key_To_PangenomeSNP = std::map<PangenomeSNPsIndexKeyType, PangenomeSNP_Pointer>;
 using Key_To_PangenomeSNP_Pointer = boost::shared_ptr<Key_To_PangenomeSNP>;
-using Position_To_Key_To_PangenomeSNP = std::vector<Key_To_PangenomeSNP_Pointer>;
 
-class PangenomeSNPsIndex {
+
+// TODO: extract methods to an abstract PangenomeSNPsMap class and make this an specialization of this class
+class PangenomeSNPsMapWithFastPositionAccess {
 private:
+    using Position_To_Key_To_PangenomeSNP = std::vector<Key_To_PangenomeSNP_Pointer>;
     Position_To_Key_To_PangenomeSNP position_To_Key_To_PangenomeSNP;
+
+    bool position_does_not_exist(uint32_t position) const {
+        return position >= position_To_Key_To_PangenomeSNP.size();
+    }
+
+public:
+    PangenomeSNPsMapWithFastPositionAccess() = default;
+    explicit PangenomeSNPsMapWithFastPositionAccess (uint32_t number_of_indexed_positions) : position_To_Key_To_PangenomeSNP(number_of_indexed_positions) {}
+
     PangenomeSNP_Pointer get_PangenomeSNP(const PangenomeSNPsIndexKeyType &key) const;
 
     void set_PangenomeSNP(const PangenomeSNPsIndexKeyType &key, const PangenomeSNP_Pointer &pangenomeSNP);
 
-
     PangenomeSNP_Pointer merge_two_PangenomeSNPs(const PangenomeSNP_Pointer &previous_PangenomeSNP_in_key_of_snp_1,
-                                 const PangenomeSNP_Pointer &previous_PangenomeSNP_in_key_of_snp_2,
-                                 const char allele_1, const char allele_2);
+                                                 const PangenomeSNP_Pointer &previous_PangenomeSNP_in_key_of_snp_2);
+
+    std::set<PangenomeSNP_Raw_Pointer> get_all_unique_Pangenome_SNPs_as_raw_pointers() const;
 
     void make_the_two_keys_point_to_the_same_pangenome_SNP (
             const PangenomeSNPsIndexKeyType &key_of_snp_1,
             const PangenomeSNPsIndexKeyType &key_of_snp_2,
             const char allele_1, const char allele_2);
 
+private:
+    friend class boost::serialization::access;
+    template<class Archive>
+    inline void serialize(Archive &ar, const unsigned int version) {
+        ar & position_To_Key_To_PangenomeSNP;
+    }
+};
 
-    std::set<PangenomeSNP_Raw_Pointer> get_all_unique_Pangenome_SNPs_as_raw_pointers() const;
 
+
+class PangenomeSNPsIndex {
+private:
+    PangenomeSNPsMapWithFastPositionAccess pangenomeSNPsMap;
+public:
+    PangenomeSNPsIndex (){}
+    PangenomeSNPsIndex (uint32_t index_size) : pangenomeSNPsMap(index_size) {}
 
     void add_Positioned_SNP_from_genomic_coordinates(const GenomicCoordinate &genomic_coordinate_1,
                                                      const GenomicCoordinate &genomic_coordinate_2,
                                                      const char allele_1, const char allele_2);
-
-
-public:
-    PangenomeSNPsIndex (){}
-    PangenomeSNPsIndex (uint32_t index_size) : position_To_Key_To_PangenomeSNP(index_size) {}
 
     void add_Positioned_SNP(
             const std::string &genome_1,
@@ -259,20 +288,11 @@ public:
     static PangenomeSNPsIndex load (const std::string &filename);
 
     PangenomeSNPsIndex save (const std::string &filename) const;
-
-    bool operator==(const PangenomeSNPsIndex &rhs) const {
-        return position_To_Key_To_PangenomeSNP == rhs.position_To_Key_To_PangenomeSNP;
-    }
-
-    bool operator!=(const PangenomeSNPsIndex &rhs) const {
-        return !(rhs == *this);
-    }
-
 private:
     friend class boost::serialization::access;
     template<class Archive>
     inline void serialize(Archive &ar, const unsigned int version) {
-        ar & position_To_Key_To_PangenomeSNP;
+        ar & pangenomeSNPsMap;
     }
 };
 
