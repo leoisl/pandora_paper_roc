@@ -48,13 +48,15 @@ class Query:
 
         return query_probes
 
+    # TODO : tagged for refactoring - this function does a lot of things
     def _create_probes_for_gene_variants(
         self, gene: pysam.FastxRecord, variants: pysam.tabix_iterator
     ) -> Dict[str, str]:
         """Note: An assumption is made with this function that the variants you pass in
         are from the gene passed with them."""
-        probes = {s: "" for s in self.samples}
-        intervals_to_probes: Dict[str, Dict[ProbeInterval, Probe]] = {
+
+        sample_to_probes: Dict[str, str] = {s: "" for s in self.samples}
+        sample_to_intervals_to_probes: Dict[str, Dict[ProbeInterval, Probe]] = {
             s: {} for s in self.samples
         }
 
@@ -63,9 +65,15 @@ class Query:
                 if is_invalid_vcf_entry(variant, sample):
                     continue
                 interval = self.calculate_probe_boundaries_for_entry(variant)
-                if interval in intervals_to_probes and intervals_to_probes[sample][
+
+                # TODO: there is a bug here, sample_to_intervals_to_probes is indexed by a string and not by interval (naming issue)?
+                if interval in sample_to_intervals_to_probes and sample_to_intervals_to_probes[
+                    sample
+                ][
                     interval
-                ].gt_conf > get_genotype_confidence(variant, sample):
+                ].gt_conf > get_genotype_confidence(
+                    variant, sample
+                ):
                     continue
 
                 mutated_consensus = ""
@@ -81,16 +89,16 @@ class Query:
                 mutated_consensus += consensus[last_idx:]
                 probe_header = self._create_probe_header(sample, variant, interval)
                 probe = Probe(header=probe_header, full_sequence=mutated_consensus)
-                if sample not in intervals_to_probes:
-                    intervals_to_probes[sample] = {interval: probe}
+                if sample not in sample_to_intervals_to_probes:
+                    sample_to_intervals_to_probes[sample] = {interval: probe}
                 else:
-                    intervals_to_probes[sample][interval] = probe
+                    sample_to_intervals_to_probes[sample][interval] = probe
 
-        for sample in intervals_to_probes:
-            for interval, probe in intervals_to_probes[sample].items():
-                probes[sample] += str(probe) + "\n"
+        for sample in sample_to_intervals_to_probes:
+            for interval, probe in sample_to_intervals_to_probes[sample].items():
+                sample_to_probes[sample] += str(probe) + "\n"
 
-        return probes
+        return sample_to_probes
 
     def calculate_probe_boundaries_for_entry(
         self, entry: pysam.VariantRecord
@@ -119,6 +127,7 @@ class Query:
         )
 
 
+# TODO: refactor all these functions into an Intervals class
 def merge_overlap_intervals(intervals: List[List[int]]) -> List[Tuple[int, ...]]:
     """Checks consecutive intervals and if they overlap it merges them into a
     single interval.
@@ -196,6 +205,7 @@ def find_index_in_intervals(intervals: List[Tuple[int, int]], query: int) -> int
     return -1
 
 
+# TODO: all these functions should be method in a class PandoraVariant(pysam.VariantRecord)
 def is_invalid_vcf_entry(entry: pysam.VariantRecord, sample: str) -> bool:
     genotype = get_genotype(entry, sample)
 
@@ -227,11 +237,13 @@ def get_svtype(variant: pysam.VariantRecord) -> str:
     return variant.info["SVTYPE"]
 
 
+# TODO: there is a bug here: mean coverage is float
 def get_mean_coverage_forward(variant: pysam.VariantRecord, sample: str) -> int:
     gt = get_genotype(variant, sample)
     return int(variant.samples[sample]["MEAN_FWD_COVG"][gt])
 
 
+# TODO: there is a bug here: mean coverage is float
 def get_mean_coverage_reverse(variant: pysam.VariantRecord, sample: str) -> int:
     gt = get_genotype(variant, sample)
     return int(variant.samples[sample]["MEAN_REV_COVG"][gt])
