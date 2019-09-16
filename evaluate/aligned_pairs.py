@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import Optional, NamedTuple, Iterable
+from typing import Optional, NamedTuple, Iterable, Tuple, List
 from collections import UserList
 from intervaltree import Interval
 from bisect import bisect_left, bisect_right
@@ -59,24 +59,30 @@ class AlignedPairs(UserList):
 
     def get_query_positions(
         self, transform_Nones_into_halfway_positions: bool = False
-    ) -> Iterable[float]:
-        query_positions = [pair.query_pos for pair in self.data]
-
-        if transform_Nones_into_halfway_positions:
-            return self.transform_Nones_to_halfway_positions(query_positions)
-        else:
-            return query_positions
+    ) -> List[float]:
+        return list(self._get_positions(transform_Nones_into_halfway_positions)[0])
 
     def get_ref_positions(
         self, transform_Nones_into_halfway_positions: bool = False
-    ) -> Iterable[float]:
-        ref_positions = [pair.ref_pos for pair in self.data]
+    ) -> List[float]:
+        return list(self._get_positions(transform_Nones_into_halfway_positions)[1])
+
+    def _get_positions(
+        self, transform_Nones_into_halfway_positions: bool = False
+    ) -> Tuple[Iterable[float], Iterable[float]]:
+        if not self.data:
+            return [], []
+        query_positions, ref_positions = zip(
+            *[(pair.query_pos, pair.ref_pos) for pair in self.data]
+        )
 
         if transform_Nones_into_halfway_positions:
-            return self.transform_Nones_to_halfway_positions(ref_positions)
+            return (
+                self.transform_Nones_to_halfway_positions(query_positions),
+                self.transform_Nones_to_halfway_positions(ref_positions),
+            )
         else:
-            return ref_positions
-
+            return query_positions, ref_positions
 
     def get_alignment_types(self):
         return [aligned_pair.get_alignment_type() for aligned_pair in self]
@@ -87,4 +93,4 @@ class AlignedPairs(UserList):
         )
         query_start = bisect_left(query_positions, interval.begin)
         query_stop = bisect_right(query_positions, interval.end - 1)
-        return self[query_start:query_stop]
+        return AlignedPairs(self[query_start:query_stop])

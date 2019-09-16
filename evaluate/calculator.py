@@ -1,4 +1,4 @@
-from typing import Iterable, Type
+from typing import Iterable, Type, List
 import logging
 
 import pandas as pd

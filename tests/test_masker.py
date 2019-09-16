@@ -305,7 +305,9 @@ class TestPrecisionMasker:
     @patch.object(
         Classification,
         "get_probe_aligned_pairs",
-        return_value=AlignedPairs([(0, 34, "A"), (1, None, None), (2, 35, "A"), (None, 36, "A")]),
+        return_value=AlignedPairs(
+            [(0, 34, "A"), (1, None, None), (2, 35, "A"), (None, 36, "A")]
+        ),
     )
     def test_getIntervalWhereProbeAlignsToTruth_probeMapsReturnsInterval(self, *mock):
         classification = Classification()
@@ -329,7 +331,15 @@ class TestPrecisionMasker:
     @patch.object(
         Classification,
         "get_aligned_pairs",
-        return_value=AlignedPairs([(8, 50, 'A'), (9, None, None), (10, None, None), (11, None, None), (12, 51, 'C')]),
+        return_value=AlignedPairs(
+            [
+                (8, 50, "A"),
+                (9, None, None),
+                (10, None, None),
+                (11, None, None),
+                (12, 51, "C"),
+            ]
+        ),
     )
     def test_getIntervalWhereProbeAlignsToTruth_probeIsInsertionReturnsIntervalAroundInsertion(
         self, *mock

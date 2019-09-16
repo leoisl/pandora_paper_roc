@@ -92,7 +92,7 @@ class TestAlignedPairs:
 
         assert actual == expected
 
-    def test_queryPositions_emptyAlignedPairsReturnsEmptyList(self, *mocks):
+    def test_getQueryPositions_emptyAlignedPairsReturnsEmptyList(self, *mocks):
         aligned_pairs = AlignedPairs()
 
         actual = aligned_pairs.get_query_positions()
@@ -100,7 +100,7 @@ class TestAlignedPairs:
 
         assert actual == expected
 
-    def test_queryPositions_allAlignedPairsAreNoneNoTransformReturnsNone(self):
+    def test_getQueryPositions_allAlignedPairsAreNoneNoTransformReturnsNone(self):
         aligned_pairs = AlignedPairs([AlignedPair(None, 10, "A")])
 
         actual = aligned_pairs.get_query_positions()
@@ -111,7 +111,7 @@ class TestAlignedPairs:
     @patch.object(
         AlignedPairs, "transform_Nones_to_halfway_positions", side_effect=ValueError
     )
-    def test_queryPositions_allAlignedPairsAreNoneAndTransformRaisesException(
+    def test_getQueryPositions_allAlignedPairsAreNoneAndTransformRaisesException(
         self, *mocks
     ):
         aligned_pairs = AlignedPairs([AlignedPair(None, 10, "A")])
@@ -120,7 +120,9 @@ class TestAlignedPairs:
                 transform_Nones_into_halfway_positions=True
             )
 
-    def test_queryPositions_twoPairsOneNoneNoTransformReturnsTwoPositionsOneNone(self):
+    def test_getQueryPositions_twoPairsOneNoneNoTransformReturnsTwoPositionsOneNone(
+        self
+    ):
         aligned_pairs = AlignedPairs(
             [AlignedPair(None, 10, "A"), AlignedPair(5, 11, "C")]
         )
@@ -133,7 +135,7 @@ class TestAlignedPairs:
     @patch.object(
         AlignedPairs, "transform_Nones_to_halfway_positions", return_value=[4.5, 5.0]
     )
-    def test_queryPositions_twoPairsOneNoneTransformReturnsTwoPositionsOneHalfway(
+    def test_getQueryPositions_twoPairsOneNoneTransformReturnsTwoPositionsOneHalfway(
         self, *mocks
     ):
         aligned_pairs = AlignedPairs(
@@ -141,6 +143,59 @@ class TestAlignedPairs:
         )
 
         actual = aligned_pairs.get_query_positions(
+            transform_Nones_into_halfway_positions=True
+        )
+        expected = [4.5, 5.0]
+
+        assert actual == expected
+
+    def test_getRefPositions_emptyAlignedPairsReturnsEmptyList(self, *mocks):
+        aligned_pairs = AlignedPairs()
+
+        actual = aligned_pairs.get_ref_positions()
+        expected = []
+
+        assert actual == expected
+
+    def test_getRefPositions_allAlignedPairsAreNoneNoTransformReturnsNone(self):
+        aligned_pairs = AlignedPairs([AlignedPair(1, None, None)])
+
+        actual = aligned_pairs.get_ref_positions()
+        expected = [None]
+
+        assert actual == expected
+
+    @patch.object(
+        AlignedPairs, "transform_Nones_to_halfway_positions", side_effect=ValueError
+    )
+    def test_getRefPositions_allAlignedPairsAreNoneAndTransformRaisesException(
+        self, *mocks
+    ):
+        aligned_pairs = AlignedPairs([AlignedPair(10, None, None)])
+        with pytest.raises(ValueError):
+            aligned_pairs.get_ref_positions(transform_Nones_into_halfway_positions=True)
+
+    def test_getRefPositions_twoPairsOneNoneNoTransformReturnsTwoPositionsOneNone(self):
+        aligned_pairs = AlignedPairs(
+            [AlignedPair(4, None, None), AlignedPair(5, 11, "C")]
+        )
+
+        actual = aligned_pairs.get_ref_positions()
+        expected = [None, 11]
+
+        assert actual == expected
+
+    @patch.object(
+        AlignedPairs, "transform_Nones_to_halfway_positions", return_value=[4.5, 5.0]
+    )
+    def test_getRefPositions_twoPairsOneNoneTransformReturnsTwoPositionsOneHalfway(
+        self, *mocks
+    ):
+        aligned_pairs = AlignedPairs(
+            [AlignedPair(1, None, None), AlignedPair(2, 5, "C")]
+        )
+
+        actual = aligned_pairs.get_ref_positions(
             transform_Nones_into_halfway_positions=True
         )
         expected = [4.5, 5.0]
