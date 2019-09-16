@@ -322,3 +322,91 @@ class TestAlignedPairs:
         expected = aligned_pairs[2:5]
 
         assert actual == expected
+
+    def test_getIndexOfQueryInterval_nullIntervalReturnsEmpty(self):
+        interval = Interval(2, 2)
+
+        aligned_pairs = AlignedPairs(
+            [AlignedPair(1, 30, "A"), AlignedPair(2, 31, "C"), AlignedPair(3, 32, "T")]
+        )
+        actual = aligned_pairs.get_index_of_query_interval(interval)
+        expected = (1, 1)
+
+        assert actual == expected
+
+    def test_getIndexOfQueryInterval_intervalNotInPairsReturnsEmpty(self):
+        interval = Interval(5, 10)
+
+        aligned_pairs = AlignedPairs(
+            [AlignedPair(1, 30, "A"), AlignedPair(2, 31, "C"), AlignedPair(3, 32, "T")]
+        )
+        actual = aligned_pairs.get_index_of_query_interval(interval)
+        expected = (3, 3)
+
+        assert actual == expected
+
+    def test_getIndexOfQueryInterval_intervalOverlapsLeftOfPairs(self):
+        interval = Interval(5, 12)
+
+        aligned_pairs = AlignedPairs(
+            [
+                AlignedPair(None, 30, "A"),
+                AlignedPair(11, 31, "C"),
+                AlignedPair(12, 32, "T"),
+            ]
+        )
+        actual = aligned_pairs.get_index_of_query_interval(interval)
+        expected = (0, 2)
+
+        assert actual == expected
+
+    def test_getIndexOfQueryInterval_intervalOverlapsRightOfPairs(self):
+        interval = Interval(4, 12)
+
+        aligned_pairs = AlignedPairs(
+            [
+                AlignedPair(3, 30, "A"),
+                AlignedPair(4, 31, "C"),
+                AlignedPair(None, 32, "T"),
+            ]
+        )
+        actual = aligned_pairs.get_index_of_query_interval(interval)
+        expected = (1, 3)
+
+        assert actual == expected
+
+    def test_getIndexOfQueryInterval_intervalSpansPairs(self):
+        interval = Interval(1, 10)
+
+        aligned_pairs = AlignedPairs(
+            [
+                AlignedPair(4, 30, "A"),
+                AlignedPair(None, 31, "A"),
+                AlignedPair(5, 32, "A"),
+                AlignedPair(None, 33, "A"),
+                AlignedPair(6, 34, "A"),
+                AlignedPair(None, 35, "A"),
+            ]
+        )
+        actual = aligned_pairs.get_index_of_query_interval(interval)
+        expected = (0, 6)
+
+        assert actual == expected
+
+    def test_getIndexOfQueryInterval_intervalEnvelopedInPairs(self):
+        interval = Interval(5, 7)
+
+        aligned_pairs = AlignedPairs(
+            [
+                AlignedPair(4, 30, "A"),
+                AlignedPair(None, 31, "A"),
+                AlignedPair(5, 32, "A"),
+                AlignedPair(None, 33, "A"),
+                AlignedPair(6, 34, "A"),
+                AlignedPair(None, 35, "A"),
+            ]
+        )
+        actual = aligned_pairs.get_index_of_query_interval(interval)
+        expected = (2, 5)
+
+        assert actual == expected

@@ -88,9 +88,13 @@ class AlignedPairs(UserList):
         return [aligned_pair.get_alignment_type() for aligned_pair in self]
 
     def get_pairs_in_query_interval(self, interval: Interval) -> "AlignedPairs":
+        query_interval = self.get_index_of_query_interval(interval)
+        return AlignedPairs(self[slice(*query_interval)])
+
+    def get_index_of_query_interval(self, interval: Interval) -> Tuple[int, int]:
         query_positions = self.get_query_positions(
             transform_Nones_into_halfway_positions=True
         )
         query_start = bisect_left(query_positions, interval.begin)
         query_stop = bisect_right(query_positions, interval.end - 1)
-        return AlignedPairs(self[query_start:query_stop])
+        return query_start, query_stop
