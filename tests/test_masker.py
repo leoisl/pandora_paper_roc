@@ -304,11 +304,12 @@ class TestPrecisionMasker:
     @patch.object(Probe, "chrom", return_value="chrom1", new_callable=PropertyMock)
     @patch.object(
         Classification,
-        "get_probe_aligned_pairs",
+        "get_aligned_pairs",
         return_value=AlignedPairs(
             [(0, 34, "A"), (1, None, None), (2, 35, "A"), (None, 36, "A")]
         ),
     )
+    @patch.object(AlignedPairs, "get_index_of_query_interval", return_value=(0, 4))
     def test_getIntervalWhereProbeAlignsToTruth_probeMapsReturnsInterval(self, *mock):
         classification = Classification()
 
@@ -325,9 +326,34 @@ class TestPrecisionMasker:
     @patch.object(Probe, "chrom", return_value="chrom1", new_callable=PropertyMock)
     @patch.object(
         Classification,
-        "get_probe_aligned_pairs",
-        return_value=AlignedPairs([(10, None, None), (11, None, None)]),
+        "get_aligned_pairs",
+        return_value=AlignedPairs(
+            [
+                (8, 50, "A"),
+                (9, None, None),
+                (10, None, None),
+                (11, None, None),
+                (12, 51, "C"),
+            ]
+        ),
     )
+    @patch.object(AlignedPairs, "get_index_of_query_interval", return_value=(1, 2))
+    def test_getIntervalWhereProbeAlignsToTruth_probeIsInsertionWithTwoNonesAfterReturnsIntervalAroundInsertion(
+        self, *mock
+    ):
+        classification = Classification()
+
+        actual = PrecisionMasker.get_interval_where_probe_aligns_to_truth(
+            classification
+        )
+        expected = Interval(50, 52, "chrom1")
+
+        assert actual == expected
+
+    @patch.object(
+        Classification, "is_unmapped", return_value=False, new_callable=PropertyMock
+    )
+    @patch.object(Probe, "chrom", return_value="chrom1", new_callable=PropertyMock)
     @patch.object(
         Classification,
         "get_aligned_pairs",
@@ -341,7 +367,8 @@ class TestPrecisionMasker:
             ]
         ),
     )
-    def test_getIntervalWhereProbeAlignsToTruth_probeIsInsertionReturnsIntervalAroundInsertion(
+    @patch.object(AlignedPairs, "get_index_of_query_interval", return_value=(2, 3))
+    def test_getIntervalWhereProbeAlignsToTruth_probeIsInsertionFlankedByNoneReturnsIntervalAroundInsertion(
         self, *mock
     ):
         classification = Classification()
@@ -350,5 +377,79 @@ class TestPrecisionMasker:
             classification
         )
         expected = Interval(50, 52, "chrom1")
+
+        assert actual == expected
+
+    @patch.object(
+        Classification, "is_unmapped", return_value=False, new_callable=PropertyMock
+    )
+    @patch.object(Probe, "chrom", return_value="chrom1", new_callable=PropertyMock)
+    @patch.object(
+        Classification,
+        "get_aligned_pairs",
+        return_value=AlignedPairs(
+            [
+                (8, 50, "A"),
+                (9, None, None),
+                (10, None, None),
+                (11, None, None),
+                (12, 51, "C"),
+            ]
+        ),
+    )
+    @patch.object(AlignedPairs, "get_index_of_query_interval", return_value=(3, 4))
+    def test_getIntervalWhereProbeAlignsToTruth_probeIsInsertionWithTwoNonesBeforeReturnsIntervalAroundInsertion(
+        self, *mock
+    ):
+        classification = Classification()
+
+        actual = PrecisionMasker.get_interval_where_probe_aligns_to_truth(
+            classification
+        )
+        expected = Interval(50, 52, "chrom1")
+
+        assert actual == expected
+
+    @patch.object(
+        Classification, "is_unmapped", return_value=False, new_callable=PropertyMock
+    )
+    @patch.object(Probe, "chrom", return_value="chrom1", new_callable=PropertyMock)
+    @patch.object(
+        Classification,
+        "get_aligned_pairs",
+        return_value=AlignedPairs([(5, None, None), (6, 4, "A"), (7, None, None)]),
+    )
+    @patch.object(AlignedPairs, "get_index_of_query_interval", return_value=(0, 3))
+    def test_getIntervalWhereProbeAlignsToTruth_refPositionsWhereProbeMapsFlankedByNoneReturnsInterval(
+        self, *mock
+    ):
+        classification = Classification()
+
+        actual = PrecisionMasker.get_interval_where_probe_aligns_to_truth(
+            classification
+        )
+        expected = Interval(3, 6, "chrom1")
+
+        assert actual == expected
+
+    @patch.object(
+        Classification, "is_unmapped", return_value=False, new_callable=PropertyMock
+    )
+    @patch.object(Probe, "chrom", return_value="chrom1", new_callable=PropertyMock)
+    @patch.object(
+        Classification,
+        "get_aligned_pairs",
+        return_value=AlignedPairs([(5, None, None), (6, 0, "A"), (7, None, None)]),
+    )
+    @patch.object(AlignedPairs, "get_index_of_query_interval", return_value=(0, 3))
+    def test_getIntervalWhereProbeAlignsToTruth_refPositionsWhereProbeMapsContainsZeroDontReturnNegative(
+        self, *mock
+    ):
+        classification = Classification()
+
+        actual = PrecisionMasker.get_interval_where_probe_aligns_to_truth(
+            classification
+        )
+        expected = Interval(0, 2, "chrom1")
 
         assert actual == expected

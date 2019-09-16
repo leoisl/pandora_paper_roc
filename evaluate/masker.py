@@ -1,4 +1,5 @@
 from intervaltree import IntervalTree, Interval
+import math
 from evaluate.classification import Classification
 from typing import TextIO, Iterable, Type, Optional
 
@@ -50,13 +51,18 @@ class PrecisionMasker(Masker):
         if record.is_unmapped:
             return None
 
-        probe_aligned_pairs = record.get_probe_aligned_pairs()
-        _, ref_positions, _ = zip(*probe_aligned_pairs)
-        ref_positions = sorted(pos for pos in ref_positions if pos)
-        # todo: what to do if ref_positions is all None?
-        # could get aligned pairs and keep track of ref positions up until the first
-        # query positions from the probe aligned pairs and then get the next non-None
-        # ref position after it
+        aligned_pairs = record.get_aligned_pairs(with_seq=True)
+        query_interval = aligned_pairs.get_index_of_query_interval(
+            Interval(*record.query_probe.interval)
+        )
+        ref_positions = aligned_pairs.get_ref_positions(
+            transform_Nones_into_halfway_positions=True
+        )
+        ref_positions_query_aligns_to = ref_positions[slice(*query_interval)]
+        ref_start, ref_end = (
+            math.floor(ref_positions_query_aligns_to[0]),
+            math.ceil(ref_positions_query_aligns_to[-1]),
+        )
         chromosome = record.ref_probe.chrom
 
-        return Interval(ref_positions[0], ref_positions[-1] + 1, chromosome)
+        return Interval(max(0, ref_start), ref_end + 1, chromosome)
