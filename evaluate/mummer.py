@@ -224,3 +224,11 @@ class ShowSNPsDataframe(pd.DataFrame):
             probes.append(Probe(header=header, full_sequence=full_sequence))
 
         return tuple(probes)
+
+    def make_pos_zero_based(self) -> "ShowSNPsDataframe":
+        df = self.copy(deep=True)
+        if df.empty:
+            return df
+        df["ref_pos"] = df["ref_pos"] - 1
+        df["query_pos"] = df["query_pos"] - 1
+        return df

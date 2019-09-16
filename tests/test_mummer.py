@@ -617,3 +617,27 @@ NUCMER
         expected = (str(expected_ref), str(expected_query))
 
         assert actual == expected
+
+    def test_makePosZeroBased_emptyReturnsEmpty(self):
+        df = ShowSNPsDataframe()
+
+        actual = df.make_pos_zero_based()
+        expected = df
+
+        assert actual.equals(expected)
+
+    def test_makePosZeroBased_oneValueReturnsValueMinusOne(self):
+        df = ShowSNPsDataframe({"ref_pos": [1], "query_pos": [8]})
+
+        actual = df.make_pos_zero_based()
+        expected = ShowSNPsDataframe({"ref_pos": [0], "query_pos": [7]})
+
+        assert actual.equals(expected)
+
+    def test_makePosZeroBased_twoValuesReturnsAllValuesMinusOne(self):
+        df = ShowSNPsDataframe({"ref_pos": [1, 89], "query_pos": [8, 10]})
+
+        actual = df.make_pos_zero_based()
+        expected = ShowSNPsDataframe({"ref_pos": [0, 88], "query_pos": [7, 9]})
+
+        assert actual.equals(expected)
