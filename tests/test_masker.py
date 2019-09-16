@@ -1,7 +1,7 @@
-from evaluate.masker import Masker, PrecisionMasker
+from evaluate.masker import Masker, PrecisionMasker, RecallMasker
 from unittest.mock import patch, PropertyMock
 from intervaltree import IntervalTree, Interval
-from evaluate.probe import ProbeHeader, Probe
+from evaluate.probe import ProbeHeader, Probe, ProbeInterval
 from evaluate.classification import (
     Classification,
     RecallClassification,
@@ -451,5 +451,46 @@ class TestPrecisionMasker:
             classification
         )
         expected = Interval(0, 2, "chrom1")
+
+        assert actual == expected
+
+
+class TestRecallMasker:
+    @patch.object(
+        Probe, "interval", return_value=ProbeInterval(3, 4), new_callable=PropertyMock
+    )
+    @patch.object(Probe, "chrom", return_value="chrom1", new_callable=PropertyMock)
+    @patch.object(Probe, "pos", return_value=45, new_callable=PropertyMock)
+    def test_getIntervalWhereProbeAlignsToTruth_probeOfLengthOneReturnsIntervalOfLengthOne(
+        self, *mock
+    ):
+        actual = RecallMasker.get_interval_where_probe_aligns_to_truth(Classification())
+        expected = Interval(45, 46, "chrom1")
+
+        assert actual == expected
+
+    @patch.object(
+        Probe, "interval", return_value=ProbeInterval(3, 5), new_callable=PropertyMock
+    )
+    @patch.object(Probe, "chrom", return_value="chrom1", new_callable=PropertyMock)
+    @patch.object(Probe, "pos", return_value=45, new_callable=PropertyMock)
+    def test_getIntervalWhereProbeAlignsToTruth_probeOfLengthTwoReturnsIntervalOfLengthTwo(
+        self, *mock
+    ):
+        actual = RecallMasker.get_interval_where_probe_aligns_to_truth(Classification())
+        expected = Interval(45, 47, "chrom1")
+
+        assert actual == expected
+
+    @patch.object(
+        Probe, "interval", return_value=ProbeInterval(3, 3), new_callable=PropertyMock
+    )
+    @patch.object(Probe, "chrom", return_value="chrom1", new_callable=PropertyMock)
+    @patch.object(Probe, "pos", return_value=45, new_callable=PropertyMock)
+    def test_getIntervalWhereProbeAlignsToTruth_probeOfLengthZeroReturnsNullInterval(
+        self, *mock
+    ):
+        actual = RecallMasker.get_interval_where_probe_aligns_to_truth(Classification())
+        expected = Interval(45, 45, "chrom1")
 
         assert actual == expected

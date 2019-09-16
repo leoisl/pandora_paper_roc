@@ -66,3 +66,12 @@ class PrecisionMasker(Masker):
         chromosome = record.ref_probe.chrom
 
         return Interval(max(0, ref_start), ref_end + 1, chromosome)
+
+
+class RecallMasker(Masker):
+    @staticmethod
+    def get_interval_where_probe_aligns_to_truth(record: Classification) -> Interval:
+        begin = record.query_probe.pos
+        end = begin + len(record.query_probe.interval)
+        chrom = record.query_probe.chrom
+        return Interval(begin, end, data=chrom)
