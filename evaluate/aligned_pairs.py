@@ -67,6 +67,17 @@ class AlignedPairs(UserList):
         else:
             return query_positions
 
+    def get_ref_positions(
+        self, transform_Nones_into_halfway_positions: bool = False
+    ) -> Iterable[float]:
+        ref_positions = [pair.ref_pos for pair in self.data]
+
+        if transform_Nones_into_halfway_positions:
+            return self.transform_Nones_to_halfway_positions(ref_positions)
+        else:
+            return ref_positions
+
+
     def get_alignment_types(self):
         return [aligned_pair.get_alignment_type() for aligned_pair in self]
 
