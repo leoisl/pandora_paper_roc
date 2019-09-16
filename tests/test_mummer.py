@@ -218,36 +218,117 @@ NUCMER
 
 
 class TestShowSNPsDataframe:
-    def test_translate_to_FWD_strand(self):
-        showsnps_content = StringIO(
-            """tests/test_cases/test_translate_to_FWD_strand/ref.fa tests/test_cases/test_translate_to_FWD_strand/query.fa
-NUCMER
+    ref_length = 20
+    ref_pos = 3
+    rev_ref_pos = 18
+    query_length = 10
+    query_pos = 8
+    rev_query_pos = 3
 
-[P1]	[SUB]	[SUB]	[P2]	[BUFF]	[DIST]	[LEN R]	[LEN Q]	[CTX R]	[CTX Q]	[FRM]	[TAGS]
-25	G	C	58	25	25	82	82	AAAAAAAGAAAAAAA	AAAAAAACAAAAAAA	1	-1	ref	query
-67	C	G	16	16	16	82	82	AAAAAAACAAAAAAA	AAAAAAAGAAAAAAA	1	-1	ref	query
-"""
+    @staticmethod
+    def create_showssnps_content(
+        ref_strand_is_reversed: bool, query_strand_is_reversed: bool
+    ) -> StringIO:
+        ref_strand = -1 if ref_strand_is_reversed else 1
+        query_strand = -1 if query_strand_is_reversed else 1
+        return StringIO(
+            f"whatever whatever\n"
+            f"NUCMER\n"
+            f"\n"
+            f"[P1]	[SUB]	[SUB]	[P2]	[BUFF]	[DIST]	[LEN R]	[LEN Q]	[CTX R]	[CTX Q]	[FRM]	[TAGS]\n"
+            f"{TestShowSNPsDataframe.ref_pos}	G	C	{TestShowSNPsDataframe.query_pos}	1	1	{TestShowSNPsDataframe.ref_length}"
+            f"	{TestShowSNPsDataframe.query_length}	AA	AA	{ref_strand}	{query_strand}	ref	query"
+        )
+
+    @staticmethod
+    def create_expected_showsnps_dataframe(
+        ref_strand_is_reversed: bool, query_strand_is_reversed: bool
+    ) -> ShowSNPsDataframe:
+        if ref_strand_is_reversed:
+            ref_pos = TestShowSNPsDataframe.rev_ref_pos
+        else:
+            ref_pos = TestShowSNPsDataframe.ref_pos
+
+        if query_strand_is_reversed:
+            query_pos = TestShowSNPsDataframe.rev_query_pos
+        else:
+            query_pos = TestShowSNPsDataframe.query_pos
+
+        return ShowSNPsDataframe(
+            {
+                "ref_pos": [ref_pos],
+                "ref_sub": ["G"],
+                "query_sub": ["C"],
+                "query_pos": [query_pos],
+                "nearest_mismatch": [1],
+                "nearest_end": [1],
+                "ref_len": [TestShowSNPsDataframe.ref_length],
+                "query_len": [TestShowSNPsDataframe.query_length],
+                "ref_context": ["AA"],
+                "query_context": ["AA"],
+                "ref_strand": [1],
+                "query_strand": [1],
+                "ref_chrom": ["ref"],
+                "query_chrom": ["query"],
+            }
+        )
+
+    def test_translate_to_FWD_strand_queryStrandIsForwardRefStrandIsForwardReturnsPositionsWithNoChange(
+        self
+    ):
+        showsnps_content = TestShowSNPsDataframe.create_showssnps_content(
+            ref_strand_is_reversed=False, query_strand_is_reversed=False
         )
         df = ShowSnps.to_dataframe(showsnps_content)
-        actual = df.translate_to_FWD_strand()
 
-        expected = ShowSNPsDataframe(
-            {
-                "ref_pos": [25, 67],
-                "ref_sub": ["G", "C"],
-                "query_sub": ["C", "G"],
-                "query_pos": [25, 67],
-                "nearest_mismatch": [25, 16],
-                "nearest_end": [25, 16],
-                "ref_len": [82, 82],
-                "query_len": [82, 82],
-                "ref_context": ["AAAAAAAGAAAAAAA", "AAAAAAACAAAAAAA"],
-                "query_context": ["AAAAAAACAAAAAAA", "AAAAAAAGAAAAAAA"],
-                "ref_strand": [1, 1],
-                "query_strand": [1, 1],
-                "ref_chrom": ["ref", "ref"],
-                "query_chrom": ["query", "query"],
-            }
+        actual = df.translate_to_FWD_strand()
+        expected = TestShowSNPsDataframe.create_expected_showsnps_dataframe(
+            ref_strand_is_reversed=False, query_strand_is_reversed=False
+        )
+
+        assert actual.equals(expected)
+
+    def test_translate_to_FWD_strand_queryStrandIsReverseRefStrandIsForwardReturnsPositionsWithQueryChanged(
+        self
+    ):
+        showsnps_content = TestShowSNPsDataframe.create_showssnps_content(
+            ref_strand_is_reversed=False, query_strand_is_reversed=True
+        )
+        df = ShowSnps.to_dataframe(showsnps_content)
+
+        actual = df.translate_to_FWD_strand()
+        expected = TestShowSNPsDataframe.create_expected_showsnps_dataframe(
+            ref_strand_is_reversed=False, query_strand_is_reversed=True
+        )
+
+        assert actual.equals(expected)
+
+    def test_translate_to_FWD_strand_queryStrandIsForwardRefStrandIsReverseReturnsPositionsWithRefChanged(
+        self
+    ):
+        showsnps_content = TestShowSNPsDataframe.create_showssnps_content(
+            ref_strand_is_reversed=True, query_strand_is_reversed=False
+        )
+        df = ShowSnps.to_dataframe(showsnps_content)
+
+        actual = df.translate_to_FWD_strand()
+        expected = TestShowSNPsDataframe.create_expected_showsnps_dataframe(
+            ref_strand_is_reversed=True, query_strand_is_reversed=False
+        )
+
+        assert actual.equals(expected)
+
+    def test_translate_to_FWD_strand_queryStrandIsReverseRefStrandIsReverseReturnsBothPositionsChanged(
+        self
+    ):
+        showsnps_content = TestShowSNPsDataframe.create_showssnps_content(
+            ref_strand_is_reversed=True, query_strand_is_reversed=True
+        )
+        df = ShowSnps.to_dataframe(showsnps_content)
+
+        actual = df.translate_to_FWD_strand()
+        expected = TestShowSNPsDataframe.create_expected_showsnps_dataframe(
+            ref_strand_is_reversed=True, query_strand_is_reversed=True
         )
 
         assert actual.equals(expected)

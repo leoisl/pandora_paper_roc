@@ -165,14 +165,14 @@ class ShowSNPsDataframe(pd.DataFrame):
     def _constructor(self):
         return ShowSNPsDataframe
 
-    def translate_to_FWD_strand(self):
-        def fix_position(position, strand_aln, length):
+    def translate_to_FWD_strand(self) -> "ShowSNPsDataframe":
+        def fix_position(position: int, strand_aln: int, length: int) -> int:
             if strand_aln == 1:
                 return position
             else:
                 return length - position + 1
 
-        def translate_to_FWD_strand_core(line):
+        def translate_to_FWD_strand_core(line: pd.Series) -> pd.Series:
             line.ref_pos = fix_position(line.ref_pos, line.ref_strand, line.ref_len)
             line.ref_strand = 1
             line.query_pos = fix_position(
