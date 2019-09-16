@@ -280,6 +280,37 @@ class TestQuery:
 
         assert actual == expected
 
+    def test_makeProbes_oneGeneTwoVcfRecordsInTheSameIntervalWithDifferentGTConfReturnsProbeWithHighestGTConf(
+        self
+    ):
+        vcf = TEST_CASES / "make_probes_6.vcf"
+        genes = TEST_CASES / "make_probes_6.fa"
+        flank_width = 5
+        samples = ["sample"]
+        query = Query(vcf, genes, samples, flank_width)
+
+        actual = query.make_probes()
+        expected = {
+            "sample": str(
+                Probe(
+                    ProbeHeader(
+                        chrom="gene1",
+                        sample="sample",
+                        pos=4,
+                        interval=ProbeInterval(3, 4),
+                        svtype="COMPLEX",
+                        mean_fwd_covg=6,
+                        mean_rev_covg=7,
+                        gt_conf=20.0,
+                    ),
+                    full_sequence="xxxFxxxxx",
+                )
+            )
+            + "\n"
+        }
+
+        assert actual == expected
+
     def test_createProbeHeader(self):
         flank_width = 3
         sample = "sample"
