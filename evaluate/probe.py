@@ -157,6 +157,10 @@ class Probe:
         return self.header.chrom
 
     @property
+    def pos(self) -> int:
+        return self.header.pos
+
+    @property
     def is_deletion(self) -> bool:
         return len(self.interval) == 0
 

@@ -439,6 +439,14 @@ class TestProbe:
 
         assert actual == expected
 
+    def test_pos(self):
+        probe = Probe(header=ProbeHeader(pos=7))
+
+        actual = probe.pos
+        expected = 7
+
+        assert actual == expected
+
     def test_interval(self):
         probe = Probe(header=ProbeHeader(interval=ProbeInterval(4, 6)))
 
