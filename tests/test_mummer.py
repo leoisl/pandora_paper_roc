@@ -273,7 +273,7 @@ class TestShowSNPsDataframe:
             }
         )
 
-    def test_translate_to_FWD_strand_queryStrandIsForwardRefStrandIsForwardReturnsPositionsWithNoChange(
+    def test_translateToFWDStrand_queryStrandIsForwardRefStrandIsForwardReturnsPositionsWithNoChange(
         self
     ):
         showsnps_content = TestShowSNPsDataframe.create_showssnps_content(
@@ -288,7 +288,7 @@ class TestShowSNPsDataframe:
 
         assert actual.equals(expected)
 
-    def test_translate_to_FWD_strand_queryStrandIsReverseRefStrandIsForwardReturnsPositionsWithQueryChanged(
+    def test_translateToFWDStrand_queryStrandIsReverseRefStrandIsForwardReturnsPositionsWithQueryChanged(
         self
     ):
         showsnps_content = TestShowSNPsDataframe.create_showssnps_content(
@@ -303,7 +303,7 @@ class TestShowSNPsDataframe:
 
         assert actual.equals(expected)
 
-    def test_translate_to_FWD_strand_queryStrandIsForwardRefStrandIsReverseReturnsPositionsWithRefChanged(
+    def test_translateToFWDStrand_queryStrandIsForwardRefStrandIsReverseReturnsPositionsWithRefChanged(
         self
     ):
         showsnps_content = TestShowSNPsDataframe.create_showssnps_content(
@@ -318,7 +318,7 @@ class TestShowSNPsDataframe:
 
         assert actual.equals(expected)
 
-    def test_translate_to_FWD_strand_queryStrandIsReverseRefStrandIsReverseReturnsBothPositionsChanged(
+    def test_translateToFWDStrand_queryStrandIsReverseRefStrandIsReverseReturnsBothPositionsChanged(
         self
     ):
         showsnps_content = TestShowSNPsDataframe.create_showssnps_content(
