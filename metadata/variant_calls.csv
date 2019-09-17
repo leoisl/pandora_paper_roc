@@ -1,0 +1,4 @@
+sample_id,tool,coverage,reference,vcf
+CFT073,pandora_nanopore_with_denovo,100x,data/variant_calls/pandora_multisample.vcf_ref.fa,data/variant_calls/pandora_multisample_genotyped.vcf
+H131800734,pandora_nanopore_with_denovo,100x,data/variant_calls/pandora_multisample.vcf_ref.fa,data/variant_calls/pandora_multisample_genotyped.vcf
+ST38,pandora_nanopore_with_denovo,100x,data/variant_calls/pandora_multisample.vcf_ref.fa,data/variant_calls/pandora_multisample_genotyped.vcf

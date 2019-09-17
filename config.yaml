@@ -1,0 +1,4 @@
+samples: metadata/samples.csv
+variant_calls: metadata/variant_calls.csv
+query_probe_length: 21
+ref_probe_length: 25

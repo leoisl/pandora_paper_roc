@@ -1,7 +1,7 @@
 import logging
 from io import StringIO
 from pathlib import Path
-from typing import Tuple, Dict, List
+from typing import Tuple, Dict, List, Iterable
 
 import pysam
 
@@ -14,48 +14,91 @@ from evaluate.reporter import RecallReporter
 from evaluate.classifier import RecallClassifier
 
 
-def generate_mummer_snps(
-    reference: Path,
-    query: Path,
-    prefix: Path = Path("out"),
-    flank_width: int = 0,
-    indels: bool = False,
-    print_header: bool = True,
-) -> StringIO:
-    logging.info("Generating MUMmer SNPs file.")
+class RecallEvaluation:
+    @staticmethod
+    def generate_truth_probesets(
+        query1: Path,
+        query2: Path,
+        prefix: Path,
+        temp: Path,
+        truth_flank: int,
+        indels: bool,
+    ) -> Tuple[Path, Path]:
+        logging.info("Making truth probesets.")
+        mummer_snps: StringIO = RecallEvaluation._generate_mummer_snps(
+            query1, query2, prefix, truth_flank, indels=indels
+        )
+        snps_df = ShowSnps.to_dataframe(mummer_snps)
+        query1_truth_probes, query2_truth_probes = snps_df.get_probes()
+        query1_truth_probes_filepath = RecallEvaluation._write_truth_probeset_to_temp_file(
+            query1_truth_probes, query1, temp
+        )
+        query2_truth_probes_filepath = RecallEvaluation._write_truth_probeset_to_temp_file(
+            query2_truth_probes, query2, temp
+        )
+        return query1_truth_probes_filepath, query2_truth_probes_filepath
 
-    nucmer_params = "--maxmatch"
-    nucmer = Nucmer(reference, query, str(prefix), extra_params=nucmer_params)
-    nucmer_result = nucmer.run()
-    nucmer_result.check_returncode()
+    @staticmethod
+    def _generate_mummer_snps(
+        reference: Path,
+        query: Path,
+        prefix: Path = Path("out"),
+        flank_width: int = 0,
+        indels: bool = False,
+        print_header: bool = True,
+    ) -> StringIO:
+        logging.info("Generating MUMmer SNPs file.")
 
-    deltafile = Path(str(prefix) + ".delta")
-    deltafilter_params = "-1"
-    deltafilter = DeltaFilter(deltafile, extra_params=deltafilter_params)
-    deltafilter_result = deltafilter.run()
-    deltafilter_result.check_returncode()
+        nucmer_params = "--maxmatch"
+        nucmer = Nucmer(reference, query, str(prefix), extra_params=nucmer_params)
+        nucmer_result = nucmer.run()
+        nucmer_result.check_returncode()
 
-    filtered_deltafile = prefix.with_suffix(".delta1")
-    _ = filtered_deltafile.write_text(deltafilter_result.stdout.decode())
+        deltafile = Path(str(prefix) + ".delta")
+        deltafilter_params = "-1"
+        deltafilter = DeltaFilter(deltafile, extra_params=deltafilter_params)
+        deltafilter_result = deltafilter.run()
+        deltafilter_result.check_returncode()
 
-    showsnps_params = "-rlTC"
-    showsnps = ShowSnps(
-        filtered_deltafile,
-        context=flank_width,
-        extra_params=showsnps_params,
-        indels=indels,
-        print_header=print_header,
-    )
-    showsnps_result = showsnps.run()
-    showsnps_result.check_returncode()
-    showsnps_content = showsnps_result.stdout.decode()
+        filtered_deltafile = prefix.with_suffix(".delta1")
+        _ = filtered_deltafile.write_text(deltafilter_result.stdout.decode())
 
-    snpsfile = prefix.with_suffix(".snps")
-    _ = snpsfile.write_text(showsnps_content)
+        showsnps_params = "-rlTC"
+        showsnps = ShowSnps(
+            filtered_deltafile,
+            context=flank_width,
+            extra_params=showsnps_params,
+            indels=indels,
+            print_header=print_header,
+        )
+        showsnps_result = showsnps.run()
+        showsnps_result.check_returncode()
+        showsnps_content = showsnps_result.stdout.decode()
 
-    logging.info("Finished generating MUMmer SNPs file.")
+        snpsfile = prefix.with_suffix(".snps")
+        _ = snpsfile.write_text(showsnps_content)
 
-    return StringIO(showsnps_content)
+        logging.info("Finished generating MUMmer SNPs file.")
+
+        return StringIO(showsnps_content)
+
+    @staticmethod
+    def _write_truth_probeset_to_temp_file(
+        truth_probes: str, query: Path, temp_folder: Path
+    ) -> Path:
+        query_name: str = strip_extensions(query).name
+        truth_probes_temp_filepath: Path = temp_folder / f"{query_name}.truth_probes.fa"
+        truth_probes_temp_filepath.write_text(truth_probes)
+        logging.info(
+            f"{query_name} truth probes written to: {str(truth_probes_temp_filepath)}"
+        )
+        return truth_probes_temp_filepath
+
+    @staticmethod
+    def generate_pandora_probesets(
+        vcf: Path, vcf_ref: Path, samples: Iterable[str], query_flank: int
+    ):
+        pass
 
 
 def write_vcf_probes_to_file(
