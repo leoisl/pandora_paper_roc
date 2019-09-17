@@ -66,8 +66,7 @@ class Query:
                     continue
                 interval = self.calculate_probe_boundaries_for_entry(variant)
 
-                # TODO: there is a bug here, sample_to_intervals_to_probes is indexed by a string and not by interval (naming issue)?
-                if interval in sample_to_intervals_to_probes and sample_to_intervals_to_probes[
+                if interval in sample_to_intervals_to_probes[sample] and sample_to_intervals_to_probes[
                     sample
                 ][
                     interval
@@ -237,13 +236,11 @@ def get_svtype(variant: pysam.VariantRecord) -> str:
     return variant.info["SVTYPE"]
 
 
-# TODO: there is a bug here: mean coverage is float
 def get_mean_coverage_forward(variant: pysam.VariantRecord, sample: str) -> int:
     gt = get_genotype(variant, sample)
     return int(variant.samples[sample]["MEAN_FWD_COVG"][gt])
 
 
-# TODO: there is a bug here: mean coverage is float
 def get_mean_coverage_reverse(variant: pysam.VariantRecord, sample: str) -> int:
     gt = get_genotype(variant, sample)
     return int(variant.samples[sample]["MEAN_REV_COVG"][gt])
