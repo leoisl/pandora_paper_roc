@@ -1,5 +1,3 @@
-import logging
-import pysam
 from pathlib import Path
 from snakemake.utils import min_version, validate
 import pandas as pd
@@ -24,12 +22,13 @@ variant_calls.rename(columns={"reference": "vcf_reference"}, inplace=True)
 # ======================================================
 # Global variables
 # ======================================================
-data = pd.merge(variant_calls, samples, on="sample_id")
+data: pd.DataFrame = pd.merge(variant_calls, samples, on="sample_id")
+data = data.set_index(["sample_id", "coverage", "tool"], drop=False)
 
 files=[]
 for index, row in data.iterrows():
-    sample_id = row["sample_id"]
-    files.extend([f"analysis/truth_probesets/{sample_id}.truth_probeset.fa"])
+    sample_id, coverage, tool = row["sample_id"], row["coverage"], row["tool"]
+    files.extend([f"analysis/truth_probesets/{sample_id}/{coverage}/{tool}.truth_probeset.fa"])
 
 
 
@@ -39,7 +38,5 @@ for index, row in data.iterrows():
 rule all:
     input: files
 
-
-
-rules_dir = Path("rules/")
+rules_dir = Path("analysis/rules/")
 include: str(rules_dir / "common.smk")
