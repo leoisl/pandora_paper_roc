@@ -27,13 +27,15 @@ data: pd.DataFrame = pd.merge(variant_calls, samples, on="sample_id")
 data = data.set_index(["sample_id", "coverage", "tool"], drop=False)
 samples = samples.set_index(["sample_id"], drop=False)
 
-files=[]
+files = []
 for index, row in data.iterrows():
     sample_id, coverage, tool = row["sample_id"], row["coverage"], row["tool"]
     files.extend([f"analysis/variant_calls_probesets/{sample_id}/{coverage}/{tool}.variant_calls_probeset.fa"])
 
+# Recall files
 for sample1, sample2 in itertools.combinations(set(data["sample_id"]), r=2):
-    files.extend([f"analysis/recall/truth_probesets/{sample1}_&_{sample2}.truth_probeset.fa"])
+    files.extend([f"analysis/recall/truth_probesets/{sample1}/{sample1}_and_{sample2}.truth_probeset.fa",
+                  f"analysis/recall/truth_probesets/{sample2}/{sample1}_and_{sample2}.truth_probeset.fa"])
 
 
 
