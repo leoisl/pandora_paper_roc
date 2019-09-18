@@ -28,7 +28,7 @@ data = data.set_index(["sample_id", "coverage", "tool"], drop=False)
 files=[]
 for index, row in data.iterrows():
     sample_id, coverage, tool = row["sample_id"], row["coverage"], row["tool"]
-    files.extend([f"analysis/truth_probesets/{sample_id}/{coverage}/{tool}.truth_probeset.fa"])
+    files.extend([f"analysis/variant_calls_probesets/{sample_id}/{coverage}/{tool}.variant_calls_probeset.fa"])
 
 
 
