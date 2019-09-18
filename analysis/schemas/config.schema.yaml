@@ -14,7 +14,7 @@ properties:
     variant_calls_probe_length:
         type:                   number
         description:            The flank length to use for variant calls.
-    truth_calls_probe_length:
+    truth_probes_flank_length:
         type:                   number
         description:            The flank length to use for truth calls.
 
@@ -23,4 +23,4 @@ required:
   - samples
   - variant_calls
   - variant_calls_probe_length
-  - truth_calls_probe_length
+  - truth_probes_flank_length

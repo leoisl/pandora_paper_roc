@@ -149,4 +149,4 @@ tests/test_cases/pandora_multisample*
 cpp/
 .snakemake
 data/
-analysis/truth_probesets
+analysis/variant_calls_probesets

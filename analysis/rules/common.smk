@@ -10,7 +10,7 @@ rule make_variant_calls_probeset:
     resources:
         mem_mb = lambda wildcards, attempt: 1000 * attempt
     log:
-        "logs/make_variant_calls_probeset_{sample_id}_{coverage}_{tool}.log"
+        "logs/make_variant_calls_probeset/{sample_id}_{coverage}_{tool}.log"
     script:
         "../scripts/make_variant_calls_probeset.py"
 

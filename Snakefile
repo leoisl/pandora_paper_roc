@@ -1,4 +1,5 @@
 from pathlib import Path
+import itertools
 from snakemake.utils import min_version, validate
 import pandas as pd
 
@@ -24,11 +25,15 @@ variant_calls.rename(columns={"reference": "vcf_reference"}, inplace=True)
 # ======================================================
 data: pd.DataFrame = pd.merge(variant_calls, samples, on="sample_id")
 data = data.set_index(["sample_id", "coverage", "tool"], drop=False)
+samples = samples.set_index(["sample_id"], drop=False)
 
 files=[]
 for index, row in data.iterrows():
     sample_id, coverage, tool = row["sample_id"], row["coverage"], row["tool"]
     files.extend([f"analysis/variant_calls_probesets/{sample_id}/{coverage}/{tool}.variant_calls_probeset.fa"])
+
+for sample1, sample2 in itertools.combinations(set(data["sample_id"]), r=2):
+    files.extend([f"analysis/recall/truth_probesets/{sample1}_&_{sample2}.truth_probeset.fa"])
 
 
 
@@ -40,3 +45,4 @@ rule all:
 
 rules_dir = Path("analysis/rules/")
 include: str(rules_dir / "common.smk")
+include: str(rules_dir / "recall.smk")
