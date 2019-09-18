@@ -2,6 +2,7 @@ from intervaltree import IntervalTree, Interval
 import math
 from evaluate.classification import Classification
 from typing import TextIO, Iterable, Type, Optional
+import pysam
 
 
 class Masker:
@@ -22,16 +23,13 @@ class Masker:
         return Masker(tree=tree)
 
     def filter_records(
-        self, classifications: Iterable[Type[Classification]]
-    ) -> Iterable[Type[Classification]]:
-        return [
-            classification
-            for classification in classifications
-            if not self.record_overlaps_mask(classification)
-        ]
+        self, records: Iterable[pysam.AlignedSegment]
+    ) -> Iterable[pysam.AlignedSegment]:
+        return [record for record in records if not self.record_overlaps_mask(record)]
 
-    def record_overlaps_mask(self, record: Type[Classification]) -> bool:
-        interval = self.get_interval_where_probe_aligns_to_truth(record)
+    def record_overlaps_mask(self, record: pysam.AlignedSegment) -> bool:
+        classification = Classification(record)
+        interval = self.get_interval_where_probe_aligns_to_truth(classification)
         if interval is None:
             return False
 
