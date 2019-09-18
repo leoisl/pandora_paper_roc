@@ -53,6 +53,14 @@ for index, row in data.iterrows():
         ]
     )
 
+for index, row in data.iterrows():
+    sample_id, coverage, tool = row["sample_id"], row["coverage"], row["tool"]
+    files.extend(
+        [
+            f"analysis/precision/reports_from_probe_mappings/{sample_id}/{coverage}/{tool}/variant_calls_probeset_report"
+        ]
+    )
+
 # Recall files
 for sample1, sample2 in sample_pairs:
     files.extend(
