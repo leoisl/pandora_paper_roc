@@ -26,6 +26,7 @@ variant_calls.rename(columns={"reference": "vcf_reference"}, inplace=True)
 data: pd.DataFrame = pd.merge(variant_calls, samples, on="sample_id")
 data = data.set_index(["sample_id", "coverage", "tool"], drop=False)
 samples = samples.set_index(["sample_id"], drop=False)
+sample_pairs = [(sample1, sample2) for sample1, sample2 in itertools.combinations(sorted(samples["sample_id"]), r=2)]
 
 files = []
 
@@ -37,24 +38,30 @@ for index, row in data.iterrows():
             f"analysis/variant_calls_probesets/{sample_id}/{coverage}/{tool}.variant_calls_probeset.fa"
         ]
     )
+    for sample1, sample2 in [pair for pair in sample_pairs if sample_id in pair]:
+        filename_prefix = f"{sample1}_and_{sample2}"
+        files.extend([
+            f"analysis/recall/map_probes/{sample_id}/{coverage}/{tool}/{filename_prefix}.sam"
+        ])
 
 # Precision files
 for index, row in data.iterrows():
     sample_id, coverage, tool = row["sample_id"], row["coverage"], row["tool"]
     files.extend(
         [
-            f"analysis/precision/variant_calls_probesets_mapped_to_refs/{sample_id}/{coverage}/{tool}/variant_calls_probeset_mapped.sam"
+            f"analysis/precision/variant_calls_probesets_mapped_to_refs/{sample_id}/{coverage}/{tool}/variant_calls_probeset_mapped.sam",
         ]
     )
 
 # Recall files
-for sample1, sample2 in itertools.combinations(sorted(samples["sample_id"]), r=2):
+for sample1, sample2 in sample_pairs:
     files.extend(
         [
             f"analysis/recall/truth_probesets/{sample1}/{sample1}_and_{sample2}.truth_probeset.fa",
             f"analysis/recall/truth_probesets/{sample2}/{sample1}_and_{sample2}.truth_probeset.fa",
         ]
     )
+
 
 # ======================================================
 # Rules

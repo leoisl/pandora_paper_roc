@@ -19,22 +19,20 @@ rule make_recall_truth_probeset:
     script:
         "../scripts/make_recall_truth_probeset.py"
 
-#
-# rule map_recall_truth_probes_to_pandora_probes:
-#     input:
-#          truth_probeset_fasta_file = rules.make_recall_truth_probeset.output.truth_probeset_fasta_file,
-#          pandora_probes_from_sample_1 = output_dir_path / "{sample_1}.pandora_probeset",
-#          pandora_probes_from_sample_2 = output_dir_path / "{sample_2}.pandora_probeset"
-#     output:
-#          truth_probes_mapped_to_pandora_probes_from_sample_1 = rules.make_recall_truth_probeset.output.truth_probeset_fasta_file + ".mapped_to_pandora_probes_{sample_1}",
-#          truth_probes_mapped_to_pandora_probes_from_sample_2 = rules.make_recall_truth_probeset.output.truth_probeset_fasta_file + ".mapped_to_pandora_probes_{sample_2}"
-#     threads: 1
-#     resources:
-#         mem_mb = lambda wildcards, attempt: config["mem_mb"][attempt-1]
-#     log:
-#         "logs/map_recall_truth_probes_to_pandora_probes_{sample_1}---{sample_2}.log"
-#     singularity:
-#         config["singularity_image"]
-#     script:
-#         "../scripts/map_recall_truth_probes_to_pandora_probes.py"
-#
+
+rule map_recall_truth_probes_to_variant_call_probes:
+    input:
+         truth_probeset = "analysis/recall/truth_probesets/{sample_id}/{filename_prefix}.truth_probeset.fa",
+         variant_calls_probeset = "analysis/variant_calls_probesets/{sample_id}/{coverage}/{tool}.variant_calls_probeset.fa",
+    output:
+         sam = "analysis/recall/map_probes/{sample_id}/{coverage}/{tool}/{filename_prefix}.sam"
+    threads: 2
+    resources:
+        mem_mb = lambda wildcards, attempt: 2000 * attempt
+    log:
+        "logs/map_recall_truth_probes_to_variant_call_probes/{sample_id}/{coverage}/{tool}/{filename_prefix}.log"
+    # singularity:
+    #     config["singularity_image"]
+    script:
+        "../scripts/map_recall_truth_probes_to_variant_call_probes.py"
+

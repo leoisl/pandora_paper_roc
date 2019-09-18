@@ -14,7 +14,6 @@ logging.basicConfig(
 )
 
 
-from pathlib import Path
 from io import StringIO
 from evaluate.mummer import ShowSnps, Nucmer, DeltaFilter, NucmerError
 from evaluate.utils import strip_extensions
