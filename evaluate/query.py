@@ -1,3 +1,4 @@
+import logging
 from contextlib import ExitStack
 from pathlib import Path
 from typing import Tuple, List, Dict
@@ -244,3 +245,13 @@ def get_mean_coverage_forward(variant: pysam.VariantRecord, sample: str) -> int:
 def get_mean_coverage_reverse(variant: pysam.VariantRecord, sample: str) -> int:
     gt = get_genotype(variant, sample)
     return int(variant.samples[sample]["MEAN_REV_COVG"][gt])
+
+
+def write_vcf_probes_to_file(
+    vcf_probes: Dict[str, str], query_name: str, tempdir: Path
+) -> Path:
+    query_vcf_probes = vcf_probes[query_name]
+    query_vcf_probes_path: Path = tempdir / f"{query_name}.query_probes.fa"
+    query_vcf_probes_path.write_text(query_vcf_probes)
+    logging.info(f"VCF probes written to file: {query_vcf_probes_path}")
+    return query_vcf_probes_path

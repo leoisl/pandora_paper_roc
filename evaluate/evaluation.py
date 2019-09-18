@@ -5,6 +5,7 @@ from typing import Tuple, Dict, List, Iterable
 
 import pysam
 
+from evaluate.query import write_vcf_probes_to_file
 from .bwa import BWA
 from .cli import cli
 from .mummer import Nucmer, DeltaFilter, ShowSnps
@@ -99,16 +100,6 @@ class RecallEvaluation:
         vcf: Path, vcf_ref: Path, samples: Iterable[str], query_flank: int
     ):
         pass
-
-
-def write_vcf_probes_to_file(
-    vcf_probes: Dict[str, str], query_name: str, tempdir: Path
-) -> Path:
-    query_vcf_probes = vcf_probes[query_name]
-    query_vcf_probes_path: Path = tempdir / f"{query_name}.query_probes.fa"
-    query_vcf_probes_path.write_text(query_vcf_probes)
-    logging.info(f"VCF probes written to file: {query_vcf_probes_path}")
-    return query_vcf_probes_path
 
 
 def map_panel_to_probes(

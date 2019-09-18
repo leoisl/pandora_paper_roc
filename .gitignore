@@ -147,5 +147,6 @@ tests/test_cases/H131800734.ref.pilon.fa
 tests/test_cases/pandora_multisample*
 
 cpp/
-
+.snakemake
 data/
+analysis/truth_probesets

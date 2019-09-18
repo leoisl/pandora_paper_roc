@@ -6,23 +6,17 @@ type:                           object
 
 properties:
     samples:
-        type:           string
-        description:    Path to CSV file containing the samples information.
+        type:                   string
+        description:            Path to CSV file containing the samples information.
     variant_calls:
-        type:           string
-        description:    Path to CSV file containing the variant calls information.
+        type:                   string
+        description:            Path to CSV file containing the variant calls information.
     variant_calls_probe_length:
-        type:           number
-        description:    The flank length to use for variant calls.
+        type:                   number
+        description:            The flank length to use for variant calls.
     truth_calls_probe_length:
-        type:           number
-        description:    The flank length to use for truth calls.
-    mem_mb:
-        type:           array
-        items: {
-          type: number
-        }
-
+        type:                   number
+        description:            The flank length to use for truth calls.
 
 
 required:
@@ -30,4 +24,3 @@ required:
   - variant_calls
   - variant_calls_probe_length
   - truth_calls_probe_length
-  - mem_mb
