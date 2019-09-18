@@ -12,6 +12,8 @@ rule make_recall_truth_probeset:
     threads: 1
     resources:
         mem_mb = lambda wildcards, attempt: 2000 * attempt
+    log:
+        "logs/make_recall_truth_probeset/{sample1}_and_{sample2}.log"
     # singularity:
     #     config["singularity_image"]
     script:

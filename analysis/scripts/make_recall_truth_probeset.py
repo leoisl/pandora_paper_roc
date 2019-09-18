@@ -1,19 +1,24 @@
-from typing import Tuple
 from pathlib import Path
-from io import StringIO
 import sys
 
 sys.path.append(str(Path().absolute()))
-from evaluate.mummer import ShowSnps, Nucmer, DeltaFilter, NucmerError
-from evaluate.utils import strip_extensions
 import logging
 
 log_level = "DEBUG"
 logging.basicConfig(
+    filename=str(snakemake.log),
+    filemode="w",
     level=log_level,
     format="[%(asctime)s]:%(levelname)s: %(message)s",
-    datefmt="%m/%d/%Y %I:%M:%S %p",
+    datefmt="%d/%m/%Y %I:%M:%S %p",
 )
+
+
+from pathlib import Path
+from io import StringIO
+from evaluate.mummer import ShowSnps, Nucmer, DeltaFilter, NucmerError
+from evaluate.utils import strip_extensions
+
 
 def generate_mummer_snps(
     reference: Path,
