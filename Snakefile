@@ -27,7 +27,9 @@ data: pd.DataFrame = pd.merge(variant_calls, samples, on="sample_id")
 data = data.set_index(["sample_id", "coverage", "tool"], drop=False)
 samples = samples.set_index(["sample_id"], drop=False)
 
-files = []
+files=[]
+
+# Common files
 for index, row in data.iterrows():
     sample_id, coverage, tool = row["sample_id"], row["coverage"], row["tool"]
     files.extend(
@@ -36,6 +38,10 @@ for index, row in data.iterrows():
         ]
     )
 
+#Precision files
+for index, row in data.iterrows():
+    sample_id, coverage, tool = row["sample_id"], row["coverage"], row["tool"]
+    files.extend([f"analysis/precision/variant_calls_probesets_mapped_to_refs/{sample_id}/{coverage}/{tool}/variant_calls_probeset_mapped.sam"])
 # Recall files
 for sample1, sample2 in itertools.combinations(sorted(samples["sample_id"]), r=2):
     files.extend(
@@ -53,4 +59,5 @@ rule all:
 
 rules_dir = Path("analysis/rules/")
 include: str(rules_dir / "common.smk")
-include: str(rules_dir / "recall.smk")
+#include: str(rules_dir / "recall.smk")
+include: str(rules_dir / "precision.smk")

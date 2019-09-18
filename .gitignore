@@ -151,3 +151,4 @@ cpp/
 data/
 analysis/variant_calls_probesets
 analysis/recall
+analysis/precision/
