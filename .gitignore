@@ -150,3 +150,4 @@ cpp/
 .snakemake
 data/
 analysis/variant_calls_probesets
+analysis/precision/
