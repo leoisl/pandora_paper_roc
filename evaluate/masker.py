@@ -14,13 +14,13 @@ class Masker:
     def __eq__(self, other: "Masker") -> bool:
         return self.tree == other.tree
 
-    @staticmethod
-    def from_bed(bed: TextIO) -> "Masker":
+    @classmethod
+    def from_bed(cls: Type, bed: TextIO) -> "Type[Masker]":
         tree = IntervalTree()
         for region in bed:
             chrom, start, end = region.strip().split("\t")
             tree.addi(int(start), int(end), chrom)
-        return Masker(tree=tree)
+        return cls(tree=tree)
 
     def filter_records(
         self, records: Iterable[pysam.AlignedSegment]
@@ -37,7 +37,9 @@ class Masker:
         return any(interval.data == iv.data for iv in overlaps)
 
     @staticmethod
-    def get_interval_where_probe_aligns_to_truth(record: Classification) -> Interval:
+    def get_interval_where_probe_aligns_to_truth(
+        record: Classification
+    ) -> Optional[Interval]:
         raise NotImplementedError()
 
 
