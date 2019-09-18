@@ -11,16 +11,23 @@ properties:
     variant_calls:
         type:           string
         description:    Path to CSV file containing the variant calls information.
-    query_probe_length:
+    variant_calls_probe_length:
         type:           number
-        description:    The flank length of query probes.
-    ref_probe_length:
-      type:           number
-      description:    The flank length of reference probes.
+        description:    The flank length to use for variant calls.
+    truth_calls_probe_length:
+        type:           number
+        description:    The flank length to use for truth calls.
+    mem_mb:
+        type:           array
+        items: {
+          type: number
+        }
+
 
 
 required:
   - samples
   - variant_calls
-  - query_probe_length
-  - ref_probe_length
+  - variant_calls_probe_length
+  - truth_calls_probe_length
+  - mem_mb

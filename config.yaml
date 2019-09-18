@@ -1,4 +1,6 @@
 samples: metadata/samples.csv
 variant_calls: metadata/variant_calls.csv
-query_probe_length: 21
-ref_probe_length: 25
+variant_calls_probe_length: 25
+truth_calls_probe_length: 25
+mem_mb:
+  - 1000
