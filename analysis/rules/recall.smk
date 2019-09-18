@@ -38,7 +38,8 @@ rule map_recall_truth_probes_to_variant_call_probes:
 
 rule create_recall_report_for_probe_mappings:
     input:
-        sam = rules.map_recall_truth_probes_to_variant_call_probes.output.sam
+        sam = rules.map_recall_truth_probes_to_variant_call_probes.output.sam,
+        mask = lambda wildcards: samples.xs(wildcards.sample_id)["mask"]
     output:
         report = "analysis/recall/reports/{sample_id}/{coverage}/{tool}/{filename_prefix}.report.tsv"
     threads: 1

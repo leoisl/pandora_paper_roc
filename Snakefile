@@ -41,7 +41,7 @@ for index, row in data.iterrows():
     for sample1, sample2 in [pair for pair in sample_pairs if sample_id in pair]:
         filename_prefix = f"{sample1}_and_{sample2}"
         files.extend([
-            f"analysis/recall/map_probes/{sample_id}/{coverage}/{tool}/{filename_prefix}.sam"
+            f"analysis/recall/reports/{sample_id}/{coverage}/{tool}/{filename_prefix}.report.tsv"
         ])
 
 # Precision files
