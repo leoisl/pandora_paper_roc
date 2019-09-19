@@ -67,9 +67,9 @@ class Query:
                     continue
                 interval = self.calculate_probe_boundaries_for_entry(variant)
 
-                if interval in sample_to_intervals_to_probes[sample] and sample_to_intervals_to_probes[
+                if interval in sample_to_intervals_to_probes[
                     sample
-                ][
+                ] and sample_to_intervals_to_probes[sample][
                     interval
                 ].gt_conf > get_genotype_confidence(
                     variant, sample

@@ -291,7 +291,9 @@ CFT073	>CHROM=1;POS=1281;INTERVAL=[70,80);		unmapped
 
         assert actual == expected
 
-    def test_calculateRecall_oneReportNoTruePositivesOrFalseNegativesRaisesValueError(self):
+    def test_calculateRecall_oneReportNoTruePositivesOrFalseNegativesRaisesValueError(
+        self
+    ):
         columns = ["sample", "query_probe_header", "ref_probe_header", "classification"]
         report = pd.DataFrame(
             data=[
@@ -310,7 +312,9 @@ CFT073	>CHROM=1;POS=1281;INTERVAL=[70,80);		unmapped
         with pytest.raises(ValueError):
             calculator.calculate_recall(conf_threshold=threshold)
 
-    def test_calculateRecall_oneReportAllTruePositivesAllBelowThresholdRaisesValueError(self):
+    def test_calculateRecall_oneReportAllTruePositivesAllBelowThresholdRaisesValueError(
+        self
+    ):
         columns = ["sample", "query_probe_header", "ref_probe_header", "classification"]
         report = pd.DataFrame(
             data=[

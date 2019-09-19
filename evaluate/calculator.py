@@ -90,7 +90,9 @@ class RecallCalculator(Calculator):
         try:
             return true_positives / (true_positives + false_negatives)
         except ZeroDivisionError:
-            raise ValueError("There are not classifications to compute recall on (no true_positives or false_negatives)")
+            raise ValueError(
+                "There are not classifications to compute recall on (no true_positives or false_negatives)"
+            )
 
 
 class PrecisionCalculator(Calculator):
