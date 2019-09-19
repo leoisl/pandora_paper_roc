@@ -6,7 +6,7 @@ from evaluate.calculator import (
     StatisticalClassification,
     PrecisionCalculator,
     Calculator,
-    EmptyReportError
+    EmptyReportError,
 )
 from evaluate.classification import AlignmentAssessment
 from pathlib import Path

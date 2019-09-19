@@ -117,6 +117,7 @@ class AlignmentAssessment(Enum):
     def __str__(self):
         return self.value
 
+
 class RecallClassification(Classification):
     def is_correct(self) -> bool:
         return self._get_query_probe_mapping_score() == 1.0
