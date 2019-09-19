@@ -98,7 +98,7 @@ class PrecisionCalculator(Calculator):
     def calculate_precision(self, conf_threshold: float = 0.0) -> float:
         confident_classifications = self.get_confident_classifications(conf_threshold)
         true_positives = sum(confident_classifications)
-        number_of_positives = len(self.report)
+        number_of_positives = len(confident_classifications)
         try:
             return true_positives / number_of_positives
         except ZeroDivisionError:

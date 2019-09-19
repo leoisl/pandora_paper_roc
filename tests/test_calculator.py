@@ -449,6 +449,6 @@ class TestPrecisionCalculator:
         confidence_threshold = 80
 
         actual = calculator.calculate_precision(confidence_threshold)
-        expected = 0.7 / 3
+        expected = 0.7 / 2
 
         assert actual == expected
