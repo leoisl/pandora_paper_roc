@@ -42,7 +42,6 @@ for index, row in data.iterrows():
             f"analysis/variant_calls_probesets/{sample_id}/{coverage}/{tool}.variant_calls_probeset.fa"
         ]
     )
-#files.append(f"analysis/plot/error_rate_and_recall_gt_min_{config['genotype_confidence_min']}_step_{config['genotype_confidence_step']}_max_{config['genotype_confidence_max']}.tsv")
 
 
 
@@ -63,8 +62,8 @@ for index, row in data.iterrows():
 for precision_report_files in tool_and_coverage_to_precision_report_files.values():
     files.extend(precision_report_files)
 
-for tool_and_coverage in tool_and_coverage_to_precision_report_files:
-    files.append(f"analysis/precision/precision_{tool_and_coverage}_gt_min_{min_gt}_step_{step_gt}_max_{max_gt}.tsv")
+all_precision_files = [f"analysis/precision/precision_{tool_and_coverage}_gt_min_{min_gt}_step_{step_gt}_max_{max_gt}.tsv"
+                       for tool_and_coverage in tool_and_coverage_to_precision_report_files]
 
 
 
@@ -87,13 +86,14 @@ for index, row in data.iterrows():
 for recall_report_files in tool_and_coverage_to_recall_report_files.values():
     files.extend(recall_report_files)
 
-for tool_and_coverage in tool_and_coverage_to_recall_report_files:
-    files.append(f"analysis/recall/recall_{tool_and_coverage}_gt_min_{min_gt}_step_{step_gt}_max_{max_gt}.tsv")
+all_recall_files = [f"analysis/recall/recall_{tool_and_coverage}_gt_min_{min_gt}_step_{step_gt}_max_{max_gt}.tsv"
+                       for tool_and_coverage in tool_and_coverage_to_precision_report_files]
 
 
 
 
 # Plot files
+files.append(f"analysis/plot/error_rate_and_recall_gt_min_{config['genotype_confidence_min']}_step_{config['genotype_confidence_step']}_max_{config['genotype_confidence_max']}.tsv")
 #files.append(f"analysis/plot/error_rate_and_recall_gt_min_{config['genotype_confidence_min']}_step_{config['genotype_confidence_step']}_max_{config['genotype_confidence_max']}.pdf")
 
 # ======================================================
@@ -106,4 +106,4 @@ rules_dir = Path("analysis/rules/")
 include: str(rules_dir / "common.smk")
 include: str(rules_dir / "recall.smk")
 include: str(rules_dir / "precision.smk")
-#include: str(rules_dir / "plot.smk")
+include: str(rules_dir / "plot.smk")
