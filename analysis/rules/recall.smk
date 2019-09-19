@@ -49,3 +49,16 @@ rule create_recall_report_for_probe_mappings:
         "logs/create_recall_report_for_probe_mappings/{sample_id}/{coverage}/{tool}/{filename_prefix}.log"
     script:
         "../scripts/create_recall_report_for_probe_mappings.py"
+
+rule calculate_recall:
+    input:
+         all_recall_report_files = all_recall_report_files
+    output:
+         recall_file = "analysis/recall/recall_gt_min_{min_gt}_step_{step_gt}_max_{max_gt}.tsv"
+    threads: 1
+    resources:
+        mem_mb = lambda wildcards, attempt: 4000 * attempt
+    log:
+        "logs/calculate_recall/gt_min_{min_gt}_step_{step_gt}_max_{max_gt}.log"
+    script:
+        "../scripts/calculate_recall.py"

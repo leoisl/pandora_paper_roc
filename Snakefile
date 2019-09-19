@@ -38,11 +38,6 @@ for index, row in data.iterrows():
             f"analysis/variant_calls_probesets/{sample_id}/{coverage}/{tool}.variant_calls_probeset.fa"
         ]
     )
-    for sample1, sample2 in [pair for pair in sample_pairs if sample_id in pair]:
-        filename_prefix = f"{sample1}_and_{sample2}"
-        files.extend([
-            f"analysis/recall/reports/{sample_id}/{coverage}/{tool}/{filename_prefix}.report.tsv"
-        ])
 
 # Precision files
 for index, row in data.iterrows():
@@ -70,6 +65,15 @@ for sample1, sample2 in sample_pairs:
         ]
     )
 
+all_recall_report_files = []
+for index, row in data.iterrows():
+    sample_id, coverage, tool = row["sample_id"], row["coverage"], row["tool"]
+    for sample1, sample2 in [pair for pair in sample_pairs if sample_id in pair]:
+        filename_prefix = f"{sample1}_and_{sample2}"
+        all_recall_report_files.append(f"analysis/recall/reports/{sample_id}/{coverage}/{tool}/{filename_prefix}.report.tsv")
+files.extend(all_recall_report_files)
+
+files.append(f"analysis/recall/recall_gt_min_{config['genotype_confidence_min']}_step_{config['genotype_confidence_step']}_max_{config['genotype_confidence_max']}.tsv")
 
 # ======================================================
 # Rules
