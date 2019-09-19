@@ -158,3 +158,5 @@ Snakefile\.py
 logs/
 
 analysis/plot/
+
+metadata/

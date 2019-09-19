@@ -17,10 +17,14 @@ from evaluate.calculator import PrecisionCalculator, EmptyReportError
 import pandas as pd
 import numpy as np
 
-all_precision_report_files = snakemake.input.all_precision_report_files
-precision_calculator = PrecisionCalculator.from_files(all_precision_report_files)
+precision_report_files_for_tool_and_coverage = (
+    snakemake.input.precision_report_files_for_tool_and_coverage
+)
+precision_calculator = PrecisionCalculator.from_files(
+    precision_report_files_for_tool_and_coverage
+)
 
-output = Path(snakemake.output.precision_file)
+output = Path(snakemake.output.precision_file_for_tool_and_coverage)
 
 min_gt = float(snakemake.wildcards.min_gt)
 step_gt = float(snakemake.wildcards.step_gt)
@@ -44,7 +48,13 @@ for gt in all_gts:
     except EmptyReportError:
         pass
 
+labels = [snakemake.wildcards.tool_and_coverage] * len(gts)
 precision_df = pd.DataFrame(
-    data={"GT": gts, "precision": precisions, "error_rate": error_rates}
+    data={
+        "GT": gts,
+        "precision": precisions,
+        "error_rate": error_rates,
+        "label": labels,
+    }
 )
 precision_df.to_csv(output, sep="\t")

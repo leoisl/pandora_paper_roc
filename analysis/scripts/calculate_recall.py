@@ -17,10 +17,14 @@ from evaluate.calculator import RecallCalculator, EmptyReportError
 import pandas as pd
 import numpy as np
 
-all_recall_report_files = snakemake.input.all_recall_report_files
-recall_calculator = RecallCalculator.from_files(all_recall_report_files)
+recall_report_files_for_tool_and_coverage = (
+    snakemake.input.recall_report_files_for_tool_and_coverage
+)
+recall_calculator = RecallCalculator.from_files(
+    recall_report_files_for_tool_and_coverage
+)
 
-output = Path(snakemake.output.recall_file)
+output = Path(snakemake.output.recall_file_for_tool_and_coverage)
 
 min_gt = float(snakemake.wildcards.min_gt)
 step_gt = float(snakemake.wildcards.step_gt)
@@ -42,5 +46,6 @@ for gt in all_gts:
     except EmptyReportError:
         pass
 
-recall_df = pd.DataFrame(data={"GT": gts, "recall": recalls})
+labels = [snakemake.wildcards.tool_and_coverage] * len(gts)
+recall_df = pd.DataFrame(data={"GT": gts, "recall": recalls, "label": labels})
 recall_df.to_csv(output, sep="\t")

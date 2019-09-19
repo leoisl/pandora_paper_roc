@@ -30,13 +30,13 @@ rule create_precision_report_from_probe_mappings:
 
 rule calculate_precision:
     input:
-         all_precision_report_files = all_precision_report_files
+         precision_report_files_for_tool_and_coverage = lambda wildcards: tool_and_coverage_to_precision_report_files[wildcards.tool_and_coverage]
     output:
-         precision_file = "analysis/precision/precision_gt_min_{min_gt}_step_{step_gt}_max_{max_gt}.tsv"
+         precision_file_for_tool_and_coverage = "analysis/precision/precision_{tool_and_coverage}_gt_min_{min_gt}_step_{step_gt}_max_{max_gt}.tsv"
     threads: 1
     resources:
         mem_mb = lambda wildcards, attempt: 4000 * attempt
     log:
-        "logs/calculate_precision/gt_min_{min_gt}_step_{step_gt}_max_{max_gt}.log"
+        "logs/calculate_precision/{tool_and_coverage}_gt_min_{min_gt}_step_{step_gt}_max_{max_gt}.log"
     script:
         "../scripts/calculate_precision.py"

@@ -2,6 +2,7 @@ from pathlib import Path
 import itertools
 from snakemake.utils import min_version, validate
 import pandas as pd
+from collections import defaultdict
 
 min_version("5.1.0")
 
@@ -27,6 +28,9 @@ data: pd.DataFrame = pd.merge(variant_calls, samples, on="sample_id")
 data = data.set_index(["sample_id", "coverage", "tool"], drop=False)
 samples = samples.set_index(["sample_id"], drop=False)
 sample_pairs = [(sample1, sample2) for sample1, sample2 in itertools.combinations(sorted(samples["sample_id"]), r=2)]
+min_gt = config['genotype_confidence_min']
+step_gt = config['genotype_confidence_step']
+max_gt = config['genotype_confidence_max']
 
 files = []
 
@@ -38,7 +42,10 @@ for index, row in data.iterrows():
             f"analysis/variant_calls_probesets/{sample_id}/{coverage}/{tool}.variant_calls_probeset.fa"
         ]
     )
-files.append(f"analysis/plot/error_rate_and_recall_gt_min_{config['genotype_confidence_min']}_step_{config['genotype_confidence_step']}_max_{config['genotype_confidence_max']}.tsv")
+#files.append(f"analysis/plot/error_rate_and_recall_gt_min_{config['genotype_confidence_min']}_step_{config['genotype_confidence_step']}_max_{config['genotype_confidence_max']}.tsv")
+
+
+
 
 # Precision files
 for index, row in data.iterrows():
@@ -49,13 +56,18 @@ for index, row in data.iterrows():
         ]
     )
 
-all_precision_report_files = []
+tool_and_coverage_to_precision_report_files = defaultdict(list)
 for index, row in data.iterrows():
     sample_id, coverage, tool = row["sample_id"], row["coverage"], row["tool"]
-    all_precision_report_files.append(f"analysis/precision/reports_from_probe_mappings/{sample_id}/{coverage}/{tool}/variant_calls_probeset_report.tsv")
-files.extend(all_precision_report_files)
+    tool_and_coverage_to_precision_report_files[f"{tool}_{coverage}"].append(f"analysis/precision/reports_from_probe_mappings/{sample_id}/{coverage}/{tool}/variant_calls_probeset_report.tsv")
+for precision_report_files in tool_and_coverage_to_precision_report_files.values():
+    files.extend(precision_report_files)
 
-files.append(f"analysis/precision/precision_gt_min_{config['genotype_confidence_min']}_step_{config['genotype_confidence_step']}_max_{config['genotype_confidence_max']}.tsv")
+for tool_and_coverage in tool_and_coverage_to_precision_report_files:
+    files.append(f"analysis/precision/precision_{tool_and_coverage}_gt_min_{min_gt}_step_{step_gt}_max_{max_gt}.tsv")
+
+
+
 
 # Recall files
 for sample1, sample2 in sample_pairs:
@@ -66,15 +78,23 @@ for sample1, sample2 in sample_pairs:
         ]
     )
 
-all_recall_report_files = []
+tool_and_coverage_to_recall_report_files = defaultdict(list)
 for index, row in data.iterrows():
     sample_id, coverage, tool = row["sample_id"], row["coverage"], row["tool"]
     for sample1, sample2 in [pair for pair in sample_pairs if sample_id in pair]:
         filename_prefix = f"{sample1}_and_{sample2}"
-        all_recall_report_files.append(f"analysis/recall/reports/{sample_id}/{coverage}/{tool}/{filename_prefix}.report.tsv")
-files.extend(all_recall_report_files)
+        tool_and_coverage_to_recall_report_files[f"{tool}_{coverage}"].append(f"analysis/recall/reports/{sample_id}/{coverage}/{tool}/{filename_prefix}.report.tsv")
+for recall_report_files in tool_and_coverage_to_recall_report_files.values():
+    files.extend(recall_report_files)
 
-files.append(f"analysis/recall/recall_gt_min_{config['genotype_confidence_min']}_step_{config['genotype_confidence_step']}_max_{config['genotype_confidence_max']}.tsv")
+for tool_and_coverage in tool_and_coverage_to_recall_report_files:
+    files.append(f"analysis/recall/recall_{tool_and_coverage}_gt_min_{min_gt}_step_{step_gt}_max_{max_gt}.tsv")
+
+
+
+
+# Plot files
+#files.append(f"analysis/plot/error_rate_and_recall_gt_min_{config['genotype_confidence_min']}_step_{config['genotype_confidence_step']}_max_{config['genotype_confidence_max']}.pdf")
 
 # ======================================================
 # Rules
@@ -86,4 +106,4 @@ rules_dir = Path("analysis/rules/")
 include: str(rules_dir / "common.smk")
 include: str(rules_dir / "recall.smk")
 include: str(rules_dir / "precision.smk")
-include: str(rules_dir / "plot.smk")
+#include: str(rules_dir / "plot.smk")
