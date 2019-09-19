@@ -26,3 +26,17 @@ rule create_precision_report_from_probe_mappings:
         "logs/create_precision_report_from_probe_mappings/{sample_id}_{coverage}_{tool}.log"
     script:
         "../scripts/create_precision_report_from_probe_mappings.py"
+
+
+rule calculate_precision:
+    input:
+         all_precision_report_files = all_precision_report_files
+    output:
+         precision_file = "analysis/precision/precision_gt_min_{min_gt}_step_{step_gt}_max_{max_gt}.tsv"
+    threads: 1
+    resources:
+        mem_mb = lambda wildcards, attempt: 2000 * attempt
+    log:
+        "logs/calculate_precision/gt_min_{min_gt}_step_{step_gt}_max_{max_gt}.log"
+    script:
+        "../scripts/calculate_precision.py"

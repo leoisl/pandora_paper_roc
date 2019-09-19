@@ -53,13 +53,13 @@ for index, row in data.iterrows():
         ]
     )
 
+all_precision_report_files = []
 for index, row in data.iterrows():
     sample_id, coverage, tool = row["sample_id"], row["coverage"], row["tool"]
-    files.extend(
-        [
-            f"analysis/precision/reports_from_probe_mappings/{sample_id}/{coverage}/{tool}/variant_calls_probeset_report.tsv"
-        ]
-    )
+    all_precision_report_files.append(f"analysis/precision/reports_from_probe_mappings/{sample_id}/{coverage}/{tool}/variant_calls_probeset_report.tsv")
+files.extend(all_precision_report_files)
+
+files.append(f"analysis/precision/precision_gt_min_{config['genotype_confidence_min']}_step_{config['genotype_confidence_step']}_max_{config['genotype_confidence_max']}.tsv")
 
 # Recall files
 for sample1, sample2 in sample_pairs:
