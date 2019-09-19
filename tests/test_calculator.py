@@ -6,6 +6,7 @@ from evaluate.calculator import (
     StatisticalClassification,
     PrecisionCalculator,
     Calculator,
+    EmptyReportError
 )
 from evaluate.classification import AlignmentAssessment
 from pathlib import Path
@@ -199,13 +200,13 @@ CFT073	>CHROM=1;POS=1281;INTERVAL=[70,80);		unmapped
         with pytest.raises(ValueError):
             RecallCalculator.statistical_classification(classification)
 
-    def test_calculateRecall_noReportsRaisesValueError(self):
+    def test_calculateRecall_noReportsRaisesEmptyReportError(self):
         columns = ["sample", "query_probe_header", "ref_probe_header", "classification"]
         report = pd.DataFrame(columns=columns)
         calculator = RecallCalculator([report])
         threshold = 0
 
-        with pytest.raises(ValueError):
+        with pytest.raises(EmptyReportError):
             calculator.calculate_recall(conf_threshold=threshold)
 
     def test_calculateRecall_oneReportNoTruePositivesReturnsZero(self):
@@ -291,7 +292,7 @@ CFT073	>CHROM=1;POS=1281;INTERVAL=[70,80);		unmapped
 
         assert actual == expected
 
-    def test_calculateRecall_oneReportNoTruePositivesOrFalseNegativesRaisesValueError(
+    def test_calculateRecall_oneReportNoTruePositivesOrFalseNegativesRaisesEmptyReportError(
         self
     ):
         columns = ["sample", "query_probe_header", "ref_probe_header", "classification"]
@@ -309,7 +310,7 @@ CFT073	>CHROM=1;POS=1281;INTERVAL=[70,80);		unmapped
         calculator = RecallCalculator([report])
         threshold = 60
 
-        with pytest.raises(ValueError):
+        with pytest.raises(EmptyReportError):
             calculator.calculate_recall(conf_threshold=threshold)
 
     def test_calculateRecall_oneReportAllTruePositivesAllBelowThresholdRaisesValueError(
@@ -403,12 +404,12 @@ class TestPrecisionCalculator:
 
         assert actual.equals(expected)
 
-    def test_calculatePrecision_NoReportsRaisesValueError(self):
+    def test_calculatePrecision_NoReportsRaisesEmptyReportError(self):
         columns = ["sample", "query_probe_header", "ref_probe_header", "classification"]
         report = pd.DataFrame(columns=columns)
         calculator = PrecisionCalculator([report])
 
-        with pytest.raises(ValueError):
+        with pytest.raises(EmptyReportError):
             calculator.calculate_precision()
 
     def test_calculatePrecision_OneReportWithOneRowCompletelyCorrectReturnsOne(self):
@@ -435,7 +436,7 @@ class TestPrecisionCalculator:
 
         assert actual == expected
 
-    def test_calculatePrecision_OneReportWithOneRowCompletelyCorrectBelowConfThreasholdRaisesValueError(
+    def test_calculatePrecision_OneReportWithOneRowCompletelyCorrectBelowConfThreasholdRaisesEmptyReportError(
         self
     ):
         columns = ["sample", "query_probe_header", "ref_probe_header", "classification"]
@@ -445,7 +446,7 @@ class TestPrecisionCalculator:
         calculator = PrecisionCalculator([report])
         confidence_threshold = 60
 
-        with pytest.raises(ValueError):
+        with pytest.raises(EmptyReportError):
             calculator.calculate_precision(confidence_threshold)
 
     def test_calculatePrecision_OneReportWithOneRowCompletelyCorrectEqualConfThreasholdReturnsOne(

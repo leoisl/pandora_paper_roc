@@ -15,6 +15,10 @@ class StatisticalClassification(Enum):
     TRUE_NEGATIVE = "tn"
 
 
+class EmptyReportError(Exception):
+    pass
+
+
 class Calculator:
     def get_confident_classifications(
         self, conf_threshold: float
@@ -90,7 +94,7 @@ class RecallCalculator(Calculator):
         try:
             return true_positives / (true_positives + false_negatives)
         except ZeroDivisionError:
-            raise ValueError(
+            raise EmptyReportError(
                 "There are not classifications to compute recall on (no true_positives or false_negatives)"
             )
 
@@ -107,4 +111,6 @@ class PrecisionCalculator(Calculator):
         try:
             return true_positives / number_of_positives
         except ZeroDivisionError:
-            raise ValueError("There are not classifications to compute precision on")
+            raise EmptyReportError(
+                "There are not classifications to compute precision on"
+            )
