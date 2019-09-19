@@ -13,7 +13,7 @@ logging.basicConfig(
     datefmt="%d/%m/%Y %I:%M:%S %p",
 )
 
-from evaluate.calculator import PrecisionCalculator
+from evaluate.calculator import PrecisionCalculator, EmptyReportError
 import pandas as pd
 import numpy as np
 
@@ -41,7 +41,7 @@ for gt in all_gts:
         gts.append(gt)
         precisions.append(precision)
         error_rates.append(1 - precision)
-    except ValueError:
+    except EmptyReportError:
         pass
 
 precision_df = pd.DataFrame(
