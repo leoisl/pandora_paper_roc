@@ -156,3 +156,5 @@ analysis/precision/
 Snakefile\.py
 
 logs/
+
+analysis/plot/

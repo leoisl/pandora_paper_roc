@@ -38,6 +38,8 @@ for index, row in data.iterrows():
             f"analysis/variant_calls_probesets/{sample_id}/{coverage}/{tool}.variant_calls_probeset.fa"
         ]
     )
+error_rate_and_recall_file = f"analysis/plot/error_rate_and_recall_gt_min_{config['genotype_confidence_min']}_step_{config['genotype_confidence_step']}_max_{config['genotype_confidence_max']}.tsv"
+files.append(error_rate_and_recall_file)
 
 # Precision files
 for index, row in data.iterrows():
@@ -54,7 +56,8 @@ for index, row in data.iterrows():
     all_precision_report_files.append(f"analysis/precision/reports_from_probe_mappings/{sample_id}/{coverage}/{tool}/variant_calls_probeset_report.tsv")
 files.extend(all_precision_report_files)
 
-files.append(f"analysis/precision/precision_gt_min_{config['genotype_confidence_min']}_step_{config['genotype_confidence_step']}_max_{config['genotype_confidence_max']}.tsv")
+precision_file = f"analysis/precision/precision_gt_min_{config['genotype_confidence_min']}_step_{config['genotype_confidence_step']}_max_{config['genotype_confidence_max']}.tsv"
+files.append(precision_file)
 
 # Recall files
 for sample1, sample2 in sample_pairs:
@@ -73,7 +76,8 @@ for index, row in data.iterrows():
         all_recall_report_files.append(f"analysis/recall/reports/{sample_id}/{coverage}/{tool}/{filename_prefix}.report.tsv")
 files.extend(all_recall_report_files)
 
-files.append(f"analysis/recall/recall_gt_min_{config['genotype_confidence_min']}_step_{config['genotype_confidence_step']}_max_{config['genotype_confidence_max']}.tsv")
+recall_file = f"analysis/recall/recall_gt_min_{config['genotype_confidence_min']}_step_{config['genotype_confidence_step']}_max_{config['genotype_confidence_max']}.tsv"
+files.append(recall_file)
 
 # ======================================================
 # Rules
