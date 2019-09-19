@@ -35,7 +35,7 @@ rule calculate_precision:
          precision_file = "analysis/precision/precision_gt_min_{min_gt}_step_{step_gt}_max_{max_gt}.tsv"
     threads: 1
     resources:
-        mem_mb = lambda wildcards, attempt: 2000 * attempt
+        mem_mb = lambda wildcards, attempt: 4000 * attempt
     log:
         "logs/calculate_precision/gt_min_{min_gt}_step_{step_gt}_max_{max_gt}.log"
     script:
