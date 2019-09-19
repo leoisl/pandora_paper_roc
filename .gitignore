@@ -154,3 +154,5 @@ analysis/recall
 analysis/precision/
 
 Snakefile\.py
+
+logs/

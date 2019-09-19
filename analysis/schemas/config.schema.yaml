@@ -17,7 +17,18 @@ properties:
     truth_probes_flank_length:
         type:                   number
         description:            The flank length to use for truth calls.
-
+    genotype_confidence_min:
+        type:                   number
+        description:            The minimum genotype confidence of the calls in the ROC curve.
+        default:                0.0
+    genotype_confidence_max:
+        type:                   number
+        description:            The maximum genotype confidence of the calls in the ROC curve.
+        default:                1000000000.0
+    genotype_confidence_step:
+        type:                   number
+        description:            The genotype confidence step in the ROC curve.
+        default:                1.0
 
 required:
   - samples
