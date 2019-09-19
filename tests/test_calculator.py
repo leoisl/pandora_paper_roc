@@ -5,12 +5,14 @@ from evaluate.calculator import (
     RecallCalculator,
     StatisticalClassification,
     PrecisionCalculator,
+    Calculator,
 )
 from evaluate.classification import AlignmentAssessment
 from pathlib import Path
 
 import pytest
 from io import StringIO
+import math
 
 
 def create_tmp_file(contents: str) -> Path:
@@ -47,6 +49,33 @@ def create_precision_report_row(
         "classification": classification,
     }
     return pd.Series(data=data)
+
+
+class TestCalculator:
+    def test_getMaximumGtConf_no_gt_conf_columnRaisesKeyError(self):
+        calculator = Calculator([pd.DataFrame()])
+        with pytest.raises(KeyError):
+            calculator.get_maximum_gt_conf()
+
+    def test_getMaximumGtConf_emptyReportReturnsNaN(self):
+        calculator = Calculator([pd.DataFrame(data={"gt_conf": []})])
+        actual = calculator.get_maximum_gt_conf()
+
+        assert math.isnan(actual)
+
+    def test_getMaximumGtConf_oneGTConfInReportReturnsGTConf(self):
+        calculator = Calculator([pd.DataFrame(data={"gt_conf": [1.5]})])
+        actual = calculator.get_maximum_gt_conf()
+        expected = 1.5
+
+        assert actual == expected
+
+    def test_getMaximumGtConf_threeGTConfsInReportReturnsHighest(self):
+        calculator = Calculator([pd.DataFrame(data={"gt_conf": [1.5, 10.5, 5.0]})])
+        actual = calculator.get_maximum_gt_conf()
+        expected = 10.5
+
+        assert actual == expected
 
 
 class TestRecallCalculator:

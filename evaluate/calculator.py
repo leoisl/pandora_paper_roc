@@ -29,6 +29,9 @@ class Calculator:
             lambda column_name: ProbeHeader.from_string(column_name).gt_conf
         )
 
+    def get_maximum_gt_conf(self) -> float:
+        return self.report["gt_conf"].max()
+
     def __init__(self, reports: Iterable[pd.DataFrame]):
         self.report = pd.concat(reports)
 
