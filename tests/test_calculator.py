@@ -199,16 +199,14 @@ CFT073	>CHROM=1;POS=1281;INTERVAL=[70,80);		unmapped
         with pytest.raises(ValueError):
             RecallCalculator.statistical_classification(classification)
 
-    def test_calculateRecall_noReportsReturnsZero(self):
+    def test_calculateRecall_noReportsRaisesValueError(self):
         columns = ["sample", "query_probe_header", "ref_probe_header", "classification"]
         report = pd.DataFrame(columns=columns)
         calculator = RecallCalculator([report])
         threshold = 0
 
-        actual = calculator.calculate_recall(conf_threshold=threshold)
-        expected = 0
-
-        assert actual == expected
+        with pytest.raises(ValueError):
+            calculator.calculate_recall(conf_threshold=threshold)
 
     def test_calculateRecall_oneReportNoTruePositivesReturnsZero(self):
         columns = ["sample", "query_probe_header", "ref_probe_header", "classification"]
@@ -293,7 +291,7 @@ CFT073	>CHROM=1;POS=1281;INTERVAL=[70,80);		unmapped
 
         assert actual == expected
 
-    def test_calculateRecall_oneReportNoTruePositivesOrFalseNegativesReturnsZero(self):
+    def test_calculateRecall_oneReportNoTruePositivesOrFalseNegativesRaisesValueError(self):
         columns = ["sample", "query_probe_header", "ref_probe_header", "classification"]
         report = pd.DataFrame(
             data=[
@@ -309,8 +307,27 @@ CFT073	>CHROM=1;POS=1281;INTERVAL=[70,80);		unmapped
         calculator = RecallCalculator([report])
         threshold = 60
 
+        with pytest.raises(ValueError):
+            calculator.calculate_recall(conf_threshold=threshold)
+
+    def test_calculateRecall_oneReportAllTruePositivesAllBelowThresholdRaisesValueError(self):
+        columns = ["sample", "query_probe_header", "ref_probe_header", "classification"]
+        report = pd.DataFrame(
+            data=[
+                create_recall_report_row(
+                    AlignmentAssessment.PRIMARY_CORRECT, gt_conf=50
+                ),
+                create_recall_report_row(
+                    AlignmentAssessment.PRIMARY_CORRECT, gt_conf=80
+                ),
+            ],
+            columns=columns,
+        )
+        calculator = RecallCalculator([report])
+        threshold = 100
+
         actual = calculator.calculate_recall(conf_threshold=threshold)
-        expected = 0
+        expected = 0.0
 
         assert actual == expected
 
@@ -382,15 +399,13 @@ class TestPrecisionCalculator:
 
         assert actual.equals(expected)
 
-    def test_calculatePrecision_NoReportsReturnsZero(self):
+    def test_calculatePrecision_NoReportsRaisesValueError(self):
         columns = ["sample", "query_probe_header", "ref_probe_header", "classification"]
         report = pd.DataFrame(columns=columns)
         calculator = PrecisionCalculator([report])
 
-        actual = calculator.calculate_precision()
-        expected = 0.0
-
-        assert actual == expected
+        with pytest.raises(ValueError):
+            calculator.calculate_precision()
 
     def test_calculatePrecision_OneReportWithOneRowCompletelyCorrectReturnsOne(self):
         columns = ["sample", "query_probe_header", "ref_probe_header", "classification"]
@@ -416,7 +431,7 @@ class TestPrecisionCalculator:
 
         assert actual == expected
 
-    def test_calculatePrecision_OneReportWithOneRowCompletelyCorrectBelowConfThreasholdReturnsZero(
+    def test_calculatePrecision_OneReportWithOneRowCompletelyCorrectBelowConfThreasholdRaisesValueError(
         self
     ):
         columns = ["sample", "query_probe_header", "ref_probe_header", "classification"]
@@ -426,10 +441,8 @@ class TestPrecisionCalculator:
         calculator = PrecisionCalculator([report])
         confidence_threshold = 60
 
-        actual = calculator.calculate_precision(confidence_threshold)
-        expected = 0.0
-
-        assert actual == expected
+        with pytest.raises(ValueError):
+            calculator.calculate_precision(confidence_threshold)
 
     def test_calculatePrecision_OneReportWithOneRowCompletelyCorrectEqualConfThreasholdReturnsOne(
         self
