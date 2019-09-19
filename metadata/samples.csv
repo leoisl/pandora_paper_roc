@@ -1,4 +1,0 @@
-sample_id,reference,mask
-CFT073,data/references/CFT073.ref.fa,data/masks/CFT073.mask.bed
-H131800734,data/references/H131800734.ref.pilon.fa,data/masks/H131800734.mask.bed
-ST38,data/references/ST38.ref.pilon.fa,data/masks/ST38.mask.bed
