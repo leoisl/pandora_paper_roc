@@ -114,6 +114,8 @@ class AlignmentAssessment(Enum):
     SUPPLEMENTARY_CORRECT = "supplementary_correct"
     SUPPLEMENTARY_INCORRECT = "supplementary_incorrect"
 
+    def __str__(self):
+        return self.value
 
 class RecallClassification(Classification):
     def is_correct(self) -> bool:
