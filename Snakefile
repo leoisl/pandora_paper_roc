@@ -94,7 +94,10 @@ all_recall_files = [f"analysis/recall/recall_{tool_and_coverage}_gt_min_{min_gt}
 
 # Plot files
 files.append(f"analysis/plot/error_rate_and_recall_gt_min_{config['genotype_confidence_min']}_step_{config['genotype_confidence_step']}_max_{config['genotype_confidence_max']}.tsv")
-#files.append(f"analysis/plot/error_rate_and_recall_gt_min_{config['genotype_confidence_min']}_step_{config['genotype_confidence_step']}_max_{config['genotype_confidence_max']}.pdf")
+files.append(f"analysis/plot/error_rate_and_recall_gt_min_{config['genotype_confidence_min']}_step_{config['genotype_confidence_step']}_max_{config['genotype_confidence_max']}.pdf")
+
+
+
 
 # ======================================================
 # Rules
