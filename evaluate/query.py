@@ -6,6 +6,7 @@ from typing import Tuple, List, Dict
 import pysam
 
 from .probe import ProbeHeader, Probe, ProbeInterval
+from .vcf import VCF
 
 
 class OverlappingRecordsError(Exception):
@@ -63,16 +64,15 @@ class Query:
 
         for variant in variants:
             for sample in self.samples:
-                if is_invalid_vcf_entry(variant, sample):
+                vcf = VCF(variant, sample)
+                if vcf.is_invalid_vcf_entry:
                     continue
                 interval = self.calculate_probe_boundaries_for_entry(variant)
 
-                if interval in sample_to_intervals_to_probes[
-                    sample
-                ] and sample_to_intervals_to_probes[sample][
-                    interval
-                ].gt_conf > get_genotype_confidence(
-                    variant, sample
+                if (
+                    interval in sample_to_intervals_to_probes[sample]
+                    and sample_to_intervals_to_probes[sample][interval].gt_conf
+                    > vcf.genotype_confidence
                 ):
                     continue
 
@@ -84,7 +84,7 @@ class Query:
                 mutated_consensus += consensus[
                     last_idx:start_idx_of_variant_on_consensus
                 ]
-                mutated_consensus += get_variant_sequence(variant, sample)
+                mutated_consensus += vcf.variant_sequence
                 last_idx = start_idx_of_variant_on_consensus + variant.rlen
                 mutated_consensus += consensus[last_idx:]
                 probe_header = self._create_probe_header(sample, variant, interval)
@@ -112,18 +112,19 @@ class Query:
     def _create_probe_header(
         sample: str, variant: pysam.VariantRecord, interval: ProbeInterval
     ) -> ProbeHeader:
+        vcf = VCF(variant, sample)
         call_start_idx = max(0, variant.start - interval[0])
-        call_end_idx = call_start_idx + get_variant_length(variant, sample)
+        call_end_idx = call_start_idx + vcf.variant_length
         call_interval = ProbeInterval(call_start_idx, call_end_idx)
         return ProbeHeader(
             chrom=variant.chrom,
             sample=sample,
             pos=variant.pos,
             interval=call_interval,
-            svtype=get_svtype(variant),
-            mean_fwd_covg=get_mean_coverage_forward(variant, sample),
-            mean_rev_covg=get_mean_coverage_reverse(variant, sample),
-            gt_conf=get_genotype_confidence(variant, sample),
+            svtype=vcf.svtype,
+            mean_fwd_covg=vcf.mean_coverage_forward,
+            mean_rev_covg=vcf.mean_coverage_reverse,
+            gt_conf=vcf.genotype_confidence,
         )
 
 
@@ -203,48 +204,6 @@ def find_index_in_intervals(intervals: List[Tuple[int, int]], query: int) -> int
         if start <= query <= end:
             return i
     return -1
-
-
-# TODO: all these functions should be method in a class PandoraVariant(pysam.VariantRecord)
-def is_invalid_vcf_entry(entry: pysam.VariantRecord, sample: str) -> bool:
-    genotype = get_genotype(entry, sample)
-
-    return genotype is None
-
-
-def get_genotype_confidence(variant: pysam.VariantRecord, sample: str) -> float:
-    return float(variant.samples[sample].get("GT_CONF", 0))
-
-
-def get_genotype(variant: pysam.VariantRecord, sample: str) -> int:
-    return variant.samples[sample]["GT"][0]
-
-
-def get_variant_sequence(variant: pysam.VariantRecord, sample: str) -> str:
-    genotype = get_genotype(variant, sample)
-
-    if genotype is None:
-        return variant.ref
-    else:
-        return variant.alleles[genotype]
-
-
-def get_variant_length(variant: pysam.VariantRecord, sample: str) -> int:
-    return len(get_variant_sequence(variant, sample))
-
-
-def get_svtype(variant: pysam.VariantRecord) -> str:
-    return variant.info["SVTYPE"]
-
-
-def get_mean_coverage_forward(variant: pysam.VariantRecord, sample: str) -> int:
-    gt = get_genotype(variant, sample)
-    return int(variant.samples[sample]["MEAN_FWD_COVG"][gt])
-
-
-def get_mean_coverage_reverse(variant: pysam.VariantRecord, sample: str) -> int:
-    gt = get_genotype(variant, sample)
-    return int(variant.samples[sample]["MEAN_REV_COVG"][gt])
 
 
 def write_vcf_probes_to_file(
