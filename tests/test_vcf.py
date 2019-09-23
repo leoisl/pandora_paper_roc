@@ -74,7 +74,6 @@ class Test_VCF:
 
         assert actual == expected
 
-
     def test_genotype_genotypeNone_returnNone(self):
         entry = retrieve_entry_from_test_vcf(0)
         sample = "sample"

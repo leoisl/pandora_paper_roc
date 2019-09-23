@@ -3,9 +3,7 @@ import pysam
 
 
 class Filter:
-    def filter_records(
-        self, records: Iterable
-    ) -> Iterable:
+    def filter_records(self, records: Iterable) -> Iterable:
         return [
             record
             for record in records

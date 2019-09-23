@@ -1,9 +1,10 @@
 from unittest.mock import MagicMock
 from evaluate.coverage_filter import CoverageFilter
 
+
 class TestCoverageFilter:
     def test_recordShouldBeFilteredOut_coverageBelowThresholdReturnsTrue(self):
-        record = MagicMock(mean_coverage = 5)
+        record = MagicMock(mean_coverage=5)
         coverage_filter = CoverageFilter(10.0)
 
         actual = coverage_filter.record_should_be_filtered_out(record)
@@ -12,7 +13,7 @@ class TestCoverageFilter:
         assert actual == expected
 
     def test_recordShouldBeFilteredOut_coverageAboveThresholdReturnsFalse(self):
-        record = MagicMock(mean_coverage = 15)
+        record = MagicMock(mean_coverage=15)
         coverage_filter = CoverageFilter(10.0)
 
         actual = coverage_filter.record_should_be_filtered_out(record)
@@ -21,7 +22,7 @@ class TestCoverageFilter:
         assert actual == expected
 
     def test_recordShouldBeFilteredOut_coverageEqualsThresholdReturnsFalse(self):
-        record = MagicMock(mean_coverage = 10)
+        record = MagicMock(mean_coverage=10)
         coverage_filter = CoverageFilter(10.0)
 
         actual = coverage_filter.record_should_be_filtered_out(record)

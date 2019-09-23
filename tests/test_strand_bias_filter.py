@@ -59,7 +59,9 @@ class TestStrandBiasFilter:
 
         assert actual == expected
 
-    def test_recordShouldBeFilteredOut_strandRatioJustBeforeUpperThresholdReturnsFalse(self):
+    def test_recordShouldBeFilteredOut_strandRatioJustBeforeUpperThresholdReturnsFalse(
+        self
+    ):
         mocked_vcf = MagicMock(mean_coverage=100, mean_coverage_forward=89)
         strand_bias_filter = StrandBiasFilter(0.1)
 
