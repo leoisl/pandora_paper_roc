@@ -80,12 +80,12 @@ class Query:
                 consensus = gene.sequence[slice(*interval)]
                 last_idx = 0
 
-                start_idx_of_variant_on_consensus = variant.start - interval.start
+                start_idx_of_variant_on_consensus = vcf.start - interval.start
                 mutated_consensus += consensus[
                     last_idx:start_idx_of_variant_on_consensus
                 ]
                 mutated_consensus += vcf.variant_sequence
-                last_idx = start_idx_of_variant_on_consensus + variant.rlen
+                last_idx = start_idx_of_variant_on_consensus + vcf.rlen
                 mutated_consensus += consensus[last_idx:]
                 probe_header = self._create_probe_header(sample, variant, interval)
                 probe = Probe(header=probe_header, full_sequence=mutated_consensus)
@@ -113,13 +113,13 @@ class Query:
         sample: str, variant: pysam.VariantRecord, interval: ProbeInterval
     ) -> ProbeHeader:
         vcf = VCF(variant, sample)
-        call_start_idx = max(0, variant.start - interval[0])
+        call_start_idx = max(0, vcf.start - interval[0])
         call_end_idx = call_start_idx + vcf.variant_length
         call_interval = ProbeInterval(call_start_idx, call_end_idx)
         return ProbeHeader(
-            chrom=variant.chrom,
+            chrom=vcf.chrom,
             sample=sample,
-            pos=variant.pos,
+            pos=vcf.pos,
             interval=call_interval,
             svtype=vcf.svtype,
             mean_fwd_covg=vcf.mean_coverage_forward,

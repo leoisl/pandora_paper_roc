@@ -46,3 +46,23 @@ class VCF:
     def mean_coverage_reverse(self) -> int:
         genotype = self.genotype
         return int(self.variant.samples[self.sample]["MEAN_REV_COVG"][genotype])
+
+    @property
+    def mean_coverage(self) -> int:
+        return self.mean_coverage_forward + self.mean_coverage_reverse
+
+    @property
+    def pos(self) -> int:
+        return self.variant.pos
+
+    @property
+    def start(self) -> int:
+        return self.variant.start
+
+    @property
+    def rlen(self) -> int:
+        return self.variant.rlen
+
+    @property
+    def chrom(self) -> str:
+        return self.variant.chrom

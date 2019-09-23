@@ -64,6 +64,17 @@ class Test_VCF:
 
         assert actual == expected
 
+    def test_meanCoverage(self):
+        entry = retrieve_entry_from_test_vcf(1)
+        sample = "sample"
+        vcf = VCF(entry, sample)
+
+        actual = vcf.mean_coverage
+        expected = 13
+
+        assert actual == expected
+
+
     def test_genotype_genotypeNone_returnNone(self):
         entry = retrieve_entry_from_test_vcf(0)
         sample = "sample"
