@@ -9,15 +9,16 @@ from .probe import ProbeHeader, Probe, ProbeInterval
 from .vcf import VCF
 from .vcf_file import VCFFile
 
+
 class OverlappingRecordsError(Exception):
     pass
 
 
 class Query:
     def __init__(
-        self, vcf_filepath: Path, vcf_ref: Path, samples: List[str], flank_width: int = 0
+        self, vcf_file: VCFFile, vcf_ref: Path, samples: List[str], flank_width: int = 0
     ):
-        self.vcf_filepath = vcf_filepath
+        self.vcf_file = vcf_file
         self.genes = vcf_ref
         self._probe_names = set()
         self.flank_width = flank_width
@@ -30,16 +31,18 @@ class Query:
             for gene in genes_fasta:
                 for sample in self.samples:
                     try:
-                        vcfs = self.vcf_file.get_VCF_records_given_sample_and_gene(sample, gene.name)
+                        vcfs = self.vcf_file.get_VCF_records_given_sample_and_gene(
+                            sample, gene.name
+                        )
                     except ValueError as error:
                         if str(error).startswith("invalid contig"):
                             continue
                         else:
                             raise error
 
-                    probes_for_gene: Dict[str, str] = self._create_probes_for_gene_variants(
-                        gene, vcfs
-                    )
+                    probes_for_gene: Dict[
+                        str, str
+                    ] = self._create_probes_for_gene_variants(gene, vcfs)
                     for sample, probe in probes_for_gene.items():
                         query_probes[sample] += probe
 
@@ -75,9 +78,7 @@ class Query:
             last_idx = 0
 
             start_idx_of_variant_on_consensus = vcf.start - interval.start
-            mutated_consensus += consensus[
-                last_idx:start_idx_of_variant_on_consensus
-            ]
+            mutated_consensus += consensus[last_idx:start_idx_of_variant_on_consensus]
             mutated_consensus += vcf.variant_sequence
             last_idx = start_idx_of_variant_on_consensus + vcf.rlen
             mutated_consensus += consensus[last_idx:]
@@ -94,9 +95,7 @@ class Query:
 
         return sample_to_probes
 
-    def calculate_probe_boundaries_for_entry(
-        self, vcf: VCF
-    ) -> ProbeInterval:
+    def calculate_probe_boundaries_for_entry(self, vcf: VCF) -> ProbeInterval:
         probe_start = max(0, vcf.start - self.flank_width)
         probe_stop = vcf.stop + self.flank_width
 

@@ -1,68 +1,118 @@
-from unittest.mock import patch, PropertyMock, MagicMock
-import pysam
+from unittest.mock import patch, MagicMock
 from evaluate.vcf_file import VCFFile
-from pytest import fixture
 from evaluate.vcf import VCF
+from typing import List
+from collections import defaultdict
 
 
-variantMock1 = MagicMock()
-variantMock2 = MagicMock()
+def build_test_input_and_output(
+    nb_of_samples: int, nb_of_records_in_each_gene: List[int]
+):
+    sample_to_gene_to_VCFs = defaultdict(lambda: defaultdict(list))
+    list_of_variant_records = []
+    samples = [f"samples_{sample_number}" for sample_number in range(nb_of_samples)]
+    for gene_number, nb_of_records in enumerate(nb_of_records_in_each_gene):
+        gene = f"gene_{gene_number}"
+        for _ in range(nb_of_records):
+            variant_record_mock = MagicMock(samples=samples, chrom=gene)
+            list_of_variant_records.append(variant_record_mock)
+            for sample in samples:
+                sample_to_gene_to_VCFs[sample][gene].append(
+                    VCF(variant=variant_record_mock, sample=sample)
+                )
+
+    return list_of_variant_records, sample_to_gene_to_VCFs
+
 
 class Test_VCFFile:
-    @patch.object(VCFFile, VCFFile.__init__.__name__, return_value=None)
-    @patch.object(VCFFile, VCFFile.subset_samples.__name__)
-    @patch.object(VCFFile, VCFFile.fetch.__name__)
-    def test_getVCFRecordsGivenSampleAndGene_noRecordsInVariantFileMatchingSampleAndGeneReturnsEmpty(self, mock_fetch, mock_subset_samples, mock_init):
-        vcf_file = VCFFile()
+    @patch("pysam.VariantFile")
+    def test_constructor_noRecordsInVCFReturnsNothing(self, variant_file_mock):
+        list_of_variant_records, expected = build_test_input_and_output(
+            nb_of_samples=0, nb_of_records_in_each_gene=[]
+        )
+        variant_file_mock.return_value.__enter__.return_value.__iter__.return_value = (
+            list_of_variant_records
+        )
 
-        actual = vcf_file.get_VCF_records_given_sample_and_gene("sample", "gene")
-        expected = []
-
-        assert actual == expected
-        mock_subset_samples.assert_called_once_with(["sample"])
-        mock_fetch.assert_called_once_with("gene")
-
-
-    @patch.object(VCFFile, VCFFile.__init__.__name__, return_value=None)
-    @patch.object(VCFFile, VCFFile.subset_samples.__name__)
-    @patch.object(VCFFile, VCFFile.fetch.__name__, return_value=[variantMock1])
-    def test_getVCFRecordsGivenSampleAndGene_oneRecordInVariantFileMatchingSampleAndGeneReturnsRecord(self, mock_fetch, mock_subset_samples, mock_init):
-        vcf_file = VCFFile()
-        vcf_records = vcf_file.get_VCF_records_given_sample_and_gene("sample", "gene")
-
-        actual = [vcf_record.__dict__ for vcf_record in vcf_records]
-        expected = [VCF(variantMock1, "sample").__dict__]
+        vcf_file = VCFFile(None)
+        actual = vcf_file.sample_to_gene_to_VCFs
 
         assert actual == expected
-        mock_subset_samples.assert_called_once_with(["sample"])
-        mock_fetch.assert_called_once_with("gene")
 
+    @patch("pysam.VariantFile")
+    def test_constructor_oneRecordInVCFReturnsIndexedRecord(self, variant_file_mock):
+        list_of_variant_records, expected = build_test_input_and_output(
+            nb_of_samples=1, nb_of_records_in_each_gene=[1]
+        )
+        variant_file_mock.return_value.__enter__.return_value.__iter__.return_value = (
+            list_of_variant_records
+        )
 
-    @patch.object(VCFFile, VCFFile.__init__.__name__, return_value=None)
-    @patch.object(VCFFile, VCFFile.subset_samples.__name__)
-    @patch.object(VCFFile, VCFFile.fetch.__name__, return_value=[variantMock1, variantMock2])
-    def test_getVCFRecordsGivenSampleAndGene_twoRecordsInVariantFileMatchingSampleAndGeneReturnsTwoRecords(self, mock_fetch, mock_subset_samples, mock_init):
-        vcf_file = VCFFile()
-        vcf_records = vcf_file.get_VCF_records_given_sample_and_gene("sample", "gene")
-
-        actual = [vcf_record.__dict__ for vcf_record in vcf_records]
-        expected = [VCF(variantMock1, "sample").__dict__, VCF(variantMock2, "sample").__dict__]
-
-        assert actual == expected
-        mock_subset_samples.assert_called_once_with(["sample"])
-        mock_fetch.assert_called_once_with("gene")
-
-
-    @patch.object(VCFFile, VCFFile.__init__.__name__, return_value=None)
-    @patch.object(VCFFile, VCFFile.subset_samples.__name__)
-    @patch.object(VCFFile, VCFFile.fetch.__name__, return_value=[variantMock2])
-    def test_getVCFRecordsGivenSampleAndGene_twoRecordsInVariantFileOneMatchingSampleAndGeneReturnsOneRecord(self, mock_fetch, mock_subset_samples, mock_init):
-        vcf_file = VCFFile()
-        vcf_records = vcf_file.get_VCF_records_given_sample_and_gene("sample", "gene")
-
-        actual = [vcf_record.__dict__ for vcf_record in vcf_records]
-        expected = [VCF(variantMock2, "sample").__dict__]
+        vcf_file = VCFFile(None)
+        actual = vcf_file.sample_to_gene_to_VCFs
 
         assert actual == expected
-        mock_subset_samples.assert_called_once_with(["sample"])
-        mock_fetch.assert_called_once_with("gene")
+
+    @patch("pysam.VariantFile")
+    def test_constructor_oneRecordInTwoSamplesAndOneGeneVCFReturnsIndexedRecord(
+        self, variant_file_mock
+    ):
+        list_of_variant_records, expected = build_test_input_and_output(
+            nb_of_samples=2, nb_of_records_in_each_gene=[1]
+        )
+        variant_file_mock.return_value.__enter__.return_value.__iter__.return_value = (
+            list_of_variant_records
+        )
+
+        vcf_file = VCFFile(None)
+        actual = vcf_file.sample_to_gene_to_VCFs
+
+        assert actual == expected
+
+    @patch("pysam.VariantFile")
+    def test_constructor_twoRecordsInOneSampleAndTwoGenesVCFReturnsIndexedRecords(
+        self, variant_file_mock
+    ):
+        list_of_variant_records, expected = build_test_input_and_output(
+            nb_of_samples=1, nb_of_records_in_each_gene=[1, 1]
+        )
+        variant_file_mock.return_value.__enter__.return_value.__iter__.return_value = (
+            list_of_variant_records
+        )
+
+        vcf_file = VCFFile(None)
+        actual = vcf_file.sample_to_gene_to_VCFs
+
+        assert actual == expected
+
+    @patch("pysam.VariantFile")
+    def test_constructor_twoRecordsInOneSampleAndOneGeneVCFReturnsIndexedRecords(
+        self, variant_file_mock
+    ):
+        list_of_variant_records, expected = build_test_input_and_output(
+            nb_of_samples=1, nb_of_records_in_each_gene=[2]
+        )
+        variant_file_mock.return_value.__enter__.return_value.__iter__.return_value = (
+            list_of_variant_records
+        )
+
+        vcf_file = VCFFile(None)
+        actual = vcf_file.sample_to_gene_to_VCFs
+
+        assert actual == expected
+
+    @patch("pysam.VariantFile")
+    def test_constructor_severalRecordsInSeveralSamplesAndSeveralGenesVCFReturnsIndexedRecords(
+        self, variant_file_mock
+    ):
+        list_of_variant_records, expected = build_test_input_and_output(
+            nb_of_samples=10, nb_of_records_in_each_gene=[5, 3, 4, 10, 15, 23, 41, 2]
+        )
+        variant_file_mock.return_value.__enter__.return_value.__iter__.return_value = (
+            list_of_variant_records
+        )
+
+        vcf_file = VCFFile(None)
+        actual = vcf_file.sample_to_gene_to_VCFs
+
+        assert actual == expected

@@ -4,6 +4,7 @@ from .coverage_filter import CoverageFilter
 from .strand_bias_filter import StrandBiasFilter
 from .gaps_filter import GapsFilter
 
+
 class VCF_Filters(UserList):
     def record_should_be_filtered_out(self, vcf_record: VCF) -> bool:
         return any(

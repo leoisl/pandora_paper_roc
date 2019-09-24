@@ -1,34 +1,26 @@
 from pathlib import Path
 import pysam
-from typing import List, Iterable
+from typing import List
 from .vcf import VCF
+from collections import defaultdict
+
 
 class VCFFile:
-    def __init__(self, pysam_variant_file: pysam.VariantFile):
-        self._pysam_variant_file = pysam_variant_file
-        self.sample_to_gene_to_VCF = {}
-        with op
+    def __init__(self, vcf_filepath: Path):
+        self._sample_to_gene_to_VCFs = defaultdict(lambda: defaultdict(list))
+        with pysam.VariantFile(vcf_filepath) as pysam_variant_file:
+            for variant_record in pysam_variant_file:
+                for sample in variant_record.samples:
+                    gene = variant_record.chrom
+                    self._sample_to_gene_to_VCFs[sample][gene].append(
+                        VCF(variant_record, sample)
+                    )
 
-    # @property
-    # def pysam_variant_file(self):
-    #     return self._pysam_variant_file
+    @property
+    def sample_to_gene_to_VCFs(self):
+        return self._sample_to_gene_to_VCFs
 
-    def subset_samples(self, samples: List[str]):
-        self.pysam_variant_file.subset_samples(samples)
-
-    def fetch(self, gene_name: str) -> Iterable:
-        return self.pysam_variant_file.fetch(contig=gene_name)
-
-    def get_VCF_records_given_sample_and_gene(self, sample: str, gene_name: str) -> List[VCF]:
-        self.subset_samples([sample])
-        variants_iterator = self.fetch(gene_name)
-        vcf_records = [VCF(variant, sample) for variant in variants_iterator]
-        return vcf_records
-
-
-    @staticmethod
-    def from_path(filepath : Path) -> "VCFFile":
-        indexed_vcf = pysam.VariantFile(Path(
-            pysam.tabix_index(str(filepath), preset="vcf", keep_original=True, force=True)
-        ))
-        return VCFFile(indexed_vcf)
+    def get_VCF_records_given_sample_and_gene(
+        self, sample: str, gene_name: str
+    ) -> List[VCF]:
+        return self.sample_to_gene_to_VCFs[sample][gene_name]

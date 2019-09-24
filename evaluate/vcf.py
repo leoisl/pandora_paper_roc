@@ -8,37 +8,7 @@ class VCF:
         self.sample = sample
 
     def __eq__(self, other):
-        return (
-            self.genotype,
-            self.genotype_confidence,
-            self.variant_sequence,
-            self.svtype,
-            self.mean_coverage_forward,
-            self.mean_coverage_reverse,
-            self.pos,
-            self.chrom,
-        ) == (
-            other.genotype,
-            other.genotype_confidence,
-            other.variant_sequence,
-            other.svtype,
-            other.mean_coverage_forward,
-            other.mean_coverage_reverse,
-            other.pos,
-            other.chrom,
-        )
-
-    def __repr__(self):
-        return str((
-            self.genotype,
-            self.genotype_confidence,
-            self.variant_sequence,
-            self.svtype,
-            self.mean_coverage_forward,
-            self.mean_coverage_reverse,
-            self.pos,
-            self.chrom,
-        ))
+        return self.__dict__ == other.__dict__
 
     @property
     def genotype(self) -> int:
