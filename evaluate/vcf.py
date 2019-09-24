@@ -35,7 +35,15 @@ class VCF:
     @property
     def is_invalid_vcf_entry(self) -> bool:
         genotype = self.genotype
-        return genotype is None
+        no_genotype_called = genotype is None
+        if no_genotype_called:
+            return True
+
+        genotype_called_wrongly = genotype not in self.highest_likelihood_indexes
+        if genotype_called_wrongly:
+            return True
+
+        return False
 
     @property
     def genotype_confidence(self) -> float:
@@ -88,3 +96,13 @@ class VCF:
     @property
     def chrom(self) -> str:
         return self.variant.chrom
+
+    @property
+    def likelihoods(self) -> Iterable[float]:
+        return [float(likelihood) for likelihood in self.variant.samples[self.sample]["LIKELIHOOD"]]
+
+    @property
+    def highest_likelihood_indexes(self) -> Iterable[int]:
+        highest_likelihood_indexes = [index for index, likelihood in enumerate(self.likelihoods) if
+                                      likelihood == max(self.likelihoods)]
+        return highest_likelihood_indexes

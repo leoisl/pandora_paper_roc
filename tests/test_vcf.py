@@ -31,6 +31,26 @@ class Test_VCF:
 
         assert actual == expected
 
+    @patch.object(
+        VCF,
+        "highest_likelihood_indexes",
+        new_callable=PropertyMock,
+        return_value=[0, 2],
+    )
+    @patch.object(VCF, "genotype", new_callable=PropertyMock, return_value=1)
+    def test_isInvalidVcfEntry_withWronglyCalledGenotypeGenotype_returnTrue(
+        self, *mocks
+    ):
+        vcf = VCF()
+
+        actual = vcf.is_invalid_vcf_entry
+        expected = True
+
+        assert actual == expected
+
+    @patch.object(
+        VCF, "highest_likelihood_indexes", new_callable=PropertyMock, return_value=[1]
+    )
     @patch.object(VCF, "genotype", new_callable=PropertyMock, return_value=1)
     def test_isInvalidVcfEntry_withGenotype1_returnFalse(self, *mocks):
         vcf = VCF()
@@ -169,5 +189,26 @@ class Test_VCF:
 
         actual = vcf.variant_length
         expected = 12
+
+        assert actual == expected
+
+    def test_likelihoods_fromVCFFile(self):
+        entry = retrieve_entry_from_test_vcf(1)
+        sample = "sample"
+        vcf = VCF(entry, sample)
+
+        actual = vcf.likelihoods
+        expected = [-63.3221, -326.079, -432.546]
+
+        assert actual == expected
+
+    @patch.object(
+        VCF, "likelihoods", new_callable=PropertyMock, return_value=[-100, -200, -2]
+    )
+    def test_highestLikelihoodIndexes_oneHighestIndex(self, *mocks):
+        vcf = VCF()
+
+        actual = vcf.highest_likelihood_indexes
+        expected = [2]
 
         assert actual == expected
