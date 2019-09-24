@@ -28,6 +28,18 @@ class VCF:
             other.chrom,
         )
 
+    def __repr__(self):
+        return str((
+            self.genotype,
+            self.genotype_confidence,
+            self.variant_sequence,
+            self.svtype,
+            self.mean_coverage_forward,
+            self.mean_coverage_reverse,
+            self.pos,
+            self.chrom,
+        ))
+
     @property
     def genotype(self) -> int:
         return self.variant.samples[self.sample]["GT"][0]
@@ -88,6 +100,10 @@ class VCF:
     @property
     def start(self) -> int:
         return int(self.variant.start)
+
+    @property
+    def stop(self) -> int:
+        return int(self.variant.stop)
 
     @property
     def rlen(self) -> int:

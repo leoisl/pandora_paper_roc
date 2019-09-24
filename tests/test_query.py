@@ -8,6 +8,7 @@ from tests.common import (
     retrieve_entry_from_test_vcf,
     retrieve_entry_from_test_query_vcf,
 )
+from evaluate.vcf_file import VCFFile
 
 
 class TestQuery:
@@ -60,7 +61,7 @@ class TestQuery:
         assert actual == expected
 
     def test_makeProbes_emptyVariantsReturnsEmptyProbes(self):
-        vcf = TEST_CASES / "empty.vcf"
+        vcf = VCFFile.from_path(TEST_CASES / "empty.vcf")
         genes = TEST_QUERY_REF
         samples = ["sample"]
         query = Query(vcf, genes, samples)
@@ -82,7 +83,7 @@ class TestQuery:
         assert actual == expected
 
     def test_makeProbes_oneGeneOneVcfRecordNotInGeneReturnsEmptyProbes(self):
-        vcf = TEST_CASES / "empty.vcf"
+        vcf = VCFFile.from_path(TEST_CASES / "empty.vcf")
         genes = TEST_QUERY_REF
         samples = ["sample"]
         query = Query(vcf, genes, samples)
@@ -93,7 +94,7 @@ class TestQuery:
         assert actual == expected
 
     def test_makeProbes_oneGeneOneVcfRecordInGeneReturnsOneProbe(self):
-        vcf = TEST_CASES / "make_probes_1.vcf"
+        vcf = VCFFile.from_path(TEST_CASES / "make_probes_1.vcf")
         genes = TEST_CASES / "make_probes_1.fa"
         flank_width = 3
         samples = ["sample"]
@@ -122,7 +123,7 @@ class TestQuery:
         assert actual == expected
 
     def test_makeProbes_oneGeneTwoNonCloseVcfRecordsInGeneReturnsTwoProbes(self):
-        vcf = TEST_CASES / "make_probes_3.vcf"
+        vcf = VCFFile.from_path(TEST_CASES / "make_probes_3.vcf")
         genes = TEST_CASES / "make_probes_2.fa"
         flank_width = 5
         samples = ["sample"]
@@ -167,7 +168,7 @@ class TestQuery:
         assert actual == expected
 
     def test_makeProbes_twoGenesTwoNonCloseVcfRecordsInOneGeneReturnsTwoProbes(self):
-        vcf = TEST_CASES / "make_probes_3.vcf"
+        vcf = VCFFile.from_path(TEST_CASES / "make_probes_3.vcf")
         genes = TEST_CASES / "make_probes_3.fa"
         flank_width = 5
         samples = ["sample"]
@@ -212,7 +213,7 @@ class TestQuery:
         assert actual == expected
 
     def test_makeProbes_twoGenesTwoVcfRecordsOneInEachGeneReturnsTwoProbes(self):
-        vcf = TEST_CASES / "make_probes_4.vcf"
+        vcf = VCFFile.from_path(TEST_CASES / "make_probes_4.vcf")
         genes = TEST_CASES / "make_probes_3.fa"
         flank_width = 5
         samples = ["sample"]
@@ -259,7 +260,7 @@ class TestQuery:
     def test_makeProbes_oneGeneTwoVcfRecordsInTheSameIntervalWithDifferentGTConfReturnsProbeWithHighestGTConf(
         self
     ):
-        vcf = TEST_CASES / "make_probes_6.vcf"
+        vcf = VCFFile.from_path(TEST_CASES / "make_probes_6.vcf")
         genes = TEST_CASES / "make_probes_6.fa"
         flank_width = 5
         samples = ["sample"]
@@ -290,7 +291,8 @@ class TestQuery:
     def test_createProbeHeader(self):
         flank_width = 3
         sample = "sample"
-        query = Query(TEST_VCF, TEST_PANEL, [sample], flank_width=flank_width)
+        vcf = VCFFile.from_path(TEST_VCF)
+        query = Query(vcf, TEST_PANEL, [sample], flank_width=flank_width)
         variant = retrieve_entry_from_test_vcf(2)
         interval = query.calculate_probe_boundaries_for_entry(variant)
 
