@@ -212,3 +212,13 @@ class Test_VCF:
         expected = [2]
 
         assert actual == expected
+
+    def test_gaps_fromVCFFile(self):
+        entry = retrieve_entry_from_test_vcf(1)
+        sample = "sample"
+        vcf = VCF(entry, sample)
+
+        actual = vcf.gaps
+        expected = 0.75
+
+        assert actual == expected

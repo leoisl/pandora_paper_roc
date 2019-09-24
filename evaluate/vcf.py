@@ -106,3 +106,7 @@ class VCF:
         highest_likelihood_indexes = [index for index, likelihood in enumerate(self.likelihoods) if
                                       likelihood == max(self.likelihoods)]
         return highest_likelihood_indexes
+
+    @property
+    def gaps(self) -> float:
+        return float(self.variant.samples[self.sample]["GAPS"][self.genotype])
