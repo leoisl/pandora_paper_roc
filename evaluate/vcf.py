@@ -99,12 +99,18 @@ class VCF:
 
     @property
     def likelihoods(self) -> Iterable[float]:
-        return [float(likelihood) for likelihood in self.variant.samples[self.sample]["LIKELIHOOD"]]
+        return [
+            float(likelihood)
+            for likelihood in self.variant.samples[self.sample]["LIKELIHOOD"]
+        ]
 
     @property
     def highest_likelihood_indexes(self) -> Iterable[int]:
-        highest_likelihood_indexes = [index for index, likelihood in enumerate(self.likelihoods) if
-                                      likelihood == max(self.likelihoods)]
+        highest_likelihood_indexes = [
+            index
+            for index, likelihood in enumerate(self.likelihoods)
+            if likelihood == max(self.likelihoods)
+        ]
         return highest_likelihood_indexes
 
     @property
