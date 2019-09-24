@@ -1,10 +1,32 @@
 import pysam
+from typing import Iterable
 
 
 class VCF:
     def __init__(self, variant: pysam.VariantRecord = None, sample: str = None):
         self.variant = variant
         self.sample = sample
+
+    def __eq__(self, other):
+        return (
+            self.genotype,
+            self.genotype_confidence,
+            self.variant_sequence,
+            self.svtype,
+            self.mean_coverage_forward,
+            self.mean_coverage_reverse,
+            self.pos,
+            self.chrom,
+        ) == (
+            other.genotype,
+            other.genotype_confidence,
+            other.variant_sequence,
+            other.svtype,
+            other.mean_coverage_forward,
+            other.mean_coverage_reverse,
+            other.pos,
+            other.chrom,
+        )
 
     @property
     def genotype(self) -> int:
@@ -53,15 +75,15 @@ class VCF:
 
     @property
     def pos(self) -> int:
-        return self.variant.pos
+        return int(self.variant.pos)
 
     @property
     def start(self) -> int:
-        return self.variant.start
+        return int(self.variant.start)
 
     @property
     def rlen(self) -> int:
-        return self.variant.rlen
+        return int(self.variant.rlen)
 
     @property
     def chrom(self) -> str:

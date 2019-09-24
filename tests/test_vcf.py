@@ -4,6 +4,24 @@ from unittest.mock import patch, PropertyMock, MagicMock
 
 
 class Test_VCF:
+    def test_init_retrieveVCFFromFile(self):
+        entry = retrieve_entry_from_test_vcf(1)
+        sample = "sample"
+
+        actual = VCF(entry, sample)
+        expected = MagicMock(
+            genotype=1,
+            genotype_confidence=262.757,
+            variant_sequence="TTGGGGGAAGGCTCTGCACTGCCCGTTGGC",
+            svtype="COMPLEX",
+            mean_coverage_forward=6,
+            mean_coverage_reverse=7,
+            pos=1,
+            chrom="GC00000001_155",
+        )
+
+        assert actual == expected
+
     @patch.object(VCF, "genotype", new_callable=PropertyMock, return_value=None)
     def test_isInvalidVcfEntry_withNoneGenotype_returnTrue(self, *mocks):
         vcf = VCF()
