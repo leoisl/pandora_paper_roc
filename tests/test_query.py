@@ -294,7 +294,7 @@ class TestQuery:
         vcf = VCFFile(TEST_VCF)
         query = Query(vcf, TEST_PANEL, [sample], flank_width=flank_width)
         variant = retrieve_entry_from_test_vcf(2)
-        vcf = VCF(variant, sample)
+        vcf = VCF.from_VariantRecord_and_Sample(variant, sample)
         interval = query.calculate_probe_boundaries_for_entry(vcf)
 
         actual = Query._create_probe_header(sample, vcf, interval)

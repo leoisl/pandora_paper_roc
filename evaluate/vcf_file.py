@@ -13,7 +13,7 @@ class VCFFile:
                 for sample in variant_record.samples:
                     gene = variant_record.chrom
                     self._sample_to_gene_to_VCFs[sample][gene].append(
-                        VCF(variant_record, sample)
+                        VCF.from_VariantRecord_and_Sample(variant_record, sample)
                     )
 
     @property

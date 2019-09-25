@@ -1,4 +1,4 @@
-from unittest.mock import MagicMock, PropertyMock, patch
+from unittest.mock import Mock, PropertyMock, patch
 from evaluate.filtered_vcf_file import FilteredVCFFile
 from .test_vcf_file import build_test_input_and_output
 from evaluate.vcf_filters import VCF_Filters
@@ -8,9 +8,9 @@ _, sample_to_gene_to_VCFs_all_records = build_test_input_and_output(
     nb_of_samples=3, nb_of_records_in_each_gene=[2, 3, 1]
 )
 
-remove_record_filter_mock = MagicMock()
+remove_record_filter_mock = Mock()
 remove_record_filter_mock.record_should_be_filtered_out.return_value = True
-keep_record_filter_mock = MagicMock()
+keep_record_filter_mock = Mock()
 keep_record_filter_mock.record_should_be_filtered_out.return_value = False
 
 class TestFilteredVCFFile:
@@ -48,10 +48,10 @@ class TestFilteredVCFFile:
         assert actual == expected
 
     def test_filter_records_twoFiltersOneFiltersGene0OtherFiltersGene2ReturnsRecordsInGene1(self):
-        filter_gene_0_mock = MagicMock()
-        filter_gene_0_mock.record_should_be_filtered_out.side_effect = lambda vcf_record : vcf_record.chrom == "gene_0"
-        filter_gene_2_mock = MagicMock()
-        filter_gene_2_mock.record_should_be_filtered_out.side_effect = lambda vcf_record : vcf_record.chrom == "gene_2"
+        filter_gene_0_mock = Mock()
+        filter_gene_0_mock.record_should_be_filtered_out.side_effect = lambda vcf_record : vcf_record.variant.chrom == "gene_0"
+        filter_gene_2_mock = Mock()
+        filter_gene_2_mock.record_should_be_filtered_out.side_effect = lambda vcf_record : vcf_record.variant.chrom == "gene_2"
         filters = VCF_Filters([filter_gene_0_mock, filter_gene_2_mock])
 
         actual = FilteredVCFFile._filter_records(sample_to_gene_to_VCFs_all_records, filters)

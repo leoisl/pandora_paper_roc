@@ -3,9 +3,12 @@ from typing import Iterable
 
 
 class VCF:
-    def __init__(self, variant: pysam.VariantRecord = None, sample: str = None):
-        self.variant = variant
-        self.sample = sample
+    @staticmethod
+    def from_VariantRecord_and_Sample(variant: pysam.VariantRecord = None, sample: str = None) -> "VCF":
+        vcf = VCF()
+        vcf.variant = variant
+        vcf.sample = sample
+        return vcf
 
     def __eq__(self, other):
         return self.__dict__ == other.__dict__
