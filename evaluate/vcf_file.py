@@ -1,6 +1,6 @@
 from pathlib import Path
 import pysam
-from typing import List
+from typing import List, Dict
 from .vcf import VCF
 from collections import defaultdict
 
@@ -17,7 +17,7 @@ class VCFFile:
                     )
 
     @property
-    def sample_to_gene_to_VCFs(self):
+    def sample_to_gene_to_VCFs(self) -> Dict[str, Dict[str, List[VCF]]]:
         return self._sample_to_gene_to_VCFs
 
     def get_VCF_records_given_sample_and_gene(
