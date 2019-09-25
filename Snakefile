@@ -47,56 +47,52 @@ all_precision_files=[]
 all_recall_files=[]
 
 
-
 # Precision files
 for index, row in data.iterrows():
     sample_id, coverage, tool = row["sample_id"], row["coverage"], row["tool"]
-    files.extend(
-        [
-            f"analysis/precision/variant_calls_probesets_mapped_to_refs/{sample_id}/{coverage}/{tool}/variant_calls_probeset_mapped.sam",
-        ]
-    )
+    files_with_filters = expand(f"analysis/precision/variant_calls_probesets_mapped_to_refs/{sample_id}/{coverage}/{tool}/coverage_filter_{{coverage_threshold}}/strand_bias_filter_{{strand_bias_threshold}}/gaps_filter_{{gaps_threshold}}/variant_calls_probeset_mapped.sam", coverage_threshold = coverage_filters, strand_bias_threshold = strand_bias_filters, gaps_threshold = gaps_filters)
+    files.extend(files_with_filters)
 
-tool_and_coverage_to_precision_report_files = defaultdict(list)
-for index, row in data.iterrows():
-    sample_id, coverage, tool = row["sample_id"], row["coverage"], row["tool"]
-    tool_and_coverage_to_precision_report_files[f"{tool}_{coverage}"].append(f"analysis/precision/reports_from_probe_mappings/{sample_id}/{coverage}/{tool}/variant_calls_probeset_report.tsv")
-for precision_report_files in tool_and_coverage_to_precision_report_files.values():
-    files.extend(precision_report_files)
-
-all_precision_files = [f"analysis/precision/precision_{tool_and_coverage}_gt_min_{min_gt}_step_{step_gt}_max_{max_gt}.tsv"
-                       for tool_and_coverage in tool_and_coverage_to_precision_report_files]
-
-
-
-
-# Recall files
-for sample1, sample2 in sample_pairs:
-    files.extend(
-        [
-            f"analysis/recall/truth_probesets/{sample1}/{sample1}_and_{sample2}.truth_probeset.fa",
-            f"analysis/recall/truth_probesets/{sample2}/{sample1}_and_{sample2}.truth_probeset.fa",
-        ]
-    )
-
-tool_and_coverage_to_recall_report_files = defaultdict(list)
-for index, row in data.iterrows():
-    sample_id, coverage, tool = row["sample_id"], row["coverage"], row["tool"]
-    for sample1, sample2 in [pair for pair in sample_pairs if sample_id in pair]:
-        filename_prefix = f"{sample1}_and_{sample2}"
-        tool_and_coverage_to_recall_report_files[f"{tool}_{coverage}"].append(f"analysis/recall/reports/{sample_id}/{coverage}/{tool}/{filename_prefix}.report.tsv")
-for recall_report_files in tool_and_coverage_to_recall_report_files.values():
-    files.extend(recall_report_files)
-
-all_recall_files = [f"analysis/recall/recall_{tool_and_coverage}_gt_min_{min_gt}_step_{step_gt}_max_{max_gt}.tsv"
-                       for tool_and_coverage in tool_and_coverage_to_precision_report_files]
-
-
-
-
-# Plot files
-files.append(f"analysis/plot/error_rate_and_recall_gt_min_{config['genotype_confidence_min']}_step_{config['genotype_confidence_step']}_max_{config['genotype_confidence_max']}.tsv")
-files.append(f"analysis/plot/error_rate_and_recall_gt_min_{config['genotype_confidence_min']}_step_{config['genotype_confidence_step']}_max_{config['genotype_confidence_max']}.pdf")
+# tool_and_coverage_to_precision_report_files = defaultdict(list)
+# for index, row in data.iterrows():
+#     sample_id, coverage, tool = row["sample_id"], row["coverage"], row["tool"]
+#     tool_and_coverage_to_precision_report_files[f"{tool}_{coverage}"].append(f"analysis/precision/reports_from_probe_mappings/{sample_id}/{coverage}/{tool}/variant_calls_probeset_report.tsv")
+# for precision_report_files in tool_and_coverage_to_precision_report_files.values():
+#     files.extend(precision_report_files)
+#
+# all_precision_files = [f"analysis/precision/precision_{tool_and_coverage}_gt_min_{min_gt}_step_{step_gt}_max_{max_gt}.tsv"
+#                        for tool_and_coverage in tool_and_coverage_to_precision_report_files]
+#
+#
+#
+#
+# # Recall files
+# for sample1, sample2 in sample_pairs:
+#     files.extend(
+#         [
+#             f"analysis/recall/truth_probesets/{sample1}/{sample1}_and_{sample2}.truth_probeset.fa",
+#             f"analysis/recall/truth_probesets/{sample2}/{sample1}_and_{sample2}.truth_probeset.fa",
+#         ]
+#     )
+#
+# tool_and_coverage_to_recall_report_files = defaultdict(list)
+# for index, row in data.iterrows():
+#     sample_id, coverage, tool = row["sample_id"], row["coverage"], row["tool"]
+#     for sample1, sample2 in [pair for pair in sample_pairs if sample_id in pair]:
+#         filename_prefix = f"{sample1}_and_{sample2}"
+#         tool_and_coverage_to_recall_report_files[f"{tool}_{coverage}"].append(f"analysis/recall/reports/{sample_id}/{coverage}/{tool}/{filename_prefix}.report.tsv")
+# for recall_report_files in tool_and_coverage_to_recall_report_files.values():
+#     files.extend(recall_report_files)
+#
+# all_recall_files = [f"analysis/recall/recall_{tool_and_coverage}_gt_min_{min_gt}_step_{step_gt}_max_{max_gt}.tsv"
+#                        for tool_and_coverage in tool_and_coverage_to_precision_report_files]
+#
+#
+#
+#
+# # Plot files
+# files.append(f"analysis/plot/error_rate_and_recall_gt_min_{config['genotype_confidence_min']}_step_{config['genotype_confidence_step']}_max_{config['genotype_confidence_max']}.tsv")
+# files.append(f"analysis/plot/error_rate_and_recall_gt_min_{config['genotype_confidence_min']}_step_{config['genotype_confidence_step']}_max_{config['genotype_confidence_max']}.pdf")
 
 
 
