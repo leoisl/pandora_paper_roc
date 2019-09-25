@@ -12,7 +12,7 @@ class VCF_Filters(UserList):
         )
 
     @staticmethod
-    def get_list_of_all_VCF_Filters(
+    def get_all_VCF_Filters(
         coverage_threshold: float, strand_bias_threshold: float, gaps_threshold: float
     ) -> "VCF_Filters":
         vcf_filters = VCF_Filters()
