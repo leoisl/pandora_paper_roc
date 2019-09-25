@@ -40,12 +40,11 @@ files = []
 # Common files
 for index, row in data.iterrows():
     sample_id, coverage, tool = row["sample_id"], row["coverage"], row["tool"]
-    files.extend(
-        [
-            f"analysis/variant_calls_probesets/{sample_id}/{coverage}/{tool}.variant_calls_probeset.fa"
-        ]
-    )
+    files_with_filters = expand(f"analysis/variant_calls_probesets/{sample_id}/{coverage}/{tool}/coverage_filter_{{coverage_threshold}}/strand_bias_filter_{{strand_bias_threshold}}/gaps_filter_{{gaps_threshold}}/variant_calls_probeset.fa", coverage_threshold = coverage_filters, strand_bias_threshold = strand_bias_filters, gaps_threshold = gaps_filters)
+    files.extend(files_with_filters)
 
+all_precision_files=[]
+all_recall_files=[]
 
 
 
