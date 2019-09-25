@@ -30,13 +30,13 @@ rule create_precision_report_from_probe_mappings:
 
 rule calculate_precision:
     input:
-         precision_report_files_for_tool_and_coverage = lambda wildcards: tool_and_coverage_to_precision_report_files[wildcards.tool_and_coverage]
+         precision_report_files_for_all_samples = expand("analysis/precision/reports_from_probe_mappings/{sample_id}/{{coverage}}/{{tool}}/coverage_filter_{{coverage_threshold}}/strand_bias_filter_{{strand_bias_threshold}}/gaps_filter_{{gaps_threshold}}/variant_calls_probeset_report.tsv", sample_id = samples["sample_id"])
     output:
-         precision_file_for_tool_and_coverage = "analysis/precision/precision_{tool_and_coverage}_gt_min_{min_gt}_step_{step_gt}_max_{max_gt}.tsv"
+         precision_file_for_all_samples = "analysis/precision/precision_files/{coverage}/{tool}/coverage_filter_{coverage_threshold}/strand_bias_filter_{strand_bias_threshold}/gaps_filter_{gaps_threshold}/precision_gt_min_{min_gt}_step_{step_gt}_max_{max_gt}.tsv"
     threads: 1
     resources:
         mem_mb = lambda wildcards, attempt: 4000 * attempt
     log:
-        "logs/calculate_precision/{tool_and_coverage}_gt_min_{min_gt}_step_{step_gt}_max_{max_gt}.log"
+        "logs/calculate_precision/{coverage}_{tool}_coverage_filter_{coverage_threshold}_strand_bias_filter_{strand_bias_threshold}_gaps_filter_{gaps_threshold}_gt_min_{min_gt}_step_{step_gt}_max_{max_gt}.log"
     script:
         "../scripts/calculate_precision.py"

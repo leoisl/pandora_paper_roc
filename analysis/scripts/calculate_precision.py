@@ -17,20 +17,25 @@ from evaluate.calculator import PrecisionCalculator, EmptyReportError
 import pandas as pd
 import numpy as np
 
-precision_report_files_for_tool_and_coverage = (
-    snakemake.input.precision_report_files_for_tool_and_coverage
+# setup
+precision_report_files_for_all_samples = (
+    snakemake.input.precision_report_files_for_all_samples
 )
-precision_calculator = PrecisionCalculator.from_files(
-    precision_report_files_for_tool_and_coverage
-)
-
-output = Path(snakemake.output.precision_file_for_tool_and_coverage)
-
+output = Path(snakemake.output.precision_file_for_all_samples)
 min_gt = float(snakemake.wildcards.min_gt)
 step_gt = float(snakemake.wildcards.step_gt)
 max_gt = float(snakemake.wildcards.max_gt)
-max_gt = min(max_gt, precision_calculator.get_maximum_gt_conf())
+tool = snakemake.wildcards.tool
+coverage = snakemake.wildcards.coverage
+label = f"{tool}_{coverage}"
 
+
+# API usage
+precision_calculator = PrecisionCalculator.from_files(
+    precision_report_files_for_all_samples
+)
+
+max_gt = min(max_gt, precision_calculator.get_maximum_gt_conf())
 logging.info(
     f"Generating precision file with min_gt = {min_gt}, step_gt = {step_gt}, and max_gt = {max_gt}"
 )
@@ -48,7 +53,8 @@ for gt in all_gts:
     except EmptyReportError:
         pass
 
-labels = [snakemake.wildcards.tool_and_coverage] * len(gts)
+
+labels = [label] * len(gts)
 precision_df = pd.DataFrame(
     data={
         "GT": gts,
@@ -57,4 +63,7 @@ precision_df = pd.DataFrame(
         "label": labels,
     }
 )
+
+
+# output
 precision_df.to_csv(output, sep="\t")

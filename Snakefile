@@ -59,12 +59,16 @@ for index, row in data.iterrows():
     files_with_filters = expand(f"analysis/precision/reports_from_probe_mappings/{sample_id}/{coverage}/{tool}/coverage_filter_{{coverage_threshold}}/strand_bias_filter_{{strand_bias_threshold}}/gaps_filter_{{gaps_threshold}}/variant_calls_probeset_report.tsv", coverage_threshold = coverage_filters, strand_bias_threshold = strand_bias_filters, gaps_threshold = gaps_filters)
     files.extend(files_with_filters)
 
-# all_precision_files = [f"analysis/precision/precision_{tool_and_coverage}_gt_min_{min_gt}_step_{step_gt}_max_{max_gt}.tsv"
-#                        for tool_and_coverage in tool_and_coverage_to_precision_report_files]
-#
-#
-#
-#
+
+for index, row in data.iterrows():
+    sample_id, coverage, tool = row["sample_id"], row["coverage"], row["tool"]
+    files_with_filters = expand(f"analysis/precision/precision_files/{coverage}/{tool}/coverage_filter_{{coverage_threshold}}/strand_bias_filter_{{strand_bias_threshold}}/gaps_filter_{{gaps_threshold}}/precision_gt_min_{min_gt}_step_{step_gt}_max_{max_gt}.tsv", coverage_threshold = coverage_filters, strand_bias_threshold = strand_bias_filters, gaps_threshold = gaps_filters)
+    files.extend(files_with_filters)
+
+
+
+
+
 # # Recall files
 # for sample1, sample2 in sample_pairs:
 #     files.extend(
