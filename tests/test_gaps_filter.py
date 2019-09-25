@@ -12,12 +12,12 @@ class TestGapsFilter:
 
         assert actual == expected
 
-    def test_recordShouldBeFilteredOut_equalsThresholdReturnsTrue(self):
+    def test_recordShouldBeFilteredOut_equalsThresholdReturnsFalse(self):
         gaps_filter = GapsFilter(0.75)
         record_mock = MagicMock(gaps=0.75)
 
         actual = gaps_filter.record_should_be_filtered_out(record_mock)
-        expected = True
+        expected = False
 
         assert actual == expected
 

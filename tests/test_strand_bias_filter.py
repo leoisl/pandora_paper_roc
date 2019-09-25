@@ -21,12 +21,12 @@ class TestStrandBiasFilter:
 
         assert actual == expected
 
-    def test_recordShouldBeFilteredOut_strandRatioEqualsThresholdReturnsTrue(self):
+    def test_recordShouldBeFilteredOut_strandRatioEqualsThresholdReturnsFalse(self):
         mocked_vcf = MagicMock(mean_coverage=100, mean_coverage_forward=10)
         strand_bias_filter = StrandBiasFilter(0.1)
 
         actual = strand_bias_filter.record_should_be_filtered_out(mocked_vcf)
-        expected = True
+        expected = False
 
         assert actual == expected
 
@@ -41,12 +41,12 @@ class TestStrandBiasFilter:
 
         assert actual == expected
 
-    def test_recordShouldBeFilteredOut_strandRatioEqualsUpperThresholdReturnsTrue(self):
+    def test_recordShouldBeFilteredOut_strandRatioEqualsUpperThresholdReturnsFalse(self):
         mocked_vcf = MagicMock(mean_coverage=100, mean_coverage_forward=90)
         strand_bias_filter = StrandBiasFilter(0.1)
 
         actual = strand_bias_filter.record_should_be_filtered_out(mocked_vcf)
-        expected = True
+        expected = False
 
         assert actual == expected
 

@@ -15,7 +15,7 @@ class StrandBiasFilter(Filter):
             return True
         strand_ratio = record.mean_coverage_forward / record.mean_coverage
         bad_strand_ratio = (
-            strand_ratio <= self.strand_bias_threshold
-            or strand_ratio >= 1.0 - self.strand_bias_threshold
+            strand_ratio < self.strand_bias_threshold
+            or strand_ratio > 1.0 - self.strand_bias_threshold
         )
         return bad_strand_ratio

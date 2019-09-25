@@ -11,4 +11,4 @@ class GapsFilter(Filter):
         return self._gaps_threshold
 
     def record_should_be_filtered_out(self, record: VCF) -> bool:
-        return record.gaps >= self.gaps_threshold
+        return record.gaps > self.gaps_threshold
