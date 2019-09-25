@@ -31,6 +31,9 @@ sample_pairs = [(sample1, sample2) for sample1, sample2 in itertools.combination
 min_gt = config['genotype_confidence_min']
 step_gt = config['genotype_confidence_step']
 max_gt = config['genotype_confidence_max']
+coverage_filters = config['coverage_filters']
+strand_bias_filters = config['strand_bias_filters']
+gaps_filters = config['gaps_filters']
 
 files = []
 
