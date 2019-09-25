@@ -1,7 +1,7 @@
 from pathlib import Path
 import pysam
 from typing import List, Dict
-from .vcf import VCF
+from .vcf import VCF, InvalidVCFError
 from collections import defaultdict
 
 
@@ -12,9 +12,11 @@ class VCFFile:
             for variant_record in pysam_variant_file:
                 for sample in variant_record.samples:
                     gene = variant_record.chrom
-                    self._sample_to_gene_to_VCFs[sample][gene].append(
-                        VCF.from_VariantRecord_and_Sample(variant_record, sample)
-                    )
+                    try:
+                        vcf = VCF.from_VariantRecord_and_Sample(variant_record, sample)
+                        self._sample_to_gene_to_VCFs[sample][gene].append(vcf)
+                    except InvalidVCFError:
+                        pass
 
     @property
     def sample_to_gene_to_VCFs(self) -> Dict[str, Dict[str, List[VCF]]]:

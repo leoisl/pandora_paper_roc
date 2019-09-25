@@ -55,8 +55,6 @@ class Query:
 
         for vcf in vcf_records:
             sample = vcf.sample
-            if vcf.is_invalid_vcf_entry:
-                continue
             interval = self.calculate_probe_boundaries_for_entry(vcf)
 
             if (

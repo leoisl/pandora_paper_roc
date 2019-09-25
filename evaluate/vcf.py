@@ -1,6 +1,8 @@
 import pysam
 from typing import Iterable
 
+class InvalidVCFError(Exception):
+    pass
 
 class VCF:
     @staticmethod
@@ -8,6 +10,10 @@ class VCF:
         vcf = VCF()
         vcf.variant = variant
         vcf.sample = sample
+
+        if vcf.is_invalid_vcf_entry:
+            raise InvalidVCFError()
+
         return vcf
 
     def __eq__(self, other):
