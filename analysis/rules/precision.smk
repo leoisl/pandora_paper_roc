@@ -18,12 +18,12 @@ rule create_precision_report_from_probe_mappings:
         variant_call_probeset_mapped_to_ref = rules.map_variant_call_probeset_to_reference_assembly.output.variant_call_probeset_mapped_to_ref,
         mask = lambda wildcards: data.xs((wildcards.sample_id, wildcards.coverage, wildcards.tool))["mask"]
     output:
-        variant_call_precision_report = "analysis/precision/reports_from_probe_mappings/{sample_id}/{coverage}/{tool}/variant_calls_probeset_report.tsv"
+        variant_call_precision_report = "analysis/precision/reports_from_probe_mappings/{sample_id}/{coverage}/{tool}/coverage_filter_{coverage_threshold}/strand_bias_filter_{strand_bias_threshold}/gaps_filter_{gaps_threshold}/variant_calls_probeset_report.tsv"
     threads: 1
     resources:
         mem_mb = lambda wildcards, attempt: 1000 * attempt
     log:
-        "logs/create_precision_report_from_probe_mappings/{sample_id}_{coverage}_{tool}.log"
+        "logs/create_precision_report_from_probe_mappings/{sample_id}_{coverage}_{tool}_coverage_filter_{coverage_threshold}_strand_bias_filter_{strand_bias_threshold}_gaps_filter_{gaps_threshold}.log"
     script:
         "../scripts/create_precision_report_from_probe_mappings.py"
 
