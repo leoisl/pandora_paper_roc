@@ -1,5 +1,3 @@
-import logging
-from contextlib import ExitStack
 from pathlib import Path
 from typing import Tuple, List, Dict
 
@@ -30,19 +28,14 @@ class Query:
         with pysam.FastxFile(str(self.genes)) as genes_fasta:
             for gene in genes_fasta:
                 for sample in self.samples:
-                    try:
-                        vcfs = self.vcf_file.get_VCF_records_given_sample_and_gene(
-                            sample, gene.name
-                        )
-                    except ValueError as error:
-                        if str(error).startswith("invalid contig"):
-                            continue
-                        else:
-                            raise error
+                    vcf_records = self.vcf_file.get_VCF_records_given_sample_and_gene(
+                        sample, gene.name
+                    )
 
                     probes_for_gene: Dict[
                         str, str
-                    ] = self._create_probes_for_gene_variants(gene, vcfs)
+                    ] = self._create_probes_for_gene_variants(gene, vcf_records)
+
                     for sample, probe in probes_for_gene.items():
                         query_probes[sample] += probe
 
@@ -50,7 +43,7 @@ class Query:
 
     # TODO : tagged for refactoring - this function does a lot of things
     def _create_probes_for_gene_variants(
-        self, gene: pysam.FastxRecord, vcfs: List[VCF]
+        self, gene: pysam.FastxRecord, vcf_records: List[VCF]
     ) -> Dict[str, str]:
         """Note: An assumption is made with this function that the variants you pass in
         are from the gene passed with them."""
@@ -60,7 +53,7 @@ class Query:
             s: {} for s in self.samples
         }
 
-        for vcf in vcfs:
+        for vcf in vcf_records:
             sample = vcf.sample
             if vcf.is_invalid_vcf_entry:
                 continue
@@ -196,13 +189,3 @@ def find_index_in_intervals(intervals: List[Tuple[int, int]], query: int) -> int
         if start <= query <= end:
             return i
     return -1
-
-
-def write_vcf_probes_to_file(
-    vcf_probes: Dict[str, str], query_name: str, tempdir: Path
-) -> Path:
-    query_vcf_probes = vcf_probes[query_name]
-    query_vcf_probes_path: Path = tempdir / f"{query_name}.query_probes.fa"
-    query_vcf_probes_path.write_text(query_vcf_probes)
-    logging.info(f"VCF probes written to file: {query_vcf_probes_path}")
-    return query_vcf_probes_path
