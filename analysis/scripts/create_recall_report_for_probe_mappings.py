@@ -1,9 +1,7 @@
 from pathlib import Path
 import sys
-
 sys.path.append(str(Path().absolute()))
 import logging
-
 log_level = "INFO"
 logging.basicConfig(
     filename=str(snakemake.log),
@@ -12,6 +10,9 @@ logging.basicConfig(
     format="[%(asctime)s]:%(levelname)s: %(message)s",
     datefmt="%d/%m/%Y %I:%M:%S %p",
 )
+
+
+
 import pysam
 from evaluate.masker import RecallMasker
 from evaluate.classifier import RecallClassifier

@@ -1,10 +1,8 @@
 from pathlib import Path
 import sys
-
 sys.path.append(str(Path().absolute()))
 import logging
-
-log_level = "DEBUG"
+log_level = "INFO"
 logging.basicConfig(
     filename=str(snakemake.log),
     filemode="w",
@@ -13,9 +11,12 @@ logging.basicConfig(
     datefmt="%d/%m/%Y %I:%M:%S %p",
 )
 
+
+
 from evaluate.calculator import PrecisionCalculator, EmptyReportError
 import pandas as pd
 import numpy as np
+
 
 # setup
 precision_report_files_for_all_samples = (
@@ -31,13 +32,15 @@ label = f"{tool}_{coverage}"
 
 
 # API usage
+logging.info(f"Creating calculator")
 precision_calculator = PrecisionCalculator.from_files(
     precision_report_files_for_all_samples
 )
 
+
 max_gt = min(max_gt, precision_calculator.get_maximum_gt_conf())
 logging.info(
-    f"Generating precision file with min_gt = {min_gt}, step_gt = {step_gt}, and max_gt = {max_gt}"
+    f"Calculating precision with min_gt = {min_gt}, step_gt = {step_gt}, and max_gt = {max_gt}"
 )
 
 gts = []
@@ -66,4 +69,8 @@ precision_df = pd.DataFrame(
 
 
 # output
+logging.info(f"Outputting precision file")
 precision_df.to_csv(output, sep="\t")
+
+
+logging.info(f"Done")

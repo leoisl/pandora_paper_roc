@@ -1,10 +1,8 @@
 from pathlib import Path
 import sys
-
 sys.path.append(str(Path().absolute()))
 import logging
-
-log_level = "DEBUG"
+log_level = "INFO"
 logging.basicConfig(
     filename=str(snakemake.log),
     filemode="w",
@@ -12,6 +10,7 @@ logging.basicConfig(
     format="[%(asctime)s]:%(levelname)s: %(message)s",
     datefmt="%d/%m/%Y %I:%M:%S %p",
 )
+
 
 
 from io import StringIO
@@ -73,22 +72,32 @@ def write_truth_probeset_to_temp_file(
 # ==================================================================================
 # MAIN
 # ==================================================================================
+
+# setup
 query1: Path = Path(snakemake.input.truth1)
 query2: Path = Path(snakemake.input.truth2)
 query1_name: str = snakemake.wildcards.sample1
 query2_name: str = snakemake.wildcards.sample2
 prefix: Path = Path(f"{query1_name}_and_{query2_name}")
 flank_width: int = snakemake.params.flank_length
+
+
+# API usage
+logging.info("Generating mummer snps")
 mummer_snps: StringIO = generate_mummer_snps(
     reference=query1, query=query2, prefix=prefix, flank_width=flank_width
 )
+
 logging.info("Converting show-snps output to dataframe")
 snps_df = ShowSnps.to_dataframe(mummer_snps)
+
 logging.info("Creating probes from dataframe")
 query1_truth_probes, query2_truth_probes = snps_df.get_probes()
-
 query1_truth_probes_path: Path = Path(snakemake.output.probeset1)
 query2_truth_probes_path: Path = Path(snakemake.output.probeset2)
+
 logging.info("Writing output files")
 query1_truth_probes_path.write_text(query1_truth_probes)
 query2_truth_probes_path.write_text(query2_truth_probes)
+
+logging.info(f"Done")

@@ -1,7 +1,18 @@
 from pathlib import Path
 import sys
-
 sys.path.append(str(Path().absolute()))
+import logging
+log_level = "INFO"
+logging.basicConfig(
+    filename=str(snakemake.log),
+    filemode="w",
+    level=log_level,
+    format="[%(asctime)s]:%(levelname)s: %(message)s",
+    datefmt="%d/%m/%Y %I:%M:%S %p",
+)
+
+
+
 from typing import Dict
 from evaluate.query import Query
 from evaluate.filtered_vcf_file import FilteredVCFFile
@@ -19,6 +30,7 @@ output = Path(snakemake.output.probeset)
 
 
 # API usage
+logging.info(f"Applying filters to {vcf_filepath}")
 filters = VCF_Filters.get_all_VCF_Filters(
     coverage_threshold=coverage_threshold,
     strand_bias_threshold=strand_bias_threshold,
@@ -26,6 +38,8 @@ filters = VCF_Filters.get_all_VCF_Filters(
 )
 filtered_vcf_file = FilteredVCFFile(vcf_filepath=vcf_filepath, filters=filters)
 
+
+logging.info(f"Making probes")
 query_vcf = Query(
     filtered_vcf_file,
     vcf_ref,
@@ -37,4 +51,7 @@ sample_vcf_probes = vcf_probes[sample_id]
 
 
 # output
+logging.info(f"Writing probes")
 output.write_text(sample_vcf_probes)
+
+logging.info(f"Done")

@@ -1,10 +1,8 @@
 from pathlib import Path
 import sys
-
 sys.path.append(str(Path().absolute()))
 import logging
-
-log_level = "DEBUG"
+log_level = "INFO"
 logging.basicConfig(
     filename=str(snakemake.log),
     filemode="w",
@@ -12,6 +10,8 @@ logging.basicConfig(
     format="[%(asctime)s]:%(levelname)s: %(message)s",
     datefmt="%d/%m/%Y %I:%M:%S %p",
 )
+
+
 
 from evaluate.bwa import BWA
 
@@ -24,9 +24,13 @@ threads = snakemake.threads
 
 
 # API usage
+logging.info(f"Mapping {query} to {ref}")
 BWA.map_query_to_ref(
     query=query,
     ref=ref,
     output=output,
     threads=threads,
 )
+
+
+logging.info(f"Done")
