@@ -15,9 +15,18 @@ logging.basicConfig(
 
 from evaluate.bwa import BWA
 
+
+# setup
+query = Path(snakemake.input.truth_probeset)
+ref = Path(snakemake.input.variant_calls_probeset)
+output = Path(snakemake.output.sam)
+threads = snakemake.threads
+
+
+# API usage
 BWA.map_query_to_ref(
-    query=Path(snakemake.input.truth_probeset),
-    ref=Path(snakemake.input.variant_calls_probeset),
-    output=Path(snakemake.output.sam),
-    threads=snakemake.threads,
+    query=query,
+    ref=ref,
+    output=output,
+    threads=threads,
 )

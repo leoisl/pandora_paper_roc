@@ -78,12 +78,14 @@ for sample1, sample2 in sample_pairs:
         ]
     )
 
-# tool_and_coverage_to_recall_report_files = defaultdict(list)
-# for index, row in data.iterrows():
-#     sample_id, coverage, tool = row["sample_id"], row["coverage"], row["tool"]
-#     for sample1, sample2 in [pair for pair in sample_pairs if sample_id in pair]:
-#         filename_prefix = f"{sample1}_and_{sample2}"
-#         tool_and_coverage_to_recall_report_files[f"{tool}_{coverage}"].append(f"analysis/recall/reports/{sample_id}/{coverage}/{tool}/{filename_prefix}.report.tsv")
+for index, row in data.iterrows():
+    sample_id, coverage, tool = row["sample_id"], row["coverage"], row["tool"]
+    for sample1, sample2 in [pair for pair in sample_pairs if sample_id in pair]:
+        filename_prefix = f"{sample1}_and_{sample2}"
+        files_with_filters = expand(f"analysis/recall/map_probes/{sample_id}/{coverage}/{tool}/coverage_filter_{{coverage_threshold}}/strand_bias_filter_{{strand_bias_threshold}}/gaps_filter_{{gaps_threshold}}/{filename_prefix}.sam", coverage_threshold = coverage_filters, strand_bias_threshold = strand_bias_filters, gaps_threshold = gaps_filters)
+        files.extend(files_with_filters)
+
+
 # for recall_report_files in tool_and_coverage_to_recall_report_files.values():
 #     files.extend(recall_report_files)
 #
