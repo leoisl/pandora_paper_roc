@@ -37,12 +37,12 @@ rule create_recall_report_for_probe_mappings:
         sam = rules.map_recall_truth_probes_to_variant_call_probes.output.sam,
         mask = lambda wildcards: samples.xs(wildcards.sample_id)["mask"]
     output:
-        report = "analysis/recall/reports/{sample_id}/{coverage}/{tool}/{filename_prefix}.report.tsv"
+        report = "analysis/recall/reports/{sample_id}/{coverage}/{tool}/coverage_filter_{coverage_threshold}/strand_bias_filter_{strand_bias_threshold}/gaps_filter_{gaps_threshold}/{filename_prefix}.report.tsv"
     threads: 1
     resources:
         mem_mb = lambda wildcards, attempt: 2000 * attempt
     log:
-        "logs/create_recall_report_for_probe_mappings/{sample_id}/{coverage}/{tool}/{filename_prefix}.log"
+        "logs/create_recall_report_for_probe_mappings/{sample_id}/{coverage}/{tool}/coverage_filter_{coverage_threshold}/strand_bias_filter_{strand_bias_threshold}/gaps_filter_{gaps_threshold}/{filename_prefix}.report.log"
     script:
         "../scripts/create_recall_report_for_probe_mappings.py"
 
