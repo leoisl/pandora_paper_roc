@@ -10,6 +10,6 @@ rule make_variant_calls_probeset:
     resources:
         mem_mb = lambda wildcards, attempt: 1000 * attempt
     log:
-        "logs/make_variant_calls_probeset/{sample_id}_{coverage}_{tool}_coverage_filter_{coverage_threshold}_strand_bias_filter_{strand_bias_threshold}_gaps_filter_{gaps_threshold}.log"
+        "logs/make_variant_calls_probeset/{sample_id}/{coverage}/{tool}/coverage_filter_{coverage_threshold}/strand_bias_filter_{strand_bias_threshold}/gaps_filter_{gaps_threshold}/variant_calls_probeset.log"
     script:
         "../scripts/make_variant_calls_probeset.py"

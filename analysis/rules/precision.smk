@@ -8,7 +8,7 @@ rule map_variant_call_probeset_to_reference_assembly:
     resources:
         mem_mb = lambda wildcards, attempt: 4000 * attempt
     log:
-        "logs/map_variant_call_probeset_to_reference_assembly/{sample_id}_{coverage}_{tool}_coverage_filter_{coverage_threshold}_strand_bias_filter_{strand_bias_threshold}_gaps_filter_{gaps_threshold}.log"
+        "logs/map_variant_call_probeset_to_reference_assembly/{sample_id}/{coverage}/{tool}/coverage_filter_{coverage_threshold}/strand_bias_filter_{strand_bias_threshold}/gaps_filter_{gaps_threshold}/variant_calls_probeset_mapped.log"
     script:
         "../scripts/map_variant_call_probeset_to_reference_assembly.py"
 
@@ -23,7 +23,7 @@ rule create_precision_report_from_probe_mappings:
     resources:
         mem_mb = lambda wildcards, attempt: 1000 * attempt
     log:
-        "logs/create_precision_report_from_probe_mappings/{sample_id}_{coverage}_{tool}_coverage_filter_{coverage_threshold}_strand_bias_filter_{strand_bias_threshold}_gaps_filter_{gaps_threshold}.log"
+        "logs/create_precision_report_from_probe_mappings/{sample_id}/{coverage}/{tool}/coverage_filter_{coverage_threshold}/strand_bias_filter_{strand_bias_threshold}/gaps_filter_{gaps_threshold}/variant_calls_probeset_report.log"
     script:
         "../scripts/create_precision_report_from_probe_mappings.py"
 
@@ -37,6 +37,6 @@ rule calculate_precision:
     resources:
         mem_mb = lambda wildcards, attempt: 4000 * attempt
     log:
-        "logs/calculate_precision/{coverage}_{tool}_coverage_filter_{coverage_threshold}_strand_bias_filter_{strand_bias_threshold}_gaps_filter_{gaps_threshold}_gt_min_{min_gt}_step_{step_gt}_max_{max_gt}.log"
+        "logs/calculate_precision/{coverage}/{tool}/coverage_filter_{coverage_threshold}/strand_bias_filter_{strand_bias_threshold}/gaps_filter_{gaps_threshold}/precision_gt_min_{min_gt}_step_{step_gt}_max_{max_gt}.log"
     script:
         "../scripts/calculate_precision.py"
