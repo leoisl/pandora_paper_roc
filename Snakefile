@@ -69,15 +69,15 @@ for index, row in data.iterrows():
 
 
 
-# # Recall files
-# for sample1, sample2 in sample_pairs:
-#     files.extend(
-#         [
-#             f"analysis/recall/truth_probesets/{sample1}/{sample1}_and_{sample2}.truth_probeset.fa",
-#             f"analysis/recall/truth_probesets/{sample2}/{sample1}_and_{sample2}.truth_probeset.fa",
-#         ]
-#     )
-#
+# Recall files
+for sample1, sample2 in sample_pairs:
+    files.extend(
+        [
+            f"analysis/recall/truth_probesets/{sample1}/{sample1}_and_{sample2}.truth_probeset.fa",
+            f"analysis/recall/truth_probesets/{sample2}/{sample1}_and_{sample2}.truth_probeset.fa",
+        ]
+    )
+
 # tool_and_coverage_to_recall_report_files = defaultdict(list)
 # for index, row in data.iterrows():
 #     sample_id, coverage, tool = row["sample_id"], row["coverage"], row["tool"]
