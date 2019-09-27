@@ -1,0 +1,35 @@
+from pathlib import Path
+from snakemake.utils import min_version, validate
+
+min_version("5.1.0")
+
+# ======================================================
+# Config files
+# ======================================================
+configfile: "config.yaml"
+
+
+
+# ======================================================
+# Global vars
+# ======================================================
+outdir = Path(config["outdir"])
+PRGs_original_paths = [Path(PRG_original_path) for PRG_original_path in config["PRGs"]]
+PRGs_output_paths = [outdir / "PRGs" / PRG_original_path.name for PRG_original_path in PRGs_original_paths]
+
+# ======================================================
+# Output files
+# ======================================================
+files = []
+files.extend(PRGs_output_paths)
+
+
+
+# ======================================================
+# Rules
+# ======================================================
+rule all:
+    input: files
+
+rules_dir = Path("rules/")
+include: str(rules_dir / "pandora.smk")
