@@ -27,7 +27,8 @@ files = []
 
 def add_files_for_copy_PRG_to_output_folder_rule():
     for PRG in PRGs:
-        files.append(f"analysis/PRGs/{PRG}")
+        for thread in threads:
+            files.append(f"analysis/PRGs/{PRG}---threads_{thread}/{PRG}")
 add_files_for_copy_PRG_to_output_folder_rule()
 
 
