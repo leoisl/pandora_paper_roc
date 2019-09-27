@@ -9,3 +9,4 @@ benchmark_repeat_times: 1
 data_folder: sample_data/
 PRGs: [prg1.fa, prg2.fa]
 reads_to_map: [reads1.fq, reads2.fq]
+samples_to_map: [samples1.tsv, samples2.tsv]

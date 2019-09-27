@@ -20,6 +20,7 @@ kmer_size = int(config["kmer_size"])
 threads = config["threads"]
 benchmark_repeat_times = config["benchmark_repeat_times"]
 all_reads_to_map = [Path(reads_to_map) for reads_to_map in config["reads_to_map"]]
+all_samples_to_map = [Path(samples_to_map) for samples_to_map in config["samples_to_map"]]
 
 # ======================================================
 # Output files
@@ -46,6 +47,14 @@ def add_files_for_map_rule():
             files.append(f"analysis/map/{PRG}---threads_{thread}---reads_{reads_to_map}.map_reads_to_PRG.done")
             files.append(f"analysis/map/{PRG}---threads_{thread}---reads_{reads_to_map}")
 add_files_for_map_rule()
+
+
+def add_files_for_compare_rule():
+    for PRG, samples_to_map in zip(PRGs, all_samples_to_map):
+        for thread in threads:
+            files.append(f"analysis/compare/{PRG}---threads_{thread}---samples_{samples_to_map}.compare_samples.done")
+            files.append(f"analysis/compare/{PRG}---threads_{thread}---samples_{samples_to_map}")
+add_files_for_compare_rule()
 
 # ======================================================
 # Rules

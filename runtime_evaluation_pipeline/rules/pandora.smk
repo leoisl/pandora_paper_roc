@@ -48,3 +48,24 @@ rule map_reads_to_PRG:
     benchmark:
         repeat("analysis/benchmarks/map_reads_to_PRG/{PRG_name}---threads_{threads}---reads_{reads}.txt", benchmark_repeat_times)
     shell: f"pandora map -p {{input.PRG}} -r {{input.reads}} -o {{output.output_folder}} -w {window_size} -k {kmer_size} -t {{wildcards.threads}} --genotype --illumina >{{log}}  2>{{log}}"
+
+
+rule compare_samples:
+    input:
+         PRG = rules.copy_PRG_to_output_folder.output.PRG_output_path,
+         index_done_flag = rules.index_PRG.output.index_done_flag,
+         samples = data_folder / "{samples}",
+    output:
+         output_folder = directory("analysis/compare/{PRG_name}---threads_{threads}---samples_{samples}"),
+         compare_done_flag = touch("analysis/compare/{PRG_name}---threads_{threads}---samples_{samples}.compare_samples.done"),
+    resources:
+        mem_mb = lambda wildcards, attempt: 1000 * attempt
+    threads:
+        lambda wildcards: int(wildcards.threads)
+    log:
+        "analysis/logs/compare_samples/{PRG_name}---threads_{threads}---samples_{samples}.log"
+    singularity:
+        "shub://rmcolq/pandora:pandora"
+    benchmark:
+        repeat("analysis/benchmarks/compare_samples/{PRG_name}---threads_{threads}---samples_{samples}.txt", benchmark_repeat_times)
+    shell: f"pandora compare -p {{input.PRG}} -r {{input.samples}} -o {{output.output_folder}} -w {window_size} -k {kmer_size} -t {{wildcards.threads}} --genotype --illumina >{{log}}  2>{{log}}"
