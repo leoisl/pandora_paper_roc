@@ -13,6 +13,7 @@ configfile: "config.yaml"
 # ======================================================
 # Global vars
 # ======================================================
+singularity_image = config["singularity_image"]
 data_folder = Path(config["data_folder"])
 PRGs = [Path(PRG) for PRG in config["PRGs"]]
 window_size = int(config["window_size"])

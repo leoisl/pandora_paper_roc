@@ -23,7 +23,7 @@ rule index_PRG:
     log:
         "analysis/logs/index_PRG/{PRG_name}---threads_{threads}.log"
     singularity:
-        "shub://rmcolq/pandora:pandora"
+        singularity_image
     benchmark:
         repeat("analysis/benchmarks/index_PRG/{PRG_name}---threads_{threads}.txt", benchmark_repeat_times)
     shell: f"pandora index -w {window_size} -k {kmer_size} -t {{wildcards.threads}} {{input.PRG}} >{{log}} 2>{{log}}"
@@ -44,7 +44,7 @@ rule map_reads_to_PRG:
     log:
         "analysis/logs/map_reads_to_PRG/{PRG_name}---threads_{threads}---reads_{reads}.log"
     singularity:
-        "shub://rmcolq/pandora:pandora"
+        singularity_image
     benchmark:
         repeat("analysis/benchmarks/map_reads_to_PRG/{PRG_name}---threads_{threads}---reads_{reads}.txt", benchmark_repeat_times)
     shell: f"pandora map -p {{input.PRG}} -r {{input.reads}} -o {{output.output_folder}} -w {window_size} -k {kmer_size} -t {{wildcards.threads}} --genotype --illumina >{{log}}  2>{{log}}"
@@ -65,7 +65,7 @@ rule compare_samples:
     log:
         "analysis/logs/compare_samples/{PRG_name}---threads_{threads}---samples_{samples}.log"
     singularity:
-        "shub://rmcolq/pandora:pandora"
+        singularity_image
     benchmark:
         repeat("analysis/benchmarks/compare_samples/{PRG_name}---threads_{threads}---samples_{samples}.txt", benchmark_repeat_times)
     shell: f"pandora compare -p {{input.PRG}} -r {{input.samples}} -o {{output.output_folder}} -w {window_size} -k {kmer_size} -t {{wildcards.threads}} --genotype --illumina >{{log}}  2>{{log}}"
