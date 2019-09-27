@@ -22,6 +22,7 @@ threads = config["threads"]
 benchmark_repeat_times = config["benchmark_repeat_times"]
 all_reads_to_map = [Path(reads_to_map) for reads_to_map in config["reads_to_map"]]
 all_samples_to_map = [Path(samples_to_map) for samples_to_map in config["samples_to_map"]]
+mem_mb = int(config["mem_mb"])
 
 # ======================================================
 # Output files

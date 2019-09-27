@@ -5,7 +5,7 @@ rule copy_PRG_to_output_folder:
         PRG_output_path = "analysis/PRGs/{PRG_name}---threads_{threads}/{PRG_name}"
     threads: 1
     resources:
-        mem_mb = lambda wildcards, attempt: 1000 * attempt
+        mem_mb = 2000
     log:
         "analysis/logs/copy_PRG_to_output_folder/{PRG_name}---threads_{threads}.log"
     shell: "cp {input.PRG_original_path} {output.PRG_output_path} 2>{log}"
@@ -17,7 +17,7 @@ rule index_PRG:
     output:
          index_done_flag = touch("analysis/index/{PRG_name}---threads_{threads}.index_done_flag")
     resources:
-        mem_mb = lambda wildcards, attempt: 1000 * attempt
+        mem_mb = mem_mb
     threads:
         lambda wildcards: int(wildcards.threads)
     log:
@@ -36,7 +36,7 @@ rule map_reads_to_PRG:
          output_folder = directory("analysis/map/{PRG_name}---threads_{threads}---reads_{reads}"),
          map_done_flag = touch("analysis/map/{PRG_name}---threads_{threads}---reads_{reads}.map_reads_to_PRG.done"),
     resources:
-        mem_mb = lambda wildcards, attempt: 1000 * attempt
+        mem_mb = mem_mb
     threads:
         lambda wildcards: int(wildcards.threads)
     log:
@@ -55,7 +55,7 @@ rule compare_samples:
          output_folder = directory("analysis/compare/{PRG_name}---threads_{threads}---samples_{samples}"),
          compare_done_flag = touch("analysis/compare/{PRG_name}---threads_{threads}---samples_{samples}.compare_samples.done"),
     resources:
-        mem_mb = lambda wildcards, attempt: 1000 * attempt
+        mem_mb = mem_mb
     threads:
         lambda wildcards: int(wildcards.threads)
     log:

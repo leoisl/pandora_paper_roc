@@ -1,6 +1,7 @@
 # installation configs
 singularity_image: rmcolq-pandora-dev-pandora.simg
 git_commit: ed953d1
+mem_mb: 2000
 
 # fixed configs
 window_size: 19
@@ -9,8 +10,6 @@ kmer_size: 31
 # benchmarking configs
 #threads: [1, 2, 4, 8, 16]
 threads: [1, 2]
-benchmark_repeat_times: 3
-
 
 # data configs
 # TODO: improve this with csv files
