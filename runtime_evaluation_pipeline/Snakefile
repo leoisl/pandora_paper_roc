@@ -15,15 +15,30 @@ configfile: "config.yaml"
 # ======================================================
 PRG_folder = Path(config["PRG_folder"])
 PRGs = [Path(PRG) for PRG in config["PRGs"]]
+window_size = int(config["window_size"])
+kmer_size = int(config["kmer_size"])
+threads = config["threads"]
+benchmark_repeat_times = config["benchmark_repeat_times"]
 
 # ======================================================
 # Output files
 # ======================================================
 files = []
 
-for PRG in PRGs:
-    files.append(f"analysis/PRGs/{PRG}")
+def add_files_for_copy_PRG_to_output_folder_rule():
+    for PRG in PRGs:
+        files.append(f"analysis/PRGs/{PRG}")
+add_files_for_copy_PRG_to_output_folder_rule()
 
+
+def add_files_for_index_PRG_rule():
+    for PRG in PRGs:
+        for thread in threads:
+            files.append(f"analysis/index/{PRG}---threads_{thread}.index_done_flag")
+add_files_for_index_PRG_rule()
+
+
+#def add_files_for_map_rule():
 
 
 # ======================================================

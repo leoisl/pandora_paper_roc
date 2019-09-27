@@ -1,8 +1,8 @@
-pandora_executable: /hps/nobackup/iqbal/leandro/pandora_compare/build_release/pandora
-git_commit: d2dd228
+git_commit: ed953d1
 PRG_folder: sample_data/
-PRGs: [ecoli_pangenome_PRG_050319.100_first_genes.fa, ecoli_pangenome_PRG_050319.100_first_genes.copy.fa]
+PRGs: [ecoli_pangenome_PRG_050319.20_first_genes.fa, ecoli_pangenome_PRG_050319.20_first_genes.copy.fa]
 window_size: 19
 kmer_size: 31
 #threads: [1, 2, 4, 8, 16]
-threads: [16]
+threads: [1, 2]
+benchmark_repeat_times: 1
