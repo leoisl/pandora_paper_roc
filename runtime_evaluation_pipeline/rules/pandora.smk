@@ -1,6 +1,6 @@
 rule copy_PRG_to_output_folder:
     input:
-        PRG_original_path = PRG_folder / "{PRG_name}"
+        PRG_original_path = data_folder / "{PRG_name}"
     output:
         PRG_output_path = "analysis/PRGs/{PRG_name}---threads_{threads}/{PRG_name}"
     threads: 1
@@ -15,7 +15,7 @@ rule index_PRG:
     input:
          PRG = rules.copy_PRG_to_output_folder.output.PRG_output_path,
     output:
-         touch("analysis/index/{PRG_name}---threads_{threads}.index_done_flag")
+         index_done_flag = touch("analysis/index/{PRG_name}---threads_{threads}.index_done_flag")
     resources:
         mem_mb = lambda wildcards, attempt: 1000 * attempt
     threads:
@@ -26,4 +26,25 @@ rule index_PRG:
         "shub://rmcolq/pandora:pandora"
     benchmark:
         repeat("analysis/benchmarks/index_PRG/{PRG_name}---threads_{threads}.txt", benchmark_repeat_times)
-    shell: f"pandora index -w {window_size} -k {kmer_size} -t {{wildcards.threads}} {{input.PRG}} 2>{{log}}"
+    shell: f"pandora index -w {window_size} -k {kmer_size} -t {{wildcards.threads}} {{input.PRG}} >{{log}} 2>{{log}}"
+
+
+rule map_reads_to_PRG:
+    input:
+         PRG = rules.copy_PRG_to_output_folder.output.PRG_output_path,
+         index_done_flag = rules.index_PRG.output.index_done_flag,
+         reads = data_folder / "{reads}",
+    output:
+         output_folder = directory("analysis/map/{PRG_name}---threads_{threads}---reads_{reads}"),
+         map_done_flag = touch("analysis/map/{PRG_name}---threads_{threads}---reads_{reads}.map_reads_to_PRG.done"),
+    resources:
+        mem_mb = lambda wildcards, attempt: 1000 * attempt
+    threads:
+        lambda wildcards: int(wildcards.threads)
+    log:
+        "analysis/logs/map_reads_to_PRG/{PRG_name}---threads_{threads}---reads_{reads}.log"
+    singularity:
+        "shub://rmcolq/pandora:pandora"
+    benchmark:
+        repeat("analysis/benchmarks/map_reads_to_PRG/{PRG_name}---threads_{threads}---reads_{reads}.txt", benchmark_repeat_times)
+    shell: f"pandora map -p {{input.PRG}} -r {{input.reads}} -o {{output.output_folder}} -w {window_size} -k {kmer_size} -t {{wildcards.threads}} --genotype --illumina >{{log}}  2>{{log}}"

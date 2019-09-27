@@ -13,12 +13,13 @@ configfile: "config.yaml"
 # ======================================================
 # Global vars
 # ======================================================
-PRG_folder = Path(config["PRG_folder"])
+data_folder = Path(config["data_folder"])
 PRGs = [Path(PRG) for PRG in config["PRGs"]]
 window_size = int(config["window_size"])
 kmer_size = int(config["kmer_size"])
 threads = config["threads"]
 benchmark_repeat_times = config["benchmark_repeat_times"]
+all_reads_to_map = [Path(reads_to_map) for reads_to_map in config["reads_to_map"]]
 
 # ======================================================
 # Output files
@@ -39,8 +40,12 @@ def add_files_for_index_PRG_rule():
 add_files_for_index_PRG_rule()
 
 
-#def add_files_for_map_rule():
-
+def add_files_for_map_rule():
+    for PRG, reads_to_map in zip(PRGs, all_reads_to_map):
+        for thread in threads:
+            files.append(f"analysis/map/{PRG}---threads_{thread}---reads_{reads_to_map}.map_reads_to_PRG.done")
+            files.append(f"analysis/map/{PRG}---threads_{thread}---reads_{reads_to_map}")
+add_files_for_map_rule()
 
 # ======================================================
 # Rules

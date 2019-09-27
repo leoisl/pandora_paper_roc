@@ -1,8 +1,11 @@
 git_commit: ed953d1
-PRG_folder: sample_data/
-PRGs: [ecoli_pangenome_PRG_050319.20_first_genes.fa, ecoli_pangenome_PRG_050319.20_first_genes.copy.fa]
 window_size: 19
 kmer_size: 31
 #threads: [1, 2, 4, 8, 16]
 threads: [1, 2]
 benchmark_repeat_times: 1
+
+# TODO: improve this with csv files
+data_folder: sample_data/
+PRGs: [prg1.fa, prg2.fa]
+reads_to_map: [reads1.fq, reads2.fq]
