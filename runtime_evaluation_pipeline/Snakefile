@@ -13,15 +13,16 @@ configfile: "config.yaml"
 # ======================================================
 # Global vars
 # ======================================================
-outdir = Path(config["outdir"])
-PRGs_original_paths = [Path(PRG_original_path) for PRG_original_path in config["PRGs"]]
-PRGs_output_paths = [outdir / "PRGs" / PRG_original_path.name for PRG_original_path in PRGs_original_paths]
+PRG_folder = Path(config["PRG_folder"])
+PRGs = [Path(PRG) for PRG in config["PRGs"]]
 
 # ======================================================
 # Output files
 # ======================================================
 files = []
-files.extend(PRGs_output_paths)
+
+for PRG in PRGs:
+    files.append(f"analysis/PRGs/{PRG}")
 
 
 
