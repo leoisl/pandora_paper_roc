@@ -17,7 +17,7 @@ class Query:
         self, vcf: Path, vcf_ref: Path, samples: List[str], flank_width: int = 0
     ):
         self.vcf = Path(
-            pysam.tabix_index(str(vcf), preset="vcf", keep_original=True, force=True)
+            f"{str(vcf)}.gz"
         )
         self.genes = vcf_ref
         self._probe_names = set()

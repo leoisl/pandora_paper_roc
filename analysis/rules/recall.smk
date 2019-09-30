@@ -24,6 +24,7 @@ rule map_recall_truth_probes_to_variant_call_probes:
     input:
          truth_probeset = "analysis/recall/truth_probesets/{sample_id}/{filename_prefix}.truth_probeset.fa",
          variant_calls_probeset = "analysis/variant_calls_probesets/{sample_id}/{coverage}/{tool}.variant_calls_probeset.fa",
+         variant_calls_probeset_index = "analysis/variant_calls_probesets/{sample_id}/{coverage}/{tool}.variant_calls_probeset.fa.amb"
     output:
          sam = "analysis/recall/map_probes/{sample_id}/{coverage}/{tool}/{filename_prefix}.sam"
     threads: 2

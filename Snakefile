@@ -35,6 +35,8 @@ max_gt = config['genotype_confidence_max']
 files = []
 
 # Common files
+files.extend([vcf+".gz.tbi" for vcf in set(data["vcf"])])
+
 for index, row in data.iterrows():
     sample_id, coverage, tool = row["sample_id"], row["coverage"], row["tool"]
     files.extend(
