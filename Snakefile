@@ -38,6 +38,8 @@ gaps_filters = config['gaps_filters']
 files = []
 
 # Common files
+files.extend([vcf+".gz.tbi" for vcf in set(data["vcf"])])
+
 for index, row in data.iterrows():
     sample_id, coverage, tool = row["sample_id"], row["coverage"], row["tool"]
     files_with_filters = expand(f"analysis/variant_calls_probesets/{sample_id}/{coverage}/{tool}/coverage_filter_{{coverage_threshold}}/strand_bias_filter_{{strand_bias_threshold}}/gaps_filter_{{gaps_threshold}}/variant_calls_probeset.fa", coverage_threshold = coverage_filters, strand_bias_threshold = strand_bias_filters, gaps_threshold = gaps_filters)

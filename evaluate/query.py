@@ -16,7 +16,9 @@ class Query:
     def __init__(
         self, vcf_file: VCFFile, vcf_ref: Path, samples: List[str], flank_width: int = 0
     ):
-        self.vcf_file = vcf_file
+        self.vcf = Path(
+            f"{str(vcf)}.gz"
+        )
         self.genes = vcf_ref
         self._probe_names = set()
         self.flank_width = flank_width
