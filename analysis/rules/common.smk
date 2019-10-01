@@ -19,8 +19,6 @@ rule bwa_index:
     threads: 1
     resources:
         mem_mb = lambda wildcards, attempt: 1000 * attempt
-    log:
-        "logs/bwa_index/{fasta}.log"
     shell: "bwa index {input.fasta} 2> {log}"
 
 
