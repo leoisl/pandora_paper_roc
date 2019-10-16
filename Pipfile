@@ -10,6 +10,7 @@ jupyter = "*"
 seaborn = "*"
 intervaltree = "*"
 snakemake = "*"
+scikit-allel = "*"
 
 [dev-packages]
 pytest = "*"
