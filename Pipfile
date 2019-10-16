@@ -11,6 +11,7 @@ seaborn = "*"
 intervaltree = "*"
 snakemake = "*"
 scikit-allel = "*"
+editdistance = "*"
 
 [dev-packages]
 pytest = "*"
