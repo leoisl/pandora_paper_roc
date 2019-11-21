@@ -1,7 +1,10 @@
 import pysam
 from typing import Iterable
 
-class InvalidVCFError(Exception):
+class BuggedVCFError(Exception):
+    pass
+
+class NullVCFError(Exception):
     pass
 
 class VCF:
@@ -11,8 +14,11 @@ class VCF:
         vcf.variant = variant
         vcf.sample = sample
 
-        if vcf.is_invalid_vcf_entry:
-            raise InvalidVCFError()
+        if vcf.is_null_call:
+            raise NullVCFError()
+
+        if vcf.has_genotype_bug:
+            raise BuggedVCFError()
 
         return vcf
 
@@ -21,38 +27,37 @@ class VCF:
 
     @property
     def genotype(self) -> int:
-        return self.variant.samples[self.sample]["GT"][0]
+        data_from_sample = self.variant.samples[self.sample]
+        all_gts = data_from_sample.get("GT")
+        assert len(all_gts) == 1
+        return all_gts[0]
 
     @property
-    def is_invalid_vcf_entry(self) -> bool:
+    def is_null_call(self) -> bool:
+        return self.genotype is None
+
+    @property
+    def has_genotype_bug(self) -> bool:
         genotype = self.genotype
-        no_genotype_called = genotype is None
-        if no_genotype_called:
-            return True
-
         genotype_called_wrongly = genotype not in self.highest_likelihood_indexes
-        if genotype_called_wrongly:
-            return True
-
-        return False
+        return genotype_called_wrongly
 
     @property
     def genotype_confidence(self) -> float:
         data_from_sample = self.variant.samples[self.sample]
-        return float(data_from_sample.get("GT_CONF", 0))
+        return float(data_from_sample.get("GT_CONF"))
 
     @property
-    def variant_sequence(self) -> str:
+    def called_variant_sequence(self) -> str:
         genotype = self.genotype
-
-        if genotype is None:
+        if genotype == 0:
             return self.variant.ref
         else:
             return self.variant.alleles[genotype]
 
     @property
-    def variant_length(self) -> int:
-        return len(self.variant_sequence)
+    def called_variant_length(self) -> int:
+        return len(self.called_variant_sequence)
 
     @property
     def svtype(self) -> str:
