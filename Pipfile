@@ -10,6 +10,9 @@ jupyter = "*"
 seaborn = "*"
 intervaltree = "*"
 snakemake = "*"
+scikit-allel = "*"
+editdistance = "*"
+allel = "*"
 
 [dev-packages]
 pytest = "*"
