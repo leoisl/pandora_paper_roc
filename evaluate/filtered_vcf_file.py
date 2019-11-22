@@ -1,5 +1,5 @@
 from .vcf_file import VCFFile
-from pathlib import Path
+import pysam
 from .vcf_filters import VCF_Filters
 from typing import Dict, List
 from .vcf import VCF
@@ -7,8 +7,8 @@ from collections import defaultdict
 
 
 class FilteredVCFFile(VCFFile):
-    def __init__(self, vcf_filepath: Path, filters: VCF_Filters):
-        VCFFile.__init__(self, vcf_filepath)
+    def __init__(self, pysam_variant_file: pysam.VariantFile, filters: VCF_Filters):
+        VCFFile.__init__(self, pysam_variant_file)
         self._sample_to_gene_to_VCFs = FilteredVCFFile._filter_records(
             self.sample_to_gene_to_VCFs, filters
         )
