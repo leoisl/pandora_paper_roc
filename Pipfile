@@ -12,7 +12,7 @@ intervaltree = "*"
 snakemake = "*"
 scikit-allel = "*"
 editdistance = "*"
-allel = "*"
+dash = "*"
 
 [dev-packages]
 pytest = "*"
