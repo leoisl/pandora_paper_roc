@@ -20,30 +20,31 @@ from evaluate.reporter import PrecisionReporter
 
 
 # setup
-sam_file = snakemake.input.variant_call_probeset_mapped_to_ref
+sam_filepath = snakemake.input.variant_call_probeset_mapped_to_ref
 sample_id = snakemake.wildcards.sample_id
-mask = snakemake.input.mask
+mask_filepath = snakemake.input.mask
 variant_call_precision_report = snakemake.output.variant_call_precision_report
 
 
 # API usage
-with pysam.AlignmentFile(sam_file) as variant_call_probeset_mapped_to_ref:
-    logging.info(f"Creating mask from {mask}")
-    with open(mask) as mask_file:
-        precision_masker = PrecisionMasker.from_bed(mask_file)
+logging.info(f"Creating masker from {mask_filepath}")
+with open(mask_filepath) as bed:
+    masker = PrecisionMasker.from_bed(bed)
 
-    logging.info(f"Filtering sam records")
-    filtered_sam_records = precision_masker.filter_records(
-        variant_call_probeset_mapped_to_ref
-    )
+logging.info(f"Masking SAM records")
+with pysam.AlignmentFile(sam_filepath) as sam:
+    records = masker.filter_records(sam)
 
-    logging.info(f"Creating precision report")
-    precision_classifier = PrecisionClassifier(filtered_sam_records, sample_id)
-    precision_reporter = PrecisionReporter([precision_classifier])
+logging.info("Creating classifier")
+classifier = PrecisionClassifier(sam=records, name=sample_id)
+
+logging.info("Creating reporter")
+reporter = PrecisionReporter(classifiers=[classifier])
 
 
-    # output
-    logging.info(f"Outputting precision report")
-    precision_reporter.save(Path(variant_call_precision_report))
+# output
+logging.info("Generating and saving report")
+with open(variant_call_precision_report, "w") as output:
+    reporter.save(output)
 
-logging.info(f"Done")
+logging.info("Done")
