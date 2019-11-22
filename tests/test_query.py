@@ -1,14 +1,13 @@
 from evaluate.query import *
 from tests.common import (
     TEST_CASES,
-    TEST_VCF,
-    TEST_PANEL,
     TEST_QUERY_VCF,
     TEST_QUERY_REF,
     retrieve_entry_from_test_vcf,
     retrieve_entry_from_test_query_vcf,
 )
 from evaluate.vcf_file import VCFFile
+import pysam
 
 
 class TestQuery:
@@ -16,8 +15,7 @@ class TestQuery:
         self
     ):
         flank_width = 10
-        sample = "sample"
-        query = Query(TEST_QUERY_VCF, TEST_PANEL, [sample], flank_width=flank_width)
+        query = Query(None, None, None, flank_width=flank_width)
         variant = retrieve_entry_from_test_query_vcf(1)
 
         expected = (9, 32)
@@ -29,8 +27,7 @@ class TestQuery:
         self
     ):
         flank_width = 10
-        sample = "sample"
-        query = Query(TEST_QUERY_VCF, TEST_PANEL, [sample], flank_width=flank_width)
+        query = Query(None, None, None, flank_width=flank_width)
         variant = retrieve_entry_from_test_query_vcf(0)
 
         expected = (0, 13)
@@ -42,8 +39,7 @@ class TestQuery:
         self
     ):
         flank_width = 2
-        sample = "sample"
-        query = Query(TEST_QUERY_VCF, TEST_PANEL, [sample], flank_width=flank_width)
+        query = Query(None, None, None, flank_width=flank_width)
         variant = retrieve_entry_from_test_query_vcf(1)
 
         expected = (17, 24)
@@ -53,7 +49,11 @@ class TestQuery:
 
     def test_createProbesForGeneVariants_emptyVariants_returnEmptyProbes(self):
         samples = ["sample"]
-        query = Query(TEST_QUERY_VCF, TEST_QUERY_REF, samples)
+        pysam_variant_file = pysam.VariantFile(TEST_QUERY_VCF, "r")
+        vcf_file = VCFFile(pysam_variant_file)
+        pysam_variant_file.close()
+
+        query = Query(vcf_file, TEST_QUERY_REF, samples)
 
         expected = {sample: "" for sample in samples}
         actual = query._create_probes_for_gene_variants(pysam.FastxRecord(), [])
@@ -61,10 +61,13 @@ class TestQuery:
         assert actual == expected
 
     def test_makeProbes_emptyVariantsReturnsEmptyProbes(self):
-        vcf = VCFFile(TEST_CASES / "empty.vcf")
-        genes = TEST_QUERY_REF
         samples = ["sample"]
-        query = Query(vcf, genes, samples)
+        pysam_variant_file = pysam.VariantFile(TEST_CASES / "empty.vcf", "r")
+        vcf_file = VCFFile(pysam_variant_file)
+        pysam_variant_file.close()
+        genes = TEST_QUERY_REF
+
+        query = Query(vcf_file, genes, samples)
 
         actual = query.make_probes()
         expected = {s: "" for s in samples}
@@ -72,10 +75,13 @@ class TestQuery:
         assert actual == expected
 
     def test_makeProbes_emptyGenesReturnsEmptyProbes(self):
-        vcf = TEST_CASES / "empty.vcf"
-        genes = TEST_CASES / "empty.fa"
         samples = ["sample"]
-        query = Query(vcf, genes, samples)
+        pysam_variant_file = pysam.VariantFile(TEST_CASES / "empty.vcf", "r")
+        vcf_file = VCFFile(pysam_variant_file)
+        pysam_variant_file.close()
+        genes = TEST_CASES / "empty.fa"
+
+        query = Query(vcf_file, genes, samples)
 
         actual = query.make_probes()
         expected = {s: "" for s in samples}
@@ -83,10 +89,13 @@ class TestQuery:
         assert actual == expected
 
     def test_makeProbes_oneGeneOneVcfRecordNotInGeneReturnsEmptyProbes(self):
-        vcf = VCFFile(TEST_CASES / "empty.vcf")
-        genes = TEST_QUERY_REF
         samples = ["sample"]
-        query = Query(vcf, genes, samples)
+        pysam_variant_file = pysam.VariantFile(TEST_CASES / "empty.vcf", "r")
+        vcf_file = VCFFile(pysam_variant_file)
+        pysam_variant_file.close()
+        genes = TEST_QUERY_REF
+
+        query = Query(vcf_file, genes, samples)
 
         actual = query.make_probes()
         expected = {s: "" for s in samples}
@@ -94,11 +103,14 @@ class TestQuery:
         assert actual == expected
 
     def test_makeProbes_oneGeneOneVcfRecordInGeneReturnsOneProbe(self):
-        vcf = VCFFile(TEST_CASES / "make_probes_1.vcf")
+        samples = ["sample"]
+        pysam_variant_file = pysam.VariantFile(TEST_CASES / "make_probes_1.vcf", "r")
+        vcf_file = VCFFile(pysam_variant_file)
+        pysam_variant_file.close()
         genes = TEST_CASES / "make_probes_1.fa"
         flank_width = 3
-        samples = ["sample"]
-        query = Query(vcf, genes, samples, flank_width)
+
+        query = Query(vcf_file, genes, samples, flank_width)
 
         actual = query.make_probes()
         expected = {
@@ -123,11 +135,14 @@ class TestQuery:
         assert actual == expected
 
     def test_makeProbes_oneGeneTwoNonCloseVcfRecordsInGeneReturnsTwoProbes(self):
-        vcf = VCFFile(TEST_CASES / "make_probes_3.vcf")
+        samples = ["sample"]
+        pysam_variant_file = pysam.VariantFile(TEST_CASES / "make_probes_3.vcf", "r")
+        vcf_file = VCFFile(pysam_variant_file)
+        pysam_variant_file.close()
         genes = TEST_CASES / "make_probes_2.fa"
         flank_width = 5
-        samples = ["sample"]
-        query = Query(vcf, genes, samples, flank_width)
+
+        query = Query(vcf_file, genes, samples, flank_width)
 
         actual = query.make_probes()
         expected = {
@@ -168,11 +183,14 @@ class TestQuery:
         assert actual == expected
 
     def test_makeProbes_twoGenesTwoNonCloseVcfRecordsInOneGeneReturnsTwoProbes(self):
-        vcf = VCFFile(TEST_CASES / "make_probes_3.vcf")
+        samples = ["sample"]
+        pysam_variant_file = pysam.VariantFile(TEST_CASES / "make_probes_3.vcf", "r")
+        vcf_file = VCFFile(pysam_variant_file)
+        pysam_variant_file.close()
         genes = TEST_CASES / "make_probes_3.fa"
         flank_width = 5
-        samples = ["sample"]
-        query = Query(vcf, genes, samples, flank_width)
+
+        query = Query(vcf_file, genes, samples, flank_width)
 
         actual = query.make_probes()
         expected = {
@@ -213,11 +231,14 @@ class TestQuery:
         assert actual == expected
 
     def test_makeProbes_twoGenesTwoVcfRecordsOneInEachGeneReturnsTwoProbes(self):
-        vcf = VCFFile(TEST_CASES / "make_probes_4.vcf")
+        samples = ["sample"]
+        pysam_variant_file = pysam.VariantFile(TEST_CASES / "make_probes_4.vcf", "r")
+        vcf_file = VCFFile(pysam_variant_file)
+        pysam_variant_file.close()
         genes = TEST_CASES / "make_probes_3.fa"
         flank_width = 5
-        samples = ["sample"]
-        query = Query(vcf, genes, samples, flank_width)
+
+        query = Query(vcf_file, genes, samples, flank_width)
 
         actual = query.make_probes()
         expected = {
@@ -260,11 +281,14 @@ class TestQuery:
     def test_makeProbes_oneGeneTwoVcfRecordsInTheSameIntervalWithDifferentGTConfReturnsProbeWithHighestGTConf(
         self
     ):
-        vcf = VCFFile(TEST_CASES / "make_probes_6.vcf")
+        samples = ["sample"]
+        pysam_variant_file = pysam.VariantFile(TEST_CASES / "make_probes_6.vcf", "r")
+        vcf_file = VCFFile(pysam_variant_file)
+        pysam_variant_file.close()
         genes = TEST_CASES / "make_probes_6.fa"
         flank_width = 5
-        samples = ["sample"]
-        query = Query(vcf, genes, samples, flank_width)
+
+        query = Query(vcf_file, genes, samples, flank_width)
 
         actual = query.make_probes()
         expected = {
@@ -289,10 +313,9 @@ class TestQuery:
         assert actual == expected
 
     def test_createProbeHeader(self):
-        flank_width = 3
         sample = "sample"
-        vcf = VCFFile(TEST_VCF)
-        query = Query(vcf, TEST_PANEL, [sample], flank_width=flank_width)
+        flank_width = 3
+        query = Query(None, None, None, flank_width=flank_width)
         variant = retrieve_entry_from_test_vcf(2)
         vcf = VCF.from_VariantRecord_and_Sample(variant, sample)
         interval = query.calculate_probe_boundaries_for_entry(vcf)

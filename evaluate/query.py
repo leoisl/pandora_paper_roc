@@ -13,35 +13,32 @@ class OverlappingRecordsError(Exception):
 
 
 class Query:
+    # TODO: vcf_ref in __init__() should be pysam.FastxFile to adhere to dependency injection pattern
     def __init__(
         self, vcf_file: VCFFile, vcf_ref: Path, samples: List[str], flank_width: int = 0
     ):
-        self.vcf = Path(
-            f"{str(vcf)}.gz"
-        )
-        self.genes = vcf_ref
-        self._probe_names = set()
-        self.flank_width = flank_width
-        self._entry_number = 0
+        self.vcf_file = vcf_file
+        self.vcf_ref = vcf_ref
         self.samples = samples
+        self.flank_width = flank_width
 
     def make_probes(self) -> Dict[str, str]:
-        query_probes: Dict[str, str] = {s: "" for s in self.samples}
-        with pysam.FastxFile(str(self.genes)) as genes_fasta:
+        sample_to_probes_for_all_genes: Dict[str, str] = {sample: "" for sample in self.samples}
+        with pysam.FastxFile(str(self.vcf_ref)) as genes_fasta:
             for gene in genes_fasta:
                 for sample in self.samples:
                     vcf_records = self.vcf_file.get_VCF_records_given_sample_and_gene(
                         sample, gene.name
                     )
 
-                    probes_for_gene: Dict[
+                    sample_to_probe_for_this_gene: Dict[
                         str, str
                     ] = self._create_probes_for_gene_variants(gene, vcf_records)
 
-                    for sample, probe in probes_for_gene.items():
-                        query_probes[sample] += probe
+                    for sample, probe in sample_to_probe_for_this_gene.items():
+                        sample_to_probes_for_all_genes[sample] += probe
 
-        return query_probes
+        return sample_to_probes_for_all_genes
 
     # TODO : tagged for refactoring - this function does a lot of things
     def _create_probes_for_gene_variants(
@@ -50,9 +47,9 @@ class Query:
         """Note: An assumption is made with this function that the variants you pass in
         are from the gene passed with them."""
 
-        sample_to_probes: Dict[str, str] = {s: "" for s in self.samples}
+        sample_to_probes: Dict[str, str] = {sample: "" for sample in self.samples}
         sample_to_intervals_to_probes: Dict[str, Dict[ProbeInterval, Probe]] = {
-            s: {} for s in self.samples
+            sample: {} for sample in self.samples
         }
 
         for vcf in vcf_records:
@@ -72,7 +69,7 @@ class Query:
 
             start_idx_of_variant_on_consensus = vcf.start - interval.start
             mutated_consensus += consensus[last_idx:start_idx_of_variant_on_consensus]
-            mutated_consensus += vcf.variant_sequence
+            mutated_consensus += vcf.called_variant_sequence
             last_idx = start_idx_of_variant_on_consensus + vcf.rlen
             mutated_consensus += consensus[last_idx:]
             probe_header = self._create_probe_header(sample, vcf, interval)
@@ -99,7 +96,7 @@ class Query:
         sample: str, vcf: VCF, interval: ProbeInterval
     ) -> ProbeHeader:
         call_start_idx = max(0, vcf.start - interval[0])
-        call_end_idx = call_start_idx + vcf.variant_length
+        call_end_idx = call_start_idx + vcf.called_variant_length
         call_interval = ProbeInterval(call_start_idx, call_end_idx)
         return ProbeHeader(
             chrom=vcf.chrom,
