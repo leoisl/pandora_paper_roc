@@ -47,16 +47,15 @@ rule create_recall_report_for_probe_mappings:
     script:
         "../scripts/create_recall_report_for_probe_mappings.py"
 
-# TODO : check what the output should be here with Plotly
-# rule calculate_recall:
-#     input:
-#          recall_report_files_for_all_samples = lambda wildcards: recall_report_files_for_all_samples[wildcards.coverage]
-#     output:
-#          recall_file_for_all_samples = output_folder + "/recall/recall_files/{coverage}/{tool}/coverage_filter_{coverage_threshold}/strand_bias_filter_{strand_bias_threshold}/gaps_filter_{gaps_threshold}/recall_gt_min_{min_gt}_step_{step_gt}_max_{max_gt}.tsv"
-#     threads: 1
-#     resources:
-#         mem_mb = lambda wildcards, attempt: 4000 * attempt
-#     log:
-#         "logs/calculate_recall/{coverage}/{tool}/coverage_filter_{coverage_threshold}/strand_bias_filter_{strand_bias_threshold}/gaps_filter_{gaps_threshold}/recall_gt_min_{min_gt}_step_{step_gt}_max_{max_gt}.log"
-#     script:
-#         "../scripts/calculate_recall.py"
+rule calculate_recall:
+    input:
+         recall_report_files_for_all_samples = lambda wildcards: cov_tool_and_filters_to_recall_report_files[wildcards.coverage, wildcards.tool, float(wildcards.coverage_threshold), float(wildcards.strand_bias_threshold), float(wildcards.gaps_threshold)]
+    output:
+         recall_file_for_all_samples = output_folder + "/recall/recall_files/{coverage}/{tool}/coverage_filter_{coverage_threshold}/strand_bias_filter_{strand_bias_threshold}/gaps_filter_{gaps_threshold}/recall_gt_min_{min_gt}_step_{step_gt}_max_{max_gt}.tsv"
+    threads: 1
+    resources:
+        mem_mb = lambda wildcards, attempt: 4000 * attempt
+    log:
+        "logs/calculate_recall/{coverage}/{tool}/coverage_filter_{coverage_threshold}/strand_bias_filter_{strand_bias_threshold}/gaps_filter_{gaps_threshold}/recall_gt_min_{min_gt}_step_{step_gt}_max_{max_gt}.log"
+    script:
+        "../scripts/calculate_recall.py"
