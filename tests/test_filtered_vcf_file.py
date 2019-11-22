@@ -1,4 +1,4 @@
-from unittest.mock import Mock, PropertyMock, patch
+from unittest.mock import Mock, patch, PropertyMock
 from evaluate.filtered_vcf_file import FilteredVCFFile
 from evaluate.vcf_filters import VCF_Filters
 from evaluate.vcf_file import VCFFile
@@ -33,6 +33,24 @@ def sample_to_gene_to_VCFs_all_records():
     return sample_to_gene_to_VCFs_all_records
 
 class TestFilteredVCFFile:
+    filter_records_mock_return_value = Mock()
+    sample_to_gene_to_VCFs_mock = Mock()
+
+    @patch.object(FilteredVCFFile, "sample_to_gene_to_VCFs", new_callable=PropertyMock, return_value=sample_to_gene_to_VCFs_mock)
+    @patch.object(VCFFile, VCFFile.__init__.__name__)
+    @patch.object(FilteredVCFFile, FilteredVCFFile._filter_records.__name__, return_value=filter_records_mock_return_value)
+    def test___constructor(self, filter_records_mock, VCFFile_init_mock, sample_to_gene_to_VCFs_property_mock):
+        pysam_variant_file_mock = Mock()
+        filters_mock = Mock()
+
+        filtered_vcf_file = FilteredVCFFile(pysam_variant_file_mock, filters_mock)
+
+        VCFFile_init_mock.assert_called_once_with(filtered_vcf_file, pysam_variant_file_mock)
+        filter_records_mock.assert_called_once_with(TestFilteredVCFFile.sample_to_gene_to_VCFs_mock, filters_mock)
+
+
+
+
     def test_filter_records_noFiltersReturnsAllRecords(self, sample_to_gene_to_VCFs_all_records):
         filters = VCF_Filters()
 
