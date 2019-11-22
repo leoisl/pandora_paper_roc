@@ -107,8 +107,13 @@ files.extend(all_recall_files)
 
 
 # Plot files
+all_plot_data_intermediate_files = []
 for coverage, tool, coverage_threshold, strand_bias_threshold, gaps_threshold in cov_tool_and_filters_to_recall_report_files:
-    files.append(f"{output_folder}/plot_data/{coverage}/{tool}/coverage_filter_{coverage_threshold}/strand_bias_filter_{strand_bias_threshold}/gaps_filter_{gaps_threshold}/ROC_data_gt_min_{min_gt}_step_{step_gt}_max_{max_gt}.tsv")
+    all_plot_data_intermediate_files.append(f"{output_folder}/plot_data/{coverage}/{tool}/coverage_filter_{coverage_threshold}/strand_bias_filter_{strand_bias_threshold}/gaps_filter_{gaps_threshold}/ROC_data_gt_min_{min_gt}_step_{step_gt}_max_{max_gt}.tsv")
+final_plot_data_file = f"{output_folder}/plot_data/ROC_data_gt_min_{min_gt}_step_{step_gt}_max_{max_gt}.tsv"
+
+files.extend(all_plot_data_intermediate_files)
+files.append(final_plot_data_file)
 
 
 

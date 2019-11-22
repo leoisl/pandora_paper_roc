@@ -13,6 +13,20 @@ rule merge_precision_and_recall_dfs:
         "../scripts/merge_precision_and_recall_dfs.py"
 
 
+rule merge_all_plot_data:
+    input:
+         all_plot_data_intermediate_files = all_plot_data_intermediate_files
+    output:
+         final_plot_data_file =output_folder + "/plot_data/ROC_data_gt_min_{min_gt}_step_{step_gt}_max_{max_gt}.tsv"
+    threads: 1
+    resources:
+        mem_mb = lambda wildcards, attempt: 2000 * attempt
+    log:
+        "logs/merge_all_plot_data/ROC_data_gt_min_{min_gt}_step_{step_gt}_max_{max_gt}.log"
+    script:
+        "../scripts/merge_all_plot_data.py"
+
+
 # TODO : no need for this anymore, we are building interactive plots based on the ROC data
 # rule generate_ROC_curve:
 #     input:
