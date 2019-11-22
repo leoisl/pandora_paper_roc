@@ -20,7 +20,7 @@ from evaluate.bwa import BWA
 query = Path(snakemake.input.truth_probeset)
 ref = Path(snakemake.input.variant_calls_probeset)
 output = Path(snakemake.output.sam)
-threads = snakemake.threads
+threads = int(snakemake.threads)
 
 
 # API usage

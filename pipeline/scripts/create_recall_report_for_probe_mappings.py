@@ -29,11 +29,11 @@ output = snakemake.output.report
 # API usage
 logging.info(f"Creating masker from {mask_filepath}")
 with open(mask_filepath) as bed:
-    mask = RecallMasker.from_bed(bed)
+    masker = RecallMasker.from_bed(bed)
 
 logging.info(f"Masking SAM records")
 with pysam.AlignmentFile(sam_filepath) as sam:
-    records = mask.filter_records(sam)
+    records = masker.filter_records(sam)
 
 logging.info("Creating classifier")
 classifier = RecallClassifier(sam=records, name=sample_id)
