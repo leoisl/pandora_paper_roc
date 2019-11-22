@@ -16,7 +16,7 @@ class VCFFile:
                 except NullVCFError:
                     pass
                 except BuggedVCFError:
-                    assert False, f"We found a bugged VCF: {vcf.variant}"
+                    assert False, f"We found a bugged VCF: {variant_record}"
 
     @property
     def sample_to_gene_to_VCFs(self) -> Dict[str, Dict[str, List[VCF]]]:
