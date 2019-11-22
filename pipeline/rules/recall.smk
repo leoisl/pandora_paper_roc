@@ -49,13 +49,13 @@ rule create_recall_report_for_probe_mappings:
 
 rule calculate_recall:
     input:
-         recall_report_files_for_tool_and_coverage = lambda wildcards: tool_and_coverage_to_recall_report_files[wildcards.tool_and_coverage]
+         recall_report_files_for_all_samples = lambda wildcards: recall_report_files_for_all_samples[wildcards.coverage]
     output:
-         recall_file_for_tool_and_coverage = "analysis/recall/recall_{tool_and_coverage}_gt_min_{min_gt}_step_{step_gt}_max_{max_gt}.tsv"
+         recall_file_for_all_samples = "analysis/recall/recall_files/{coverage}/{tool}/coverage_filter_{coverage_threshold}/strand_bias_filter_{strand_bias_threshold}/gaps_filter_{gaps_threshold}/recall_gt_min_{min_gt}_step_{step_gt}_max_{max_gt}.tsv"
     threads: 1
     resources:
         mem_mb = lambda wildcards, attempt: 4000 * attempt
     log:
-        "logs/calculate_recall/{tool_and_coverage}_gt_min_{min_gt}_step_{step_gt}_max_{max_gt}.log"
+        "logs/calculate_recall/{coverage}/{tool}/coverage_filter_{coverage_threshold}/strand_bias_filter_{strand_bias_threshold}/gaps_filter_{gaps_threshold}/recall_gt_min_{min_gt}_step_{step_gt}_max_{max_gt}.log"
     script:
         "../scripts/calculate_recall.py"

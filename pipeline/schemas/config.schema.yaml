@@ -5,6 +5,9 @@ description:                    snakemake configuration file
 type:                           object
 
 properties:
+    output_folder:
+        type:                   string
+        description:            Path to the output folder
     samples:
         type:                   string
         description:            Path to CSV file containing the samples information.

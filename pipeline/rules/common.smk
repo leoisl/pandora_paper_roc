@@ -2,8 +2,10 @@ rule index_vcf:
     input:
         vcf = "{vcf}"
     output:
+        gz_vcf = "{vcf}.gz",
         indexed_vcf = "{vcf}.gz.tbi"
     threads: 1
+    log: "{vcf}.log"
     resources:
         mem_mb = lambda wildcards, attempt: 1000 * attempt
     run:
@@ -17,9 +19,10 @@ rule bwa_index:
     output:
         indexed_fasta = "{fasta}.amb"
     threads: 1
+    log: "{fasta}.log"
     resources:
         mem_mb = lambda wildcards, attempt: 1000 * attempt
-    shell: "bwa index {input.fasta}"
+    shell: "bwa index {input.fasta} > {log} 2>&1"
 
 
 
@@ -29,7 +32,7 @@ rule make_variant_calls_probeset:
          vcf_index = lambda wildcards: data.xs((wildcards.sample_id, wildcards.coverage, wildcards.tool))["vcf"]+".gz.tbi",
          vcf_ref = lambda wildcards: data.xs((wildcards.sample_id, wildcards.coverage, wildcards.tool))["vcf_reference"]
     output:
-          probeset = "analysis/variant_calls_probesets/{sample_id}/{coverage}/{tool}/coverage_filter_{coverage_threshold}/strand_bias_filter_{strand_bias_threshold}/gaps_filter_{gaps_threshold}/variant_calls_probeset.fa"
+          probeset = output_folder + "/variant_calls_probesets/{sample_id}/{coverage}/{tool}/coverage_filter_{coverage_threshold}/strand_bias_filter_{strand_bias_threshold}/gaps_filter_{gaps_threshold}/variant_calls_probeset.fa"
     params:
           flank_length = config["variant_calls_probe_length"]
     threads: 1
