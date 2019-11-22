@@ -10,8 +10,9 @@ precision_df = pd.read_csv(precision_file, sep="\t")
 recall_df = pd.read_csv(recall_file, sep="\t")
 
 # merge
-error_rate_and_recall_df = pd.merge(precision_df, recall_df, on=["GT", "label"])[
-    ["GT", "label", "error_rate", "recall"]
+error_rate_and_recall_df = pd.merge(precision_df, recall_df,
+                    on=["tool", "coverage", "coverage_threshold", "strand_bias_threshold", "gaps_threshold", "GT"])[
+    ["tool", "coverage", "coverage_threshold", "strand_bias_threshold", "gaps_threshold", "GT", "error_rate", "recall"]
 ]
 
 # output

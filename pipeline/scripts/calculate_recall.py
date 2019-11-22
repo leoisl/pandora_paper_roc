@@ -33,7 +33,6 @@ coverage = snakemake.wildcards.coverage
 coverage_threshold = snakemake.wildcards.coverage_threshold
 strand_bias_threshold = snakemake.wildcards.strand_bias_threshold
 gaps_threshold = snakemake.wildcards.gaps_threshold
-label = f"tool_{tool}_coverage_{coverage}_coverage_threshold_{coverage_threshold}_strand_bias_threshold_{strand_bias_threshold}_gaps_threshold_{gaps_threshold}"
 
 
 # API usage
@@ -60,12 +59,15 @@ for gt in all_gts:
         pass
 
 
-labels = [label] * len(gts)
 recall_df = pd.DataFrame(
     data={
+        "tool": [tool] * len(gts),
+        "coverage": [coverage] * len(gts),
+        "coverage_threshold": [coverage_threshold] * len(gts),
+        "strand_bias_threshold": [strand_bias_threshold] * len(gts),
+        "gaps_threshold": [gaps_threshold] * len(gts),
         "GT": gts,
-        "recall": recalls,
-        "label": labels,
+        "recall": recalls
     }
 )
 
