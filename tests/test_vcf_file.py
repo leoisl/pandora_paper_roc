@@ -3,23 +3,42 @@ from evaluate.vcf_file import VCFFile
 from evaluate.vcf import VCF, NullVCFError, BuggedVCFError
 import pytest
 
-# TODO : put this in a Fixture
-pysam_variant_record_mock_that_maps_to_chrom_1_and_one_sample = Mock()
-pysam_variant_record_mock_that_maps_to_chrom_1_and_one_sample.samples = ["sample_1"]
-pysam_variant_record_mock_that_maps_to_chrom_1_and_one_sample.chrom = "chrom_1"
 
-pysam_variant_record_mock_that_maps_to_chrom_2_and_one_sample = Mock()
-pysam_variant_record_mock_that_maps_to_chrom_2_and_one_sample.samples = ["sample_1"]
-pysam_variant_record_mock_that_maps_to_chrom_2_and_one_sample.chrom = "chrom_2"
+@pytest.fixture
+def pysam_variant_record_mock_that_maps_to_chrom_1_and_one_sample():
+    pysam_variant_record_mock_that_maps_to_chrom_1_and_one_sample = Mock()
+    pysam_variant_record_mock_that_maps_to_chrom_1_and_one_sample.samples = ["sample_1"]
+    pysam_variant_record_mock_that_maps_to_chrom_1_and_one_sample.chrom = "chrom_1"
+    return pysam_variant_record_mock_that_maps_to_chrom_1_and_one_sample
 
-pysam_variant_record_mock_that_maps_to_chrom_1_and_two_samples = Mock()
-pysam_variant_record_mock_that_maps_to_chrom_1_and_two_samples.samples = ["sample_1", "sample_2"]
-pysam_variant_record_mock_that_maps_to_chrom_1_and_two_samples.chrom = "chrom_1"
+@pytest.fixture
+def pysam_variant_record_mock_that_maps_to_chrom_2_and_one_sample():
+    pysam_variant_record_mock_that_maps_to_chrom_2_and_one_sample = Mock()
+    pysam_variant_record_mock_that_maps_to_chrom_2_and_one_sample.samples = ["sample_1"]
+    pysam_variant_record_mock_that_maps_to_chrom_2_and_one_sample.chrom = "chrom_2"
+    return pysam_variant_record_mock_that_maps_to_chrom_2_and_one_sample
 
+@pytest.fixture
+def pysam_variant_record_mock_that_maps_to_chrom_1_and_two_samples():
+    pysam_variant_record_mock_that_maps_to_chrom_1_and_two_samples = Mock()
+    pysam_variant_record_mock_that_maps_to_chrom_1_and_two_samples.samples = ["sample_1", "sample_2"]
+    pysam_variant_record_mock_that_maps_to_chrom_1_and_two_samples.chrom = "chrom_1"
+    return pysam_variant_record_mock_that_maps_to_chrom_1_and_two_samples
 
-vcf_record_1_mock = Mock()
-vcf_record_2_mock = Mock()
-vcf_record_3_mock = Mock()
+@pytest.fixture
+def vcf_record_1_mock():
+    vcf_record_1_mock = Mock()
+    return vcf_record_1_mock
+
+@pytest.fixture
+def vcf_record_2_mock():
+    vcf_record_2_mock = Mock()
+    return vcf_record_2_mock
+
+@pytest.fixture
+def vcf_record_3_mock():
+    vcf_record_3_mock = Mock()
+    return vcf_record_3_mock
 
 
 def chrom_1_raises_NullVCFError_others_are_fine(pysam_variant_record, sample):
@@ -38,7 +57,8 @@ class Test_VCFFile:
         assert actual == expected
 
     @patch.object(VCF, VCF.from_VariantRecord_and_Sample.__name__, return_value=vcf_record_1_mock)
-    def test___constructor___one_record_in_one_sample_and_one_gene(self, *mocks):
+    def test___constructor___one_record_in_one_sample_and_one_gene(self, from_VariantRecord_and_Sample_Mock,
+                                                                   pysam_variant_record_mock_that_maps_to_chrom_1_and_one_sample):
         vcf_file = VCFFile([pysam_variant_record_mock_that_maps_to_chrom_1_and_one_sample])
         actual = vcf_file.sample_to_gene_to_VCFs
 
@@ -47,7 +67,8 @@ class Test_VCFFile:
 
     @patch.object(VCF, VCF.from_VariantRecord_and_Sample.__name__,
                   return_value=vcf_record_1_mock)
-    def test___constructor___one_record_in_two_samples_and_one_gene(self, *mocks):
+    def test___constructor___one_record_in_two_samples_and_one_gene(self, from_VariantRecord_and_Sample_Mock,
+                                                                    pysam_variant_record_mock_that_maps_to_chrom_1_and_two_samples):
         vcf_file = VCFFile([pysam_variant_record_mock_that_maps_to_chrom_1_and_two_samples])
         actual = vcf_file.sample_to_gene_to_VCFs
 
@@ -57,7 +78,9 @@ class Test_VCFFile:
 
     @patch.object(VCF, VCF.from_VariantRecord_and_Sample.__name__,
                   side_effect=[vcf_record_1_mock, vcf_record_2_mock])
-    def test___constructor___two_records_in_one_sample_and_two_genes(self, *mocks):
+    def test___constructor___two_records_in_one_sample_and_two_genes(self, from_VariantRecord_and_Sample_Mock,
+                                                                     pysam_variant_record_mock_that_maps_to_chrom_1_and_one_sample,
+                                                                     pysam_variant_record_mock_that_maps_to_chrom_2_and_one_sample):
         vcf_file = VCFFile([pysam_variant_record_mock_that_maps_to_chrom_1_and_one_sample,
                             pysam_variant_record_mock_that_maps_to_chrom_2_and_one_sample])
         actual = vcf_file.sample_to_gene_to_VCFs
@@ -67,7 +90,8 @@ class Test_VCFFile:
 
     @patch.object(VCF, VCF.from_VariantRecord_and_Sample.__name__,
                   side_effect=[vcf_record_1_mock, vcf_record_2_mock])
-    def test___constructor___two_records_in_one_sample_and_one_gene(self, *mocks):
+    def test___constructor___two_records_in_one_sample_and_one_gene(self, from_VariantRecord_and_Sample_Mock,
+                                                                    pysam_variant_record_mock_that_maps_to_chrom_1_and_one_sample):
         vcf_file = VCFFile([pysam_variant_record_mock_that_maps_to_chrom_1_and_one_sample,
                             pysam_variant_record_mock_that_maps_to_chrom_1_and_one_sample])
         actual = vcf_file.sample_to_gene_to_VCFs
@@ -77,7 +101,9 @@ class Test_VCFFile:
 
     @patch.object(VCF, VCF.from_VariantRecord_and_Sample.__name__,
                   side_effect=chrom_1_raises_NullVCFError_others_are_fine)
-    def test___constructor___two_records_in_one_sample_and_two_genes___first_is_null_and_is_not_added(self, *mocks):
+    def test___constructor___two_records_in_one_sample_and_two_genes___first_is_null_and_is_not_added(self, from_VariantRecord_and_Sample_Mock,
+                                                                     pysam_variant_record_mock_that_maps_to_chrom_1_and_one_sample,
+                                                                     pysam_variant_record_mock_that_maps_to_chrom_2_and_one_sample):
         vcf_file = VCFFile([pysam_variant_record_mock_that_maps_to_chrom_1_and_one_sample,
                             pysam_variant_record_mock_that_maps_to_chrom_2_and_one_sample])
         actual = vcf_file.sample_to_gene_to_VCFs
@@ -88,7 +114,9 @@ class Test_VCFFile:
 
     @patch.object(VCF, VCF.from_VariantRecord_and_Sample.__name__,
                   side_effect=chrom_1_raises_NullVCFError_others_are_fine)
-    def test___constructor___two_records_in_one_sample_and_two_genes___second_is_null_and_is_not_added(self, *mocks):
+    def test___constructor___two_records_in_one_sample_and_two_genes___second_is_null_and_is_not_added(self, from_VariantRecord_and_Sample_Mock,
+                                                                     pysam_variant_record_mock_that_maps_to_chrom_1_and_one_sample,
+                                                                     pysam_variant_record_mock_that_maps_to_chrom_2_and_one_sample):
         vcf_file = VCFFile([pysam_variant_record_mock_that_maps_to_chrom_2_and_one_sample,
                             pysam_variant_record_mock_that_maps_to_chrom_1_and_one_sample,])
         actual = vcf_file.sample_to_gene_to_VCFs
@@ -99,14 +127,14 @@ class Test_VCFFile:
     @patch.object(VCF, VCF.from_VariantRecord_and_Sample.__name__,
                   side_effect=BuggedVCFError())
     @pytest.mark.xfail(strict=True)
-    def test___constructor___two_records_in_one_sample_and_two_genes___first_is_bugged___expects_death(self, *mocks):
+    def test___constructor___two_records_in_one_sample_and_two_genes___first_is_bugged___expects_death(self, from_VariantRecord_and_Sample_Mock,
+                                                                     pysam_variant_record_mock_that_maps_to_chrom_1_and_one_sample,
+                                                                     pysam_variant_record_mock_that_maps_to_chrom_2_and_one_sample):
         vcf_file = VCFFile([pysam_variant_record_mock_that_maps_to_chrom_1_and_one_sample,
                             pysam_variant_record_mock_that_maps_to_chrom_2_and_one_sample])
 
 
-
-
-    def test___constructor___several_records_in_several_samples_and_several_genes(self, *mocks):
+    def test___constructor___several_records_in_several_samples_and_several_genes(self):
         pysam_variant_record_mock_that_maps_to_chrom_1_and_sample_1 = Mock()
         pysam_variant_record_mock_that_maps_to_chrom_1_and_sample_1.samples = ["sample_1"]
         pysam_variant_record_mock_that_maps_to_chrom_1_and_sample_1.chrom = "chrom_1"
