@@ -6,7 +6,7 @@ import plotly.graph_objs as go
 from dash.dependencies import Input, Output
 
 # the only thing that needs to be configured
-ROC_data_path = "ROC_data_gt_min_0.0_step_1.0_max_1000000000.0.tsv"
+ROC_data_path = "/home/leoisl/mysite/ROC_data_gt_min_0.0_step_1.0_max_1000000000.0.tsv"
 
 
 def get_div_for_the_filters(filter_name, filter_values):
@@ -72,8 +72,5 @@ def create_interactive_visualisation():
                                     legend_orientation="h")}
 
 
-    dash_app.run_server(debug=True)
+    return dash_app.server
 
-
-if __name__ == '__main__':
-    create_interactive_visualisation()
