@@ -86,7 +86,7 @@ def create_interactive_visualisation_app(ROC_data_path):
 
         return {"data": traces,
                 "layout": go.Layout(title="Pandora ROC (selected data)",
-                                    yaxis={"title": "Recall"}, xaxis={"title": "Error rate"},
+                                    yaxis={"title": "Recall"}, xaxis={"title": "Error rate", "range" : [0, 0.15]},
                                     legend_orientation="h")}
 
     return dash_app
