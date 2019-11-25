@@ -12,7 +12,7 @@ def get_div_for_the_filters(filter_name, filter_values):
                   id=f"{filter_name}_checklist",
                   options=[{'label': f'{filter_name} {threshold}', 'value': threshold} for
                            threshold in filter_values],
-                  value=filter_values,
+                  value= [filter_values[0]],
                   labelStyle={'display': 'inline-block', 'margin-right': '30px'}
               )],
              className="row", style={"display": "block", "width": "60%", "margin-left": "auto",
