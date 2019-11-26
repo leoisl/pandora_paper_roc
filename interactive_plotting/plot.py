@@ -18,6 +18,8 @@ def get_div_for_the_filters(filter_name, filter_values):
              className="row", style={"display": "block", "width": "60%", "margin-left": "auto",
                                      "margin-right": "auto"})
 
+def get_highest_error_rate_after_given_recall(df, recall):
+    return df.query(f"recall >= {recall}")["error_rate"].max()
 
 def compute_all_possible_traces(df, tools, dataset_coverages, coverage_filters, strand_bias_filters, gaps_filters):
     config_to_trace = {}
@@ -30,11 +32,18 @@ def compute_all_possible_traces(df, tools, dataset_coverages, coverage_filters, 
                             f"tool==\"{tool}\" & coverage==\"{dataset_coverage}\" & coverage_threshold=={coverage_threshold} & strand_bias_threshold=={strand_bias_threshold} & gaps_threshold=={gaps_threshold}")
 
                         trace_name = f"Tool: {tool}, Coverage: {dataset_coverage}, Coverage threshold: {coverage_threshold}, Strand bias threshold: {strand_bias_threshold}, Gaps threshold: {gaps_threshold}"
+                        highest_error_rate_after_20_percent_recall = get_highest_error_rate_after_given_recall(df_for_label, 0.2)
+
                         trace = go.Scatter(x=df_for_label["error_rate"], y=df_for_label["recall"], name=trace_name,
                                                 mode='lines',
                                                 marker={'size': 8, "opacity": 0.6, "line": {'width': 0.5}})
 
-                        config_to_trace[(tool, dataset_coverage, coverage_threshold, strand_bias_threshold, gaps_threshold)] = trace
+
+                        config_to_trace[(tool, dataset_coverage, coverage_threshold, strand_bias_threshold, gaps_threshold)] = {
+                            "trace": trace,
+                            "highest_error_rate": highest_error_rate_after_20_percent_recall
+                        }
+
     return config_to_trace
 
 
@@ -77,16 +86,20 @@ def create_interactive_visualisation_app(ROC_data_path):
          Input(component_id='Gaps_checklist', component_property='value')])
     def update_figure(tool_checklist_values, dataset_coverage_checklist_values, coverage_checklist_values, strand_bias_checklist_values, gaps_checklist_values):
         traces = []
+        highest_error_rate = 0.01
         for tool in tool_checklist_values:
             for dataset_coverage in dataset_coverage_checklist_values:
                 for coverage_threshold in coverage_checklist_values:
                     for strand_bias_threshold in strand_bias_checklist_values:
                         for gaps_threshold in gaps_checklist_values:
-                            traces.append(config_to_all_traces[(tool, dataset_coverage, coverage_threshold, strand_bias_threshold, gaps_threshold)])
+                            trace = config_to_all_traces[(tool, dataset_coverage, coverage_threshold, strand_bias_threshold, gaps_threshold)]
+                            traces.append(trace["trace"])
+                            highest_error_rate = max(highest_error_rate, trace["highest_error_rate"])
 
         return {"data": traces,
                 "layout": go.Layout(title="Pandora ROC (selected data)",
-                                    yaxis={"title": "Recall"}, xaxis={"title": "Error rate", "range" : [0, 0.15]},
+                                    yaxis={"title": "Recall", "range": [0.1, 1.0]},
+                                    xaxis={"title": "Error rate", "range" : [0, highest_error_rate]},
                                     legend_orientation="h")}
 
     return dash_app
