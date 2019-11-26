@@ -64,7 +64,7 @@ class BWA:
 
     @staticmethod
     def map_query_to_ref(
-        query: Path, ref: Path, output: Path = Path(), threads: int = 1
+        query: Path, ref: Path, output: Path, threads: int = 1
     ) -> Tuple[pysam.VariantHeader, List[pysam.AlignedSegment]]:
         bwa = BWA(threads)
         bwa.reference = str(ref)

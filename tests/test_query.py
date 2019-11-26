@@ -1,37 +1,13 @@
-import pytest
-
 from evaluate.query import *
-
-TEST_CASES = Path("tests/test_cases")
-TEST_VCF = TEST_CASES / "test.vcf"
-TEST_PANEL = TEST_CASES / "test_panel.fa"
-TEST_REF_SEQ = TEST_CASES / "test_reference.fa"
-TEST_TMP_PANEL = "/tmp/deleteme.fa"
-TEST_MAKE_PROBE_VCF = TEST_CASES / "test_make_probe.vcf"
-TEST_QUERY_VCF = TEST_CASES / "test_query.vcf"
-TEST_QUERY_REF = TEST_CASES / "test_query.fa"
-
-
-def retrieve_entry_from_test_vcf(idx: int) -> pysam.VariantRecord:
-    with pysam.VariantFile(TEST_VCF) as vcf:
-        for i, record in enumerate(vcf):
-            if i == idx:
-                return record
-    raise IndexError("You asked for an index that is beyond the number in the test VCF")
-
-
-def retrieve_entry_from_test_query_vcf(idx: int) -> pysam.VariantRecord:
-    with pysam.VariantFile(TEST_QUERY_VCF) as vcf:
-        for i, record in enumerate(vcf):
-            if i == idx:
-                return record
-    raise IndexError("You asked for an index that is beyond the number in the test VCF")
-
-
-def create_sam_header(name: str, length: int) -> pysam.AlignmentHeader:
-    return pysam.AlignmentHeader.from_text(
-        f"@SQ	SN:{name}	LN:{length}\n@PG	ID:bwa	PN:bwa	VN:0.7.17-r1188	CL:bwa mem -t 1 panel.fa -"
-    )
+from tests.common import (
+    TEST_CASES,
+    TEST_QUERY_VCF,
+    TEST_QUERY_REF,
+    retrieve_entry_from_test_vcf,
+    retrieve_entry_from_test_query_vcf,
+)
+from evaluate.vcf_file import VCFFile
+import pysam
 
 
 class TestQuery:
@@ -39,8 +15,7 @@ class TestQuery:
         self
     ):
         flank_width = 10
-        sample = "sample"
-        query = Query(TEST_QUERY_VCF, TEST_PANEL, [sample], flank_width=flank_width)
+        query = Query(None, None, None, flank_width=flank_width)
         variant = retrieve_entry_from_test_query_vcf(1)
 
         expected = (9, 32)
@@ -52,8 +27,7 @@ class TestQuery:
         self
     ):
         flank_width = 10
-        sample = "sample"
-        query = Query(TEST_QUERY_VCF, TEST_PANEL, [sample], flank_width=flank_width)
+        query = Query(None, None, None, flank_width=flank_width)
         variant = retrieve_entry_from_test_query_vcf(0)
 
         expected = (0, 13)
@@ -65,8 +39,7 @@ class TestQuery:
         self
     ):
         flank_width = 2
-        sample = "sample"
-        query = Query(TEST_QUERY_VCF, TEST_PANEL, [sample], flank_width=flank_width)
+        query = Query(None, None, None, flank_width=flank_width)
         variant = retrieve_entry_from_test_query_vcf(1)
 
         expected = (17, 24)
@@ -76,7 +49,11 @@ class TestQuery:
 
     def test_createProbesForGeneVariants_emptyVariants_returnEmptyProbes(self):
         samples = ["sample"]
-        query = Query(TEST_QUERY_VCF, TEST_QUERY_REF, samples)
+        pysam_variant_file = pysam.VariantFile(TEST_QUERY_VCF, "r")
+        vcf_file = VCFFile(pysam_variant_file)
+        pysam_variant_file.close()
+
+        query = Query(vcf_file, TEST_QUERY_REF, samples)
 
         expected = {sample: "" for sample in samples}
         actual = query._create_probes_for_gene_variants(pysam.FastxRecord(), [])
@@ -84,10 +61,13 @@ class TestQuery:
         assert actual == expected
 
     def test_makeProbes_emptyVariantsReturnsEmptyProbes(self):
-        vcf = TEST_CASES / "empty.vcf"
-        genes = TEST_QUERY_REF
         samples = ["sample"]
-        query = Query(vcf, genes, samples)
+        pysam_variant_file = pysam.VariantFile(TEST_CASES / "empty.vcf", "r")
+        vcf_file = VCFFile(pysam_variant_file)
+        pysam_variant_file.close()
+        genes = TEST_QUERY_REF
+
+        query = Query(vcf_file, genes, samples)
 
         actual = query.make_probes()
         expected = {s: "" for s in samples}
@@ -95,10 +75,13 @@ class TestQuery:
         assert actual == expected
 
     def test_makeProbes_emptyGenesReturnsEmptyProbes(self):
-        vcf = TEST_CASES / "empty.vcf"
-        genes = TEST_CASES / "empty.fa"
         samples = ["sample"]
-        query = Query(vcf, genes, samples)
+        pysam_variant_file = pysam.VariantFile(TEST_CASES / "empty.vcf", "r")
+        vcf_file = VCFFile(pysam_variant_file)
+        pysam_variant_file.close()
+        genes = TEST_CASES / "empty.fa"
+
+        query = Query(vcf_file, genes, samples)
 
         actual = query.make_probes()
         expected = {s: "" for s in samples}
@@ -106,10 +89,13 @@ class TestQuery:
         assert actual == expected
 
     def test_makeProbes_oneGeneOneVcfRecordNotInGeneReturnsEmptyProbes(self):
-        vcf = TEST_CASES / "empty.vcf"
-        genes = TEST_QUERY_REF
         samples = ["sample"]
-        query = Query(vcf, genes, samples)
+        pysam_variant_file = pysam.VariantFile(TEST_CASES / "empty.vcf", "r")
+        vcf_file = VCFFile(pysam_variant_file)
+        pysam_variant_file.close()
+        genes = TEST_QUERY_REF
+
+        query = Query(vcf_file, genes, samples)
 
         actual = query.make_probes()
         expected = {s: "" for s in samples}
@@ -117,11 +103,14 @@ class TestQuery:
         assert actual == expected
 
     def test_makeProbes_oneGeneOneVcfRecordInGeneReturnsOneProbe(self):
-        vcf = TEST_CASES / "make_probes_1.vcf"
+        samples = ["sample"]
+        pysam_variant_file = pysam.VariantFile(TEST_CASES / "make_probes_1.vcf", "r")
+        vcf_file = VCFFile(pysam_variant_file)
+        pysam_variant_file.close()
         genes = TEST_CASES / "make_probes_1.fa"
         flank_width = 3
-        samples = ["sample"]
-        query = Query(vcf, genes, samples, flank_width)
+
+        query = Query(vcf_file, genes, samples, flank_width)
 
         actual = query.make_probes()
         expected = {
@@ -146,11 +135,14 @@ class TestQuery:
         assert actual == expected
 
     def test_makeProbes_oneGeneTwoNonCloseVcfRecordsInGeneReturnsTwoProbes(self):
-        vcf = TEST_CASES / "make_probes_3.vcf"
+        samples = ["sample"]
+        pysam_variant_file = pysam.VariantFile(TEST_CASES / "make_probes_3.vcf", "r")
+        vcf_file = VCFFile(pysam_variant_file)
+        pysam_variant_file.close()
         genes = TEST_CASES / "make_probes_2.fa"
         flank_width = 5
-        samples = ["sample"]
-        query = Query(vcf, genes, samples, flank_width)
+
+        query = Query(vcf_file, genes, samples, flank_width)
 
         actual = query.make_probes()
         expected = {
@@ -191,11 +183,14 @@ class TestQuery:
         assert actual == expected
 
     def test_makeProbes_twoGenesTwoNonCloseVcfRecordsInOneGeneReturnsTwoProbes(self):
-        vcf = TEST_CASES / "make_probes_3.vcf"
+        samples = ["sample"]
+        pysam_variant_file = pysam.VariantFile(TEST_CASES / "make_probes_3.vcf", "r")
+        vcf_file = VCFFile(pysam_variant_file)
+        pysam_variant_file.close()
         genes = TEST_CASES / "make_probes_3.fa"
         flank_width = 5
-        samples = ["sample"]
-        query = Query(vcf, genes, samples, flank_width)
+
+        query = Query(vcf_file, genes, samples, flank_width)
 
         actual = query.make_probes()
         expected = {
@@ -236,11 +231,14 @@ class TestQuery:
         assert actual == expected
 
     def test_makeProbes_twoGenesTwoVcfRecordsOneInEachGeneReturnsTwoProbes(self):
-        vcf = TEST_CASES / "make_probes_4.vcf"
+        samples = ["sample"]
+        pysam_variant_file = pysam.VariantFile(TEST_CASES / "make_probes_4.vcf", "r")
+        vcf_file = VCFFile(pysam_variant_file)
+        pysam_variant_file.close()
         genes = TEST_CASES / "make_probes_3.fa"
         flank_width = 5
-        samples = ["sample"]
-        query = Query(vcf, genes, samples, flank_width)
+
+        query = Query(vcf_file, genes, samples, flank_width)
 
         actual = query.make_probes()
         expected = {
@@ -283,11 +281,14 @@ class TestQuery:
     def test_makeProbes_oneGeneTwoVcfRecordsInTheSameIntervalWithDifferentGTConfReturnsProbeWithHighestGTConf(
         self
     ):
-        vcf = TEST_CASES / "make_probes_6.vcf"
+        samples = ["sample"]
+        pysam_variant_file = pysam.VariantFile(TEST_CASES / "make_probes_6.vcf", "r")
+        vcf_file = VCFFile(pysam_variant_file)
+        pysam_variant_file.close()
         genes = TEST_CASES / "make_probes_6.fa"
         flank_width = 5
-        samples = ["sample"]
-        query = Query(vcf, genes, samples, flank_width)
+
+        query = Query(vcf_file, genes, samples, flank_width)
 
         actual = query.make_probes()
         expected = {
@@ -312,13 +313,14 @@ class TestQuery:
         assert actual == expected
 
     def test_createProbeHeader(self):
-        flank_width = 3
         sample = "sample"
-        query = Query(TEST_VCF, TEST_PANEL, [sample], flank_width=flank_width)
+        flank_width = 3
+        query = Query(None, None, None, flank_width=flank_width)
         variant = retrieve_entry_from_test_vcf(2)
-        interval = query.calculate_probe_boundaries_for_entry(variant)
+        vcf = VCF.from_VariantRecord_and_Sample(variant, sample)
+        interval = query.calculate_probe_boundaries_for_entry(vcf)
 
-        actual = Query._create_probe_header(sample, variant, interval)
+        actual = Query._create_probe_header(sample, vcf, interval)
         expected = ProbeHeader(
             chrom="GC00000001_155",
             sample="sample",
@@ -331,125 +333,6 @@ class TestQuery:
         )
 
         assert actual == expected
-
-
-def test_isInvalidVcfEntry_withNoneGenotype_returnTrue():
-    entry = retrieve_entry_from_test_vcf(0)
-    sample = "sample"
-    assert is_invalid_vcf_entry(entry, sample)
-
-
-def test_isInvalidVcfEntry_withGenotype1_returnFalse():
-    entry = retrieve_entry_from_test_vcf(1)
-    sample = "sample"
-    assert not is_invalid_vcf_entry(entry, sample)
-
-
-def test_getGenotypeConfidence():
-    entry = retrieve_entry_from_test_vcf(0)
-    sample = "sample"
-    assert get_genotype_confidence(entry, sample) == 262.757
-
-
-def test_getSvtype():
-    entry = retrieve_entry_from_test_vcf(0)
-
-    actual = get_svtype(entry)
-    expected = "COMPLEX"
-
-    assert actual == expected
-
-
-def test_getMeanCoverageForward():
-    entry = retrieve_entry_from_test_vcf(2)
-    sample = "sample"
-
-    actual = get_mean_coverage_forward(entry, sample)
-    expected = 24
-
-    assert actual == expected
-
-
-def test_getMeanCoverageReverse():
-    entry = retrieve_entry_from_test_vcf(1)
-    sample = "sample"
-
-    actual = get_mean_coverage_reverse(entry, sample)
-    expected = 7
-
-    assert actual == expected
-
-
-def test_getGenotype_genotypeNone_returnNone():
-    entry = retrieve_entry_from_test_vcf(0)
-    sample = "sample"
-    assert get_genotype(entry, sample) is None
-
-
-def test_getGenotype_genotype1_return1():
-    entry = retrieve_entry_from_test_vcf(1)
-    sample = "sample"
-    assert get_genotype(entry, sample) == 1
-
-
-def test_getVariantSequence_genotypeNone_returnRef():
-    entry = retrieve_entry_from_test_vcf(0)
-    sample = "sample"
-
-    actual = get_variant_sequence(entry, sample)
-    expected = "CTGCCCGTTGGC"
-
-    assert actual == expected
-
-
-def test_getVariantSequence_genotypeOne_returnFirstAlt():
-    entry = retrieve_entry_from_test_vcf(1)
-    sample = "sample"
-
-    actual = get_variant_sequence(entry, sample)
-    expected = "TTGGGGGAAGGCTCTGCACTGCCCGTTGGC"
-
-    assert actual == expected
-
-
-def test_getVariantSequence_genotypeZero_returnRef():
-    entry = retrieve_entry_from_test_vcf(2)
-    sample = "sample"
-
-    actual = get_variant_sequence(entry, sample)
-    expected = "CTGCCCGTTGGC"
-
-    assert actual == expected
-
-
-def test_getVariantLength_genotypeNone_returnRef():
-    entry = retrieve_entry_from_test_vcf(0)
-    sample = "sample"
-
-    actual = get_variant_length(entry, sample)
-    expected = 12
-
-    assert actual == expected
-
-
-def test_getVariantLength_genotypeOne_returnFirstAlt():
-    entry = retrieve_entry_from_test_vcf(1)
-    sample = "sample"
-
-    actual = get_variant_length(entry, sample)
-    expected = 30
-
-    assert actual == expected
-
-
-def test_getVariantLength_genotypeZero_returnRef():
-    entry = retrieve_entry_from_test_vcf(2)
-    sample = "sample"
-
-    actual = get_variant_length(entry, sample)
-    expected = 12
-
-    assert actual == expected
 
 
 def test_NoOverlappingIntervals_NoChange():

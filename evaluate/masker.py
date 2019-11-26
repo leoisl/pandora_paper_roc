@@ -1,11 +1,12 @@
 from intervaltree import IntervalTree, Interval
 import math
 from evaluate.classification import Classification
-from typing import TextIO, Iterable, Type, Optional
+from typing import TextIO, Type, Optional
 import pysam
+from evaluate.filter import Filter
 
 
-class Masker:
+class Masker(Filter):
     def __init__(self, tree: IntervalTree = None):
         if tree is None:
             tree = IntervalTree()
@@ -22,10 +23,8 @@ class Masker:
             tree.addi(int(start), int(end), chrom)
         return cls(tree=tree)
 
-    def filter_records(
-        self, records: Iterable[pysam.AlignedSegment]
-    ) -> Iterable[pysam.AlignedSegment]:
-        return [record for record in records if not self.record_overlaps_mask(record)]
+    def record_should_be_filtered_out(self, record: pysam.AlignedSegment) -> bool:
+        return self.record_overlaps_mask(record)
 
     def record_overlaps_mask(self, record: pysam.AlignedSegment) -> bool:
         classification = Classification(record)
