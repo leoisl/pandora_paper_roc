@@ -1,0 +1,9 @@
+output_folder:              analysis_output
+coverage_filters:           [0, 1, 2, 5, 10]
+strand_bias_filters:        [0.0, 0.01, 0.02, 0.05, 0.10]
+gaps_filters:               [1.0, 0.9, 0.8, 0.7, 0.6, 0.5]
+
+samples:                    metadata/samples.csv
+variant_calls:              metadata/variant_calls.csv
+variant_calls_probe_length: 25
+truth_probes_flank_length:  21

@@ -1,10 +1,10 @@
 import tempfile
+from pathlib import Path
 from typing import Type
 import pysam
 
 from evaluate.classifier import Classifier, RecallClassifier
 from evaluate.probe import ProbeHeader, ProbeInterval
-from tests.test_evaluation import create_sam_header
 
 
 def create_classifier_with_two_entries(cls: Type) -> Type[Classifier]:
@@ -249,3 +249,35 @@ def create_incorrect_primary_sam_record() -> pysam.AlignedSegment:
         header,
     )
     return record
+
+
+def create_sam_header(name: str, length: int) -> pysam.AlignmentHeader:
+    return pysam.AlignmentHeader.from_text(
+        f"@SQ	SN:{name}	LN:{length}\n@PG	ID:bwa	PN:bwa	VN:0.7.17-r1188	CL:bwa mem -t 1 panel.fa -"
+    )
+
+
+TEST_CASES = Path("tests/test_cases")
+TEST_VCF = TEST_CASES / "test.vcf"
+TEST_PANEL = TEST_CASES / "test_panel.fa"
+TEST_REF_SEQ = TEST_CASES / "test_reference.fa"
+TEST_TMP_PANEL = "/tmp/deleteme.fa"
+TEST_MAKE_PROBE_VCF = TEST_CASES / "test_make_probe.vcf"
+TEST_QUERY_VCF = TEST_CASES / "test_query.vcf"
+TEST_QUERY_REF = TEST_CASES / "test_query.fa"
+
+
+def retrieve_entry_from_test_vcf(idx: int) -> pysam.VariantRecord:
+    with pysam.VariantFile(TEST_VCF) as vcf:
+        for i, record in enumerate(vcf):
+            if i == idx:
+                return record
+    raise IndexError("You asked for an index that is beyond the number in the test VCF")
+
+
+def retrieve_entry_from_test_query_vcf(idx: int) -> pysam.VariantRecord:
+    with pysam.VariantFile(TEST_QUERY_VCF) as vcf:
+        for i, record in enumerate(vcf):
+            if i == idx:
+                return record
+    raise IndexError("You asked for an index that is beyond the number in the test VCF")

@@ -1,4 +1,4 @@
-from tests.test_evaluation import create_sam_header
+from tests.common import create_sam_header
 from tests.common import (
     create_unmapped_sam_record,
     create_partially_mapped_sam_record,

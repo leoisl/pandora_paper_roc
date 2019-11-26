@@ -1,0 +1,59 @@
+$schema:                        "http://json-schema.org/draft-07/schema#"
+
+description:                    snakemake configuration file
+
+type:                           object
+
+properties:
+    output_folder:
+        type:                   string
+        description:            Path to the output folder
+    samples:
+        type:                   string
+        description:            Path to CSV file containing the samples information.
+    variant_calls:
+        type:                   string
+        description:            Path to CSV file containing the variant calls information.
+    variant_calls_probe_length:
+        type:                   number
+        description:            The flank length to use for variant calls.
+    truth_probes_flank_length:
+        type:                   number
+        description:            The flank length to use for truth calls.
+    genotype_confidence_min:
+        type:                   number
+        description:            The minimum genotype confidence of the calls in the ROC curve.
+        default:                0.0
+    genotype_confidence_max:
+        type:                   number
+        description:            The maximum genotype confidence of the calls in the ROC curve.
+        default:                1000000000.0
+    genotype_confidence_step:
+        type:                   number
+        description:            The genotype confidence step in the ROC curve.
+        default:                1.0
+    coverage_filters:
+        type:                   array
+        description:            VCF records having mean coverage smaller than this value will be filtered out from the analysis. One plot is produced for each value.
+        items:
+            type:               number
+    strand_bias_filters:
+        type:                   array
+        description:            VCF records having a strand coverage ratio smaller than this value will be filtered out from the analysis. One plot is produced for each value.
+        items:
+            type:               number
+    gaps_filters:
+        type:                   array
+        description:            VCF records having a gaps fractions larger than this value will be filtered out from the analysis. One plot is produced for each value.
+        items:
+            type:               number
+
+
+required:
+  - samples
+  - variant_calls
+  - variant_calls_probe_length
+  - truth_probes_flank_length
+  - coverage_filters
+  - strand_bias_filters
+  - gaps_filters

@@ -64,10 +64,10 @@ class BWA:
 
     @staticmethod
     def map_query_to_ref(
-        query: Path, ref: Path, output: Path = Path(), threads: int = 1
+        query: Path, ref: Path, output: Path, threads: int = 1
     ) -> Tuple[pysam.VariantHeader, List[pysam.AlignedSegment]]:
         bwa = BWA(threads)
-        bwa.index(str(ref))
+        bwa.reference = str(ref)
         stdout, stderr = bwa.align(query.read_text())
 
         # write sam to file if output path given

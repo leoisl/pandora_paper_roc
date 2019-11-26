@@ -1,0 +1,26 @@
+$schema:             "http://json-schema.org/draft-07/schema#"
+
+description:         an entry in the sample sheet
+properties:
+    sample_id:
+        type:        string
+        description: Sample ID for individual sample.
+    tool:
+        type:        string
+        description: The tool used to compute the variant calls.
+    coverage:
+        type:        string
+        description: Read coverage used in the method.
+        default:     all
+    reference:
+        type:        string
+        description: Path to reference the variants were called with respect to.
+    vcf:
+        type:        string
+        description: Path to VCF file of variant calls.
+
+required:
+    - sample_id
+    - tool
+    - reference
+    - vcf
