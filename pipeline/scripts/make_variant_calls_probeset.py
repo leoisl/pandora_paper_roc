@@ -22,9 +22,9 @@ import pysam
 # setup
 sample_id = snakemake.wildcards.sample_id
 vcf_filepath = snakemake.input.vcf
-coverage_threshold = float(snakemake.wildcards.coverage_threshold)
-strand_bias_threshold = float(snakemake.wildcards.strand_bias_threshold)
-gaps_threshold = float(snakemake.wildcards.gaps_threshold)
+coverage_threshold = snakemake.wildcards.coverage_threshold
+strand_bias_threshold = snakemake.wildcards.strand_bias_threshold
+gaps_threshold = snakemake.wildcards.gaps_threshold
 vcf_ref = Path(snakemake.input.vcf_ref)
 flank_width = int(snakemake.params.flank_length)
 output = Path(snakemake.output.probeset)
