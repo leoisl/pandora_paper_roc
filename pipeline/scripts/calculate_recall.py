@@ -49,7 +49,9 @@ logging.info(
 
 gts = []
 recalls = []
-all_gts = list(np.arange(min_gt, max_gt, step_gt)) + [max_gt]
+all_gts = list(np.arange(min_gt, max_gt, step_gt))
+if len(all_gts) == number_of_points_in_ROC_curve:
+    all_gts.append(max_gt)
 assert(len(all_gts) == number_of_points_in_ROC_curve + 1)
 
 for gt in all_gts:
