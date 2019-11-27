@@ -30,35 +30,29 @@ data = data.set_index(["sample_id", "coverage", "tool"], drop=False)
 samples = samples.set_index(["sample_id"], drop=False)
 sample_pairs = [(sample1, sample2) for sample1, sample2 in itertools.combinations(sorted(samples["sample_id"]), r=2)]
 number_of_points_in_ROC_curve = config['number_of_points_in_ROC_curve']
-coverage_filters = config['coverage_filters']
-strand_bias_filters = config['strand_bias_filters']
-gaps_filters = config['gaps_filters']
-NA_list = ["Not_App"]
+
 
 
 # ======================================================
 # Helper functions
 # ======================================================
 def get_coverage_filters(tool):
-    global coverage_filters, NA_list
     if tool.startswith("pandora"):
-        return coverage_filters
+        return [str(elem) for elem in config['coverage_filters']]
     else:
-        return NA_list
+        return ["Not_App"]
 
 def get_strand_bias_filters(tool):
-    global strand_bias_filters, NA_list
     if tool.startswith("pandora"):
-        return strand_bias_filters
+        return [str(elem) for elem in config['strand_bias_filters']]
     else:
-        return NA_list
+        return ["Not_App"]
 
 def get_gaps_filters(tool):
-    global gaps_filters, NA_list
     if tool.startswith("pandora"):
-        return gaps_filters
+        return [str(elem) for elem in config['gaps_filters']]
     else:
-        return NA_list
+        return ["Not_App"]
 
 
 # ======================================================
