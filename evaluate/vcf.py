@@ -17,8 +17,10 @@ class VCF:
         if vcf.is_null_call:
             raise NullVCFError()
 
-        if vcf.has_genotype_bug:
-            raise BuggedVCFError()
+        # TODO : I don't think we should worry about checking if a VCF is bugged or not
+        # TODO : in principle, we should not receive bugged VCFs...
+        # if vcf.has_genotype_bug:
+        #     raise BuggedVCFError()
 
         return vcf
 
@@ -29,7 +31,6 @@ class VCF:
     def genotype(self) -> int:
         data_from_sample = self.variant.samples[self.sample]
         all_gts = data_from_sample.get("GT")
-        assert len(all_gts) == 1
         return all_gts[0]
 
     @property
@@ -45,7 +46,12 @@ class VCF:
     @property
     def genotype_confidence(self) -> float:
         data_from_sample = self.variant.samples[self.sample]
-        return float(data_from_sample.get("GT_CONF"))
+        gt_conf = data_from_sample.get("GT_CONF")
+        if gt_conf is not None:
+            return float(gt_conf)
+        else:
+            # TODO: this is required due to Snippy, put this in a hierarchy (since we will need to do this for nanopolish/medaka also)
+            return float(self.variant.qual)
 
     @property
     def called_variant_sequence(self) -> str:
@@ -61,17 +67,29 @@ class VCF:
 
     @property
     def svtype(self) -> str:
-        return self.variant.info["SVTYPE"]
+        # TODO: this is required due to Snippy, put this in a hierarchy (since we will need to do this for nanopolish/medaka also)
+        try:
+            return self.variant.info["SVTYPE"]
+        except KeyError:
+            return self.variant.info["TYPE"]
 
     @property
     def mean_coverage_forward(self) -> int:
         genotype = self.genotype
-        return int(self.variant.samples[self.sample]["MEAN_FWD_COVG"][genotype])
+        # TODO: this is required due to Snippy, put this in a hierarchy (since we will need to do this for nanopolish/medaka also)
+        try:
+            return int(self.variant.samples[self.sample]["MEAN_FWD_COVG"][genotype])
+        except KeyError:
+            return 0
 
     @property
     def mean_coverage_reverse(self) -> int:
         genotype = self.genotype
-        return int(self.variant.samples[self.sample]["MEAN_REV_COVG"][genotype])
+        # TODO: this is required due to Snippy, put this in a hierarchy (since we will need to do this for nanopolish/medaka also)
+        try:
+            return int(self.variant.samples[self.sample]["MEAN_REV_COVG"][genotype])
+        except KeyError:
+            return 0
 
     @property
     def mean_coverage(self) -> int:
