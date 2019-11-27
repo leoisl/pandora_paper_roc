@@ -39,7 +39,7 @@ def main():
     print("sample_id,tool,coverage,reference,vcf")
     for dataset in all_datasets_in_all_refs:
         for ref in all_refs:
-            print(f"{ref},snippy,all,{input_folder}/snippy_{ref}_{dataset}.ref.fa,{input_folder}/snippy_{ref}_{dataset}.vcf")
+            print(f"{ref},snippy_{dataset},all,{input_folder}/snippy_{ref}_{dataset}.ref.fa,{input_folder}/snippy_{ref}_{dataset}.vcf")
 
 
 
