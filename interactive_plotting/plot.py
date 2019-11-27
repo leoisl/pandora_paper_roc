@@ -29,7 +29,7 @@ def compute_all_possible_traces(df, tools, dataset_coverages, coverage_filters, 
                 for strand_bias_threshold in strand_bias_filters:
                     for gaps_threshold in gaps_filters:
                         df_for_label = df.query(
-                            f"tool==\"{tool}\" & coverage==\"{dataset_coverage}\" & coverage_threshold=={coverage_threshold} & strand_bias_threshold=={strand_bias_threshold} & gaps_threshold=={gaps_threshold}")
+                            f"tool==\"{tool}\" & coverage==\"{dataset_coverage}\" & coverage_threshold==\"{coverage_threshold}\" & strand_bias_threshold==\"{strand_bias_threshold}\" & gaps_threshold==\"{gaps_threshold}\"")
 
                         trace_name = f"Tool: {tool}, Coverage: {dataset_coverage}, Coverage threshold: {coverage_threshold}, Strand bias threshold: {strand_bias_threshold}, Gaps threshold: {gaps_threshold}"
                         highest_error_rate_after_20_percent_recall = get_highest_error_rate_after_given_recall(df_for_label, 0.2)
@@ -106,5 +106,5 @@ def create_interactive_visualisation_app(ROC_data_path):
 
 
 if __name__ == '__main__':
-    dash_app = create_interactive_visualisation_app(ROC_data_path ="ROC_data_gt_min_0.0_step_1.0_max_1000000000.0.tsv")
+    dash_app = create_interactive_visualisation_app(ROC_data_path ="ROC_data.tsv")
     dash_app.run_server(debug=True)
