@@ -8,4 +8,4 @@ variant_calls:              metadata/variant_calls.csv
 variant_calls_probe_length: 25
 truth_probes_flank_length:  21
 
-number_of_points_in_ROC_curve: 100
+number_of_points_in_ROC_curve: 1000
