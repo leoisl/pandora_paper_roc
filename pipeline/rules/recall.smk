@@ -51,11 +51,13 @@ rule calculate_recall:
     input:
          recall_report_files_for_all_samples = lambda wildcards: cov_tool_and_filters_to_recall_report_files[wildcards.coverage, wildcards.tool, wildcards.coverage_threshold, wildcards.strand_bias_threshold, wildcards.gaps_threshold]
     output:
-         recall_file_for_all_samples = output_folder + "/recall/recall_files/{coverage}/{tool}/coverage_filter_{coverage_threshold}/strand_bias_filter_{strand_bias_threshold}/gaps_filter_{gaps_threshold}/recall_gt_min_{min_gt}_step_{step_gt}_max_{max_gt}.tsv"
+         recall_file_for_all_samples = output_folder + "/recall/recall_files/{coverage}/{tool}/coverage_filter_{coverage_threshold}/strand_bias_filter_{strand_bias_threshold}/gaps_filter_{gaps_threshold}/recall.tsv"
+    params:
+         number_of_points_in_ROC_curve = number_of_points_in_ROC_curve
     threads: 1
     resources:
         mem_mb = lambda wildcards, attempt: 4000 * attempt
     log:
-        "logs/calculate_recall/{coverage}/{tool}/coverage_filter_{coverage_threshold}/strand_bias_filter_{strand_bias_threshold}/gaps_filter_{gaps_threshold}/recall_gt_min_{min_gt}_step_{step_gt}_max_{max_gt}.log"
+        "logs/calculate_recall/{coverage}/{tool}/coverage_filter_{coverage_threshold}/strand_bias_filter_{strand_bias_threshold}/gaps_filter_{gaps_threshold}/recall.log"
     script:
         "../scripts/calculate_recall.py"

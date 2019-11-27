@@ -36,6 +36,9 @@ class Calculator:
     def get_maximum_gt_conf(self) -> float:
         return self.report["gt_conf"].max()
 
+    def get_minimum_gt_conf(self) -> float:
+        return self.report["gt_conf"].min()
+
     def __init__(self, reports: Iterable[pd.DataFrame]):
         self.report = pd.concat(reports)
 

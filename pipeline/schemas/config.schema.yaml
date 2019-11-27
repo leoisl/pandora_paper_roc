@@ -20,18 +20,10 @@ properties:
     truth_probes_flank_length:
         type:                   number
         description:            The flank length to use for truth calls.
-    genotype_confidence_min:
+    number_of_points_in_ROC_curve:
         type:                   number
-        description:            The minimum genotype confidence of the calls in the ROC curve.
-        default:                0.0
-    genotype_confidence_max:
-        type:                   number
-        description:            The maximum genotype confidence of the calls in the ROC curve.
-        default:                1000000000.0
-    genotype_confidence_step:
-        type:                   number
-        description:            The genotype confidence step in the ROC curve.
-        default:                1.0
+        description:            Number of points to plot in the ROC curve. The higher, the better, but it is also slower.
+        default:                1000
     coverage_filters:
         type:                   array
         description:            VCF records having mean coverage smaller than this value will be filtered out from the analysis. One plot is produced for each value.

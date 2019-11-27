@@ -33,11 +33,13 @@ rule calculate_precision:
     input:
          precision_report_files_for_all_samples = lambda wildcards: cov_tool_and_filters_to_precision_report_files[wildcards.coverage, wildcards.tool, wildcards.coverage_threshold, wildcards.strand_bias_threshold, wildcards.gaps_threshold]
     output:
-         precision_file_for_all_samples = output_folder + "/precision/precision_files/{coverage}/{tool}/coverage_filter_{coverage_threshold}/strand_bias_filter_{strand_bias_threshold}/gaps_filter_{gaps_threshold}/precision_gt_min_{min_gt}_step_{step_gt}_max_{max_gt}.tsv"
+         precision_file_for_all_samples = output_folder + "/precision/precision_files/{coverage}/{tool}/coverage_filter_{coverage_threshold}/strand_bias_filter_{strand_bias_threshold}/gaps_filter_{gaps_threshold}/precision.tsv"
+    params:
+         number_of_points_in_ROC_curve = number_of_points_in_ROC_curve
     threads: 1
     resources:
         mem_mb = lambda wildcards, attempt: 4000 * attempt
     log:
-        "logs/calculate_precision/{coverage}/{tool}/coverage_filter_{coverage_threshold}/strand_bias_filter_{strand_bias_threshold}/gaps_filter_{gaps_threshold}/precision_gt_min_{min_gt}_step_{step_gt}_max_{max_gt}.log"
+        "logs/calculate_precision/{coverage}/{tool}/coverage_filter_{coverage_threshold}/strand_bias_filter_{strand_bias_threshold}/gaps_filter_{gaps_threshold}/precision.log"
     script:
         "../scripts/calculate_precision.py"
