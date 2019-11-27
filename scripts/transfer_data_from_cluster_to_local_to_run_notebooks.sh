@@ -1,4 +1,4 @@
-PANDORA_FILES_PATH="noah-login-ext:/hps/nobackup/research/zi/projects/pandora_paper_leandro/old_analysis/100x/filter"
+PANDORA_FILES_PATH="noah-login-ext:/hps/nobackup/research/zi/projects/pandora_paper_leandro/analysis/60x/random"
 mkdir -p cluster/analysis
 rsync --relative -zcvh ${PANDORA_FILES_PATH}/compare_with_denovo/pandora_multisample.vcf_ref.fa cluster/pandora
 rsync --relative -zcvh ${PANDORA_FILES_PATH}/compare_with_denovo/pandora_multisample.matrix cluster/pandora
@@ -18,8 +18,8 @@ rsync --relative -zcvh ${DATA_FILES_PATH}/CFT073/mask/CFT073.mask.bed cluster/da
 rsync --relative -zcvh ${DATA_FILES_PATH}/063_STEC/063_STEC.ref.fa cluster/data
 rsync --relative -zcvh ${DATA_FILES_PATH}/063_STEC/mask/063_STEC.mask.bed cluster/data
 
-EVALUATION_FILES_PATH="noah-login-ext:/hps/nobackup/research/zi/leandro/pandora1_paper/analysis/recall/reports"
-rsync --relative -zcvhr ${EVALUATION_FILES_PATH}/ cluster/analysis
+#EVALUATION_FILES_PATH="noah-login-ext:/hps/nobackup/research/zi/leandro/pandora1_paper/analysis/recall/reports"
+#rsync --relative -zcvhr ${EVALUATION_FILES_PATH}/ cluster/analysis
 
 
 
