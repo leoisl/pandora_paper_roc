@@ -73,7 +73,7 @@ precision_df = pd.DataFrame(
         "strand_bias_threshold": [strand_bias_threshold] * len(gts),
         "gaps_threshold": [gaps_threshold] * len(gts),
         "GT": gts,
-        "step_GT": list(range(len(all_gts))),
+        "step_GT": list(range(len(gts))),
         "precision": precisions,
         "error_rate": error_rates
     }
