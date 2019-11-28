@@ -7,10 +7,10 @@ import subprocess
 
 config = {
     "testing": False,
-    "input_folder": "/hps/nobackup/research/zi/rmcolq/paper_4_way/snippy_pick_refs/snippy",
-    "output_folder": "new_snippy_dir/",
+    "input_folder": "/hps/nobackup/research/zi/leandro/pandora1_paper/data/variant_calls/snippy/uncorrected_snippy_files",
+    "output_folder": "/hps/nobackup/research/zi/leandro/pandora1_paper/data/variant_calls/snippy/corrected_snippy_files",
     "all_refs": ["063_STEC", "CFT073", "H131800734", "ST38"],
-    "output_csv": "variant_calls.csv"
+    "output_csv": "snippy_variant_calls.csv"
 }
 
 def get_dataset_name_from_vcf(refs, vcf):
