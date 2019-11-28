@@ -29,9 +29,23 @@ def get_all_datasets_in_all_refs(all_vcf_files, refs):
     return datasets_in_all_refs
 
 
-def get_all_vcf_filenames_in_a_folder(folder):
+def vcf_contains_at_least_one_record(filepath):
+    with open(filepath) as file:
+        for line in file:
+            line = line.strip()
+            if len(line) > 0 and line[0] != "#":
+                return True
+
+    return False
+
+def get_all_non_empty_vcf_filenames_in_a_folder(folder):
     all_vcf_filepaths = Path(folder).glob("*.vcf")
-    all_vcf_filenames = [filename.name for filename in all_vcf_filepaths]
+
+    all_vcf_filenames = []
+    for filepath in all_vcf_filepaths:
+        if vcf_contains_at_least_one_record(filepath):
+            all_vcf_filenames.append(filepath.name)
+
     return sorted(all_vcf_filenames)
 
 def correct_snippy_sample_name(ref, vcf_ref_uncorrected, vcf_ref_corrected, vcf_uncorrected, vcf_corrected):
@@ -55,7 +69,7 @@ def main():
         os.makedirs(output_folder)
 
     print(f"Getting all datasets in {all_refs} ...")
-    all_vcfs = get_all_vcf_filenames_in_a_folder(input_folder)
+    all_vcfs = get_all_non_empty_vcf_filenames_in_a_folder(input_folder)
     all_datasets_in_all_refs = get_all_datasets_in_all_refs(all_vcfs, all_refs)
     print(f"All datasets in {all_refs}: {all_datasets_in_all_refs}")
 
@@ -85,7 +99,7 @@ def main():
 def main_test():
     test_get_dataset_name_from_vcf()
     test_get_all_datasets_in_all_refs()
-    test_get_all_vcf_filenames_in_a_folder()
+    test_get_all_non_empty_vcf_filenames_in_a_folder()
     test_correct_snippy_sample_name()
 
 def test_get_dataset_name_from_vcf():
@@ -114,9 +128,9 @@ def test_get_all_datasets_in_all_refs():
     print("test_get_all_datasets_in_all_refs(): ok")
 
 
-def test_get_all_vcf_filenames_in_a_folder():
-    assert ["a.vcf", "e.vcf"] == get_all_vcf_filenames_in_a_folder("test_vcf_folder")
-    print("test_get_all_vcf_filenames_in_a_folder(): ok")
+def test_get_all_non_empty_vcf_filenames_in_a_folder():
+    assert ["a.vcf", "e.vcf"] == get_all_non_empty_vcf_filenames_in_a_folder("test_vcf_folder")
+    print("test_get_all_non_empty_vcf_filenames_in_a_folder(): ok")
 
 
 def test_correct_snippy_sample_name():
