@@ -1,3 +1,2 @@
-import plot
-dash_app = plot.create_interactive_visualisation_app(ROC_data_path = "/home/leoisl/mysite/ROC_data.tsv")
+from dash_app import dash_app
 app = dash_app.server

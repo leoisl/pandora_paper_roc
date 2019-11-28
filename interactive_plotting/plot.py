@@ -1,4 +1,3 @@
-import dash
 import dash_core_components as dcc
 import dash_html_components as html
 import pandas as pd
@@ -68,7 +67,9 @@ def remove_value_from_ndarray(array, value):
 def keep_pandora_only(tools):
     return [tool for tool in tools if "pandora" in tool]
 
-def create_interactive_visualisation_app(ROC_data_path):
+
+
+def add_visualization_page_to_dash_app(dash_app, page_name, ROC_data_path):
     # load df
     df = pd.read_csv(ROC_data_path, sep="\t")
 
@@ -79,6 +80,7 @@ def create_interactive_visualisation_app(ROC_data_path):
     strand_bias_filters = df["strand_bias_threshold"].unique()
     gaps_filters = df["gaps_threshold"].unique()
 
+    # adjust the filters
     tools = keep_pandora_only(tools)
     tools.append("snippy_all")
     dataset_coverages = remove_value_from_ndarray(dataset_coverages, "all")
@@ -86,20 +88,16 @@ def create_interactive_visualisation_app(ROC_data_path):
     strand_bias_filters = remove_value_from_ndarray(strand_bias_filters, "Not_App")
     gaps_filters = remove_value_from_ndarray(gaps_filters, "Not_App")
 
-
-    # set up the app
-    external_stylesheets = ["css/style.css"]
-    dash_app = dash.Dash("ROC_pandora", assets_folder="assets", external_stylesheets=external_stylesheets)
-
     # set up the layout
-    dash_app.layout = html.Div([html.Div([html.H1("Pandora ROC evaluation")], style={'textAlign': "center"}),
-                          get_div_for_the_filters(filter_name="tool", filter_description="Tool", filter_values=tools, selected_values=tools),
-                          get_div_for_the_filters(filter_name="dataset", filter_description="Dataset coverage filter (pandora only)", filter_values=dataset_coverages, selected_values=dataset_coverages),
-                          get_div_for_the_filters(filter_name="coverage", filter_description="Coverage filter (pandora only)", filter_values=coverage_filters, selected_values=[coverage_filters[0]]),
-                          get_div_for_the_filters(filter_name="strand_bias", filter_description="Strand bias filter (pandora only)", filter_values=strand_bias_filters, selected_values=[strand_bias_filters[0]]),
-                          get_div_for_the_filters(filter_name="gaps", filter_description="Gaps filter (pandora only)", filter_values=gaps_filters, selected_values=[gaps_filters[0]]),
-                          html.Div([dcc.Graph(id="my-graph", style={'height': '1000px', 'width': '1000px'})]),
-                          ], className="container")
+    dash_app.layouts[page_name] = html.Div([
+        html.Div([html.H1(f"Pandora ROC evaluation - {page_name}")], style={'textAlign': "center"}),
+        get_div_for_the_filters(filter_name=f"{page_name}_tool", filter_description="Tool", filter_values=tools, selected_values=tools),
+        get_div_for_the_filters(filter_name=f"{page_name}_dataset", filter_description="Dataset coverage filter (pandora only)", filter_values=dataset_coverages, selected_values=dataset_coverages),
+        get_div_for_the_filters(filter_name=f"{page_name}_coverage", filter_description="Coverage filter (pandora only)", filter_values=coverage_filters, selected_values=[coverage_filters[0]]),
+        get_div_for_the_filters(filter_name=f"{page_name}_strand_bias", filter_description="Strand bias filter (pandora only)", filter_values=strand_bias_filters, selected_values=[strand_bias_filters[0]]),
+        get_div_for_the_filters(filter_name=f"{page_name}_gaps", filter_description="Gaps filter (pandora only)", filter_values=gaps_filters, selected_values=[gaps_filters[0]]),
+        html.Div([dcc.Graph(id=f"{page_name}_graph", style={'height': '1000px', 'width': '1000px'})]),
+    ], className="container")
 
     # pre-compute all traces
     config_to_all_traces = compute_all_possible_traces(df, tools, dataset_coverages, coverage_filters, strand_bias_filters, gaps_filters)
@@ -107,12 +105,12 @@ def create_interactive_visualisation_app(ROC_data_path):
 
     # register the update callback
     @dash_app.callback(
-        Output('my-graph', 'figure'),
-        [Input(component_id='tool_checklist', component_property='value'),
-         Input(component_id='dataset_checklist', component_property='value'),
-         Input(component_id='coverage_checklist', component_property='value'),
-         Input(component_id='strand_bias_checklist', component_property='value'),
-         Input(component_id='gaps_checklist', component_property='value')])
+        Output(f'{page_name}_graph', 'figure'),
+        [Input(component_id=f'{page_name}_tool_checklist', component_property='value'),
+         Input(component_id=f'{page_name}_dataset_checklist', component_property='value'),
+         Input(component_id=f'{page_name}_coverage_checklist', component_property='value'),
+         Input(component_id=f'{page_name}_strand_bias_checklist', component_property='value'),
+         Input(component_id=f'{page_name}_gaps_checklist', component_property='value')])
     def update_figure(tool_checklist_values, dataset_coverage_checklist_values, coverage_checklist_values, strand_bias_checklist_values, gaps_checklist_values):
         traces = []
         highest_error_rate = 0.01
@@ -137,10 +135,3 @@ def create_interactive_visualisation_app(ROC_data_path):
                                     yaxis={"title": "Recall", "range": [0.1, 1.0]},
                                     xaxis={"title": "Error rate", "range" : [0, highest_error_rate]},
                                     legend_orientation="h")}
-
-    return dash_app
-
-
-if __name__ == '__main__':
-    dash_app = create_interactive_visualisation_app(ROC_data_path ="ROC_data.tsv")
-    dash_app.run_server(debug=True)
