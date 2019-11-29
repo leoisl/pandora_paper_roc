@@ -62,23 +62,27 @@ def compute_all_possible_traces(df, tools, dataset_coverages, coverage_filters, 
     return config_to_trace
 
 def remove_value_from_ndarray(array, value):
-    return array[array != value]
+    return [elem for elem in array if elem != value]
 
 def keep_pandora_only(tools):
     return [tool for tool in tools if "pandora" in tool]
 
-
+def get_first_elem_of_list_as_list_itself (the_list):
+    if len(the_list) >= 1:
+        return [the_list[0]]
+    else:
+        return []
 
 def add_visualization_page_to_dash_app(dash_app, page_name, ROC_data_path):
     # load df
     df = pd.read_csv(ROC_data_path, sep="\t")
 
     # load filters
-    tools = df["tool"].unique()
-    dataset_coverages = df["coverage"].unique()
-    coverage_filters = df["coverage_threshold"].unique()
-    strand_bias_filters = df["strand_bias_threshold"].unique()
-    gaps_filters = df["gaps_threshold"].unique()
+    tools = list(df["tool"].unique())
+    dataset_coverages = list(df["coverage"].unique())
+    coverage_filters = list(df["coverage_threshold"].unique())
+    strand_bias_filters = list(df["strand_bias_threshold"].unique())
+    gaps_filters = list(df["gaps_threshold"].unique())
 
     # adjust the filters
     tools = keep_pandora_only(tools)
@@ -93,9 +97,9 @@ def add_visualization_page_to_dash_app(dash_app, page_name, ROC_data_path):
         html.Div([html.H1(f"Pandora ROC evaluation - {page_name}")], style={'textAlign': "center"}),
         get_div_for_the_filters(filter_name=f"{page_name}_tool", filter_description="Tool", filter_values=tools, selected_values=tools),
         get_div_for_the_filters(filter_name=f"{page_name}_dataset", filter_description="Dataset coverage filter (pandora only)", filter_values=dataset_coverages, selected_values=dataset_coverages),
-        get_div_for_the_filters(filter_name=f"{page_name}_coverage", filter_description="Coverage filter (pandora only)", filter_values=coverage_filters, selected_values=[coverage_filters[0]]),
-        get_div_for_the_filters(filter_name=f"{page_name}_strand_bias", filter_description="Strand bias filter (pandora only)", filter_values=strand_bias_filters, selected_values=[strand_bias_filters[0]]),
-        get_div_for_the_filters(filter_name=f"{page_name}_gaps", filter_description="Gaps filter (pandora only)", filter_values=gaps_filters, selected_values=[gaps_filters[0]]),
+        get_div_for_the_filters(filter_name=f"{page_name}_coverage", filter_description="Coverage filter (pandora only)", filter_values=coverage_filters, selected_values=get_first_elem_of_list_as_list_itself(coverage_filters)),
+        get_div_for_the_filters(filter_name=f"{page_name}_strand_bias", filter_description="Strand bias filter (pandora only)", filter_values=strand_bias_filters, selected_values=get_first_elem_of_list_as_list_itself(strand_bias_filters)),
+        get_div_for_the_filters(filter_name=f"{page_name}_gaps", filter_description="Gaps filter (pandora only)", filter_values=gaps_filters, selected_values=get_first_elem_of_list_as_list_itself(gaps_filters)),
         html.Div([dcc.Graph(id=f"{page_name}_graph", style={'height': '1000px', 'width': '1000px'})]),
     ], className="container")
 
