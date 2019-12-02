@@ -104,8 +104,6 @@ class Query:
             pos=vcf.pos,
             interval=call_interval,
             svtype=vcf.svtype,
-            mean_fwd_covg=vcf.mean_coverage_forward,
-            mean_rev_covg=vcf.mean_coverage_reverse,
             gt_conf=vcf.genotype_confidence,
         )
 
