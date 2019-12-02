@@ -45,8 +45,6 @@ class ProbeHeader:
         pos: int = 0,
         interval: ProbeInterval = ProbeInterval(),
         svtype: str = "",
-        mean_fwd_covg: int = 0,
-        mean_rev_covg: int = 0,
         gt_conf: float = 0,
     ):
         self.chrom = chrom
@@ -54,8 +52,6 @@ class ProbeHeader:
         self.pos = pos
         self.interval = interval
         self.svtype = svtype
-        self.mean_fwd_covg = mean_fwd_covg
-        self.mean_rev_covg = mean_rev_covg
         self.gt_conf = gt_conf
 
     def __eq__(self, other: "ProbeHeader") -> bool:
@@ -65,8 +61,6 @@ class ProbeHeader:
             and self.pos == other.pos
             and self.interval == other.interval
             and self.svtype == other.svtype
-            and self.mean_fwd_covg == other.mean_fwd_covg
-            and self.mean_rev_covg == other.mean_rev_covg
             and self.gt_conf == other.gt_conf
         )
 
@@ -96,19 +90,13 @@ class ProbeHeader:
         sample = parse_field_from_header("SAMPLE", string)
         pos = parse_field_from_header("POS", string, return_type=int)
         svtype = parse_field_from_header("SVTYPE", string)
-        mean_fwd_covg = parse_field_from_header(
-            "MEAN_FWD_COVG", string, return_type=int
-        )
-        mean_rev_covg = parse_field_from_header(
-            "MEAN_REV_COVG", string, return_type=int
-        )
         gt_conf = parse_field_from_header("GT_CONF", string, return_type=float)
         interval = ProbeInterval.from_string(
             parse_field_from_header("INTERVAL", string)
         )
 
         return ProbeHeader(
-            sample, chrom, pos, interval, svtype, mean_fwd_covg, mean_rev_covg, gt_conf
+            sample, chrom, pos, interval, svtype, gt_conf
         )
 
 
