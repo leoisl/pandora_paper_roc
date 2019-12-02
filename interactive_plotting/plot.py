@@ -53,7 +53,9 @@ def compute_all_possible_traces(df, tools, dataset_coverages, coverage_filters, 
     config_to_trace = {}
     for tool in tools:
         if tool == "snippy_all":
-            for snippy_ref in [snippy_ref_tool for snippy_ref_tool in df["tool"].unique() if snippy_ref_tool.startswith("snippy")]:
+            color_vector = ["red", "green", "blue", "black", "yellow", "orange", "brown", "grey"]
+            snippy_refs_tools = [snippy_ref_tool for snippy_ref_tool in df["tool"].unique() if snippy_ref_tool.startswith("snippy")]
+            for snippy_index, snippy_ref in enumerate(snippy_refs_tools):
                 snippy_trace_data = get_snippy_trace_data_for_given_ref(df, snippy_ref, coverage_filters)
 
                 for single_snippy_trace_data in snippy_trace_data:
@@ -65,7 +67,8 @@ def compute_all_possible_traces(df, tools, dataset_coverages, coverage_filters, 
 
                     trace = go.Scatter(x=df_for_label["error_rate"], y=df_for_label["recall"], name=trace_name,
                                        mode='lines',
-                                       marker={'size': 8, "opacity": 0.6, "line": {'width': 0.5}})
+                                       marker={'size': 8, "opacity": 0.6, "line": {'width': 0.5}},
+                                       marker_color=color_vector[snippy_index % len(color_vector)])
 
                     config_to_trace[config] = {
                         "trace": trace,
