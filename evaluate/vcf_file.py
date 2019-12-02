@@ -1,6 +1,6 @@
 import pysam
 from typing import List, Dict
-from .vcf import VCF, BuggedVCFError, NullVCFError
+from .vcf import VCF, BuggedVCFError, NullVCFError, VCFFactory
 from collections import defaultdict
 
 
