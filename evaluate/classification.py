@@ -46,8 +46,13 @@ class Classification:
     def get_aligned_pairs(
         self, matches_only: bool = False, with_seq: bool = False
     ) -> AlignedPairs:
+        pysam_aligned_pairs = []
+        try:
+            pysam_aligned_pairs = self.record.get_aligned_pairs(matches_only=matches_only, with_seq=with_seq)
+        except UnicodeDecodeError:
+            pass
         return AlignedPairs(
-            self.record.get_aligned_pairs(matches_only=matches_only, with_seq=with_seq)
+            pysam_aligned_pairs
         )
 
     @property
@@ -79,12 +84,13 @@ class Classification:
         alignment_type_count = Counter(alignment_types)
 
         total_nb_of_alignments_checked = len(probe_aligned_pairs)
+        if total_nb_of_alignments_checked == 0:
+            return 0.0
+
         query_probe_mapping_score = (
             alignment_type_count[AlignmentType.MATCH] / total_nb_of_alignments_checked
         )
-
         assert 0.0 <= query_probe_mapping_score <= 1.0
-
         return query_probe_mapping_score
 
     def get_probe_aligned_pairs(self) -> AlignedPairs:

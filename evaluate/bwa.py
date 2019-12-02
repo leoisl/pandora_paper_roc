@@ -39,7 +39,7 @@ class BWA:
 
     def get_options(self):
         options = []
-        options.extend(["-t", str(self.threads), "-k", "8", "-T", "15"])
+        options.extend(["-t", str(self.threads), "-k", "8", "-B", "1", "-O", "[2,2]", "-E", "[1,1]", "-T", "15"])
 
         return options
 

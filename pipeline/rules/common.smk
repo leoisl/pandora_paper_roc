@@ -4,10 +4,9 @@ rule bwa_index:
     output:
         indexed_fasta = "{fasta}.amb"
     threads: 1
-    log: "{fasta}.log"
     resources:
         mem_mb = lambda wildcards, attempt: 1000 * attempt
-    shell: "bwa index {input.fasta} > {log} 2>&1"
+    shell: "bwa index {input.fasta}"
 
 
 
