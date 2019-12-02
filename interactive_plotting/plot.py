@@ -20,25 +20,61 @@ def get_div_for_the_filters(filter_name, filter_description, filter_values, sele
 def get_highest_error_rate_after_given_recall(df, recall):
     return df.query(f"recall >= {recall}")["error_rate"].max()
 
+def snippy_was_run_with_coverage_filters(df):
+    df_for_snippy = df[df["tool"].apply(lambda x: x.startswith('snippy'))]
+    coverage_filters = list(df_for_snippy["coverage_threshold"].unique())
+    return coverage_filters != ["Not_App"]
+
+def get_snippy_trace_data_for_given_ref(df, snippy_ref, coverage_filters):
+    trace_data = []
+    if snippy_was_run_with_coverage_filters(df):
+        for coverage_threshold in coverage_filters:
+            trace_name = f"Tool: {snippy_ref} Coverage: {coverage_threshold}"
+            config = (snippy_ref, coverage_threshold)
+            df_for_snippy = df.query(f"tool==\"{snippy_ref}\" & coverage_threshold==\"{coverage_threshold}\"")
+            trace_data.append({
+                "trace_name": trace_name,
+                "config": config,
+                "df_for_snippy": df_for_snippy
+            })
+    else:
+        trace_name = f"Tool: {snippy_ref}"
+        config = (snippy_ref, )
+        df_for_snippy = df.query(f"tool==\"{snippy_ref}\"")
+        trace_data.append({
+            "trace_name": trace_name,
+            "config": config,
+            "df_for_snippy": df_for_snippy
+        })
+
+    return trace_data
+
 def compute_all_possible_traces(df, tools, dataset_coverages, coverage_filters, strand_bias_filters, gaps_filters):
     config_to_trace = {}
     for tool in tools:
         if tool == "snippy_all":
-            for snippy_ref in [snippy_ref_tool for snippy_ref_tool in df["tool"].unique() if snippy_ref_tool.startswith("snippy")]:
-                df_for_label = df.query(f"tool==\"{snippy_ref}\"")
+            color_vector = ["red", "green", "blue", "black", "yellow", "orange", "brown", "grey"]
+            snippy_refs_tools = [snippy_ref_tool for snippy_ref_tool in df["tool"].unique() if snippy_ref_tool.startswith("snippy")]
+            for snippy_index, snippy_ref in enumerate(snippy_refs_tools):
+                snippy_trace_data = get_snippy_trace_data_for_given_ref(df, snippy_ref, coverage_filters)
 
-                trace_name = f"Tool: {snippy_ref}"
-                highest_error_rate_after_20_percent_recall = get_highest_error_rate_after_given_recall(df_for_label, 0.2)
+                for single_snippy_trace_data in snippy_trace_data:
+                    trace_name = single_snippy_trace_data["trace_name"]
+                    config = single_snippy_trace_data["config"]
+                    df_for_label = single_snippy_trace_data["df_for_snippy"]
 
-                trace = go.Scatter(x=df_for_label["error_rate"], y=df_for_label["recall"], name=trace_name,
-                                   mode='lines',
-                                   marker={'size': 8, "opacity": 0.6, "line": {'width': 0.5}})
+                    highest_error_rate_after_20_percent_recall = get_highest_error_rate_after_given_recall(df_for_label, 0.2)
 
-                config_to_trace[snippy_ref] = {
-                    "trace": trace,
-                    "highest_error_rate": highest_error_rate_after_20_percent_recall
-                }
-        elif tool.startswith("pandora"):
+                    trace = go.Scatter(x=df_for_label["error_rate"], y=df_for_label["recall"], name=trace_name,
+                                       mode='lines',
+                                       marker={'size': 8, "opacity": 0.6, "line": {'width': 0.5}},
+                                       marker_color=color_vector[snippy_index % len(color_vector)])
+
+                    config_to_trace[config] = {
+                        "trace": trace,
+                        "highest_error_rate": highest_error_rate_after_20_percent_recall
+                    }
+        else:
             for dataset_coverage in dataset_coverages:
                 for coverage_threshold in coverage_filters:
                     for strand_bias_threshold in strand_bias_filters:
@@ -64,8 +100,8 @@ def compute_all_possible_traces(df, tools, dataset_coverages, coverage_filters, 
 def remove_value_from_ndarray(array, value):
     return [elem for elem in array if elem != value]
 
-def keep_pandora_only(tools):
-    return [tool for tool in tools if "pandora" in tool]
+def remove_snippy(tools):
+    return [tool for tool in tools if "snippy" not in tool]
 
 def get_first_elem_of_list_as_list_itself (the_list):
     if len(the_list) >= 1:
@@ -85,7 +121,7 @@ def add_visualization_page_to_dash_app(dash_app, page_name, ROC_data_path):
     gaps_filters = list(df["gaps_threshold"].unique())
 
     # adjust the filters
-    tools = keep_pandora_only(tools)
+    tools = remove_snippy(tools)
     tools.append("snippy_all")
     dataset_coverages = remove_value_from_ndarray(dataset_coverages, "all")
     coverage_filters = remove_value_from_ndarray(coverage_filters, "Not_App")
@@ -97,7 +133,7 @@ def add_visualization_page_to_dash_app(dash_app, page_name, ROC_data_path):
         html.Div([html.H1(f"Pandora ROC evaluation - {page_name}")], style={'textAlign': "center"}),
         get_div_for_the_filters(filter_name=f"{page_name}_tool", filter_description="Tool", filter_values=tools, selected_values=tools),
         get_div_for_the_filters(filter_name=f"{page_name}_dataset", filter_description="Dataset coverage filter (pandora only)", filter_values=dataset_coverages, selected_values=dataset_coverages),
-        get_div_for_the_filters(filter_name=f"{page_name}_coverage", filter_description="Coverage filter (pandora only)", filter_values=coverage_filters, selected_values=get_first_elem_of_list_as_list_itself(coverage_filters)),
+        get_div_for_the_filters(filter_name=f"{page_name}_coverage", filter_description="Coverage filter", filter_values=coverage_filters, selected_values=get_first_elem_of_list_as_list_itself(coverage_filters)),
         get_div_for_the_filters(filter_name=f"{page_name}_strand_bias", filter_description="Strand bias filter (pandora only)", filter_values=strand_bias_filters, selected_values=get_first_elem_of_list_as_list_itself(strand_bias_filters)),
         get_div_for_the_filters(filter_name=f"{page_name}_gaps", filter_description="Gaps filter (pandora only)", filter_values=gaps_filters, selected_values=get_first_elem_of_list_as_list_itself(gaps_filters)),
         html.Div([dcc.Graph(id=f"{page_name}_graph", style={'height': '1000px', 'width': '1000px'})]),
@@ -121,11 +157,21 @@ def add_visualization_page_to_dash_app(dash_app, page_name, ROC_data_path):
         for tool in tool_checklist_values:
             if tool=="snippy_all":
                 for config, trace in config_to_all_traces.items():
-                    if isinstance(config, str) and config.startswith("snippy"):
-                        trace = config_to_all_traces[config]
-                        traces.append(trace["trace"])
-                        highest_error_rate = max(highest_error_rate, trace["highest_error_rate"])
-            elif tool.startswith("pandora"):
+                    if config[0].startswith("snippy"):
+                        snippy_ref = config[0]
+                        snippy_has_coverage_filters = len(config) > 1
+
+                        if snippy_has_coverage_filters:
+                            coverage = config[1]
+                            if coverage in coverage_checklist_values:
+                                trace = config_to_all_traces[config]
+                                traces.append(trace["trace"])
+                                highest_error_rate = max(highest_error_rate, trace["highest_error_rate"])
+                        else:
+                            trace = config_to_all_traces[config]
+                            traces.append(trace["trace"])
+                            highest_error_rate = max(highest_error_rate, trace["highest_error_rate"])
+            else:
                 for dataset_coverage in dataset_coverage_checklist_values:
                     for coverage_threshold in coverage_checklist_values:
                         for strand_bias_threshold in strand_bias_checklist_values:

@@ -22,8 +22,6 @@ def create_classifier_with_two_entries(cls: Type) -> Type[Classifier]:
         pos=603,
         interval=ProbeInterval(25, 32),
         svtype="PH_SNPs",
-        mean_fwd_covg=23,
-        mean_rev_covg=13,
         gt_conf=89.5987,
     )
     header = create_sam_header(str(ref_header), 64)
@@ -103,8 +101,6 @@ def create_incorrect_secondary_sam_record() -> pysam.AlignedSegment:
         pos=603,
         interval=ProbeInterval(25, 32),
         svtype="PH_SNPs",
-        mean_fwd_covg=23,
-        mean_rev_covg=13,
         gt_conf=89.5987,
     )
     sequence = "CGCGAAAGCCCTGACCATCTGCACCGTGTCTGACCACATCCGC"
@@ -130,8 +126,6 @@ def create_correct_secondary_sam_record() -> pysam.AlignedSegment:
         pos=603,
         interval=ProbeInterval(25, 32),
         svtype="PH_SNPs",
-        mean_fwd_covg=23,
-        mean_rev_covg=13,
         gt_conf=89.5987,
     )
     sequence = "CGCGAAAGCCCTGACCATCTGCACCGTGTCTGACCACATCCGC"
@@ -157,8 +151,6 @@ def create_incorrect_supplementary_sam_record() -> pysam.AlignedSegment:
         pos=603,
         interval=ProbeInterval(25, 32),
         svtype="PH_SNPs",
-        mean_fwd_covg=23,
-        mean_rev_covg=13,
         gt_conf=89.5987,
     )
     sequence = "CGCGAAAGCCCTGACCATCTGCACCGTGTCTGACCACATCCGC"
@@ -184,8 +176,6 @@ def create_correct_supplementary_sam_record() -> pysam.AlignedSegment:
         pos=603,
         interval=ProbeInterval(25, 32),
         svtype="PH_SNPs",
-        mean_fwd_covg=23,
-        mean_rev_covg=13,
         gt_conf=89.5987,
     )
     sequence = "CGCGAAAGCCCTGACCATCTGCACCGTGTCTGACCACATCCGC"
@@ -211,8 +201,6 @@ def create_correct_primary_sam_record() -> pysam.AlignedSegment:
         pos=603,
         interval=ProbeInterval(25, 32),
         svtype="PH_SNPs",
-        mean_fwd_covg=23,
-        mean_rev_covg=13,
         gt_conf=89.5987,
     )
     sequence = "AAAAAAAAAAACGGCTCGCATAGACACGACGACGACACGTACGATCGATCAGTCAT"
@@ -238,8 +226,6 @@ def create_incorrect_primary_sam_record() -> pysam.AlignedSegment:
         pos=603,
         interval=ProbeInterval(25, 32),
         svtype="PH_SNPs",
-        mean_fwd_covg=23,
-        mean_rev_covg=13,
         gt_conf=89.5987,
     )
     sequence = "AAAAAAAAAAACGGCTCGCATAGACACGACGACGACACGTACGATCGATCAGTCAT"

@@ -1,5 +1,6 @@
 import pysam
 from typing import Iterable
+from abc import ABC, abstractmethod
 
 class BuggedVCFError(Exception):
     pass
@@ -7,51 +8,27 @@ class BuggedVCFError(Exception):
 class NullVCFError(Exception):
     pass
 
-class VCF:
-    @staticmethod
-    def from_VariantRecord_and_Sample(variant: pysam.VariantRecord = None, sample: str = None) -> "VCF":
-        vcf = VCF()
-        vcf.variant = variant
-        vcf.sample = sample
 
-        if vcf.is_null_call:
-            raise NullVCFError()
-
-        # TODO : I don't think we should worry about checking if a VCF is bugged or not
-        # TODO : in principle, we should not receive bugged VCFs...
-        # if vcf.has_genotype_bug:
-        #     raise BuggedVCFError()
-
-        return vcf
-
-    def __eq__(self, other):
-        return self.__dict__ == other.__dict__
-
-    @property
-    def genotype(self) -> int:
-        data_from_sample = self.variant.samples[self.sample]
-        all_gts = data_from_sample.get("GT")
-        return all_gts[0]
-
+class VCF(ABC):
     @property
     def is_null_call(self) -> bool:
         return self.genotype is None
 
     @property
-    def has_genotype_bug(self) -> bool:
-        genotype = self.genotype
-        genotype_called_wrongly = genotype not in self.highest_likelihood_indexes
-        return genotype_called_wrongly
+    @abstractmethod
+    def genotype(self) -> int:
+        pass
+
 
     @property
+    @abstractmethod
+    def has_genotype_bug(self) -> bool:
+        pass
+
+    @property
+    @abstractmethod
     def genotype_confidence(self) -> float:
-        data_from_sample = self.variant.samples[self.sample]
-        gt_conf = data_from_sample.get("GT_CONF")
-        if gt_conf is not None:
-            return float(gt_conf)
-        else:
-            # TODO: this is required due to Snippy, put this in a hierarchy (since we will need to do this for nanopolish/medaka also)
-            return float(self.variant.qual)
+        pass
 
     @property
     def called_variant_sequence(self) -> str:
@@ -66,34 +43,15 @@ class VCF:
         return len(self.called_variant_sequence)
 
     @property
+    @abstractmethod
     def svtype(self) -> str:
-        # TODO: this is required due to Snippy, put this in a hierarchy (since we will need to do this for nanopolish/medaka also)
-        try:
-            return self.variant.info["SVTYPE"]
-        except KeyError:
-            return self.variant.info["TYPE"]
+        pass
+
 
     @property
-    def mean_coverage_forward(self) -> int:
-        genotype = self.genotype
-        # TODO: this is required due to Snippy, put this in a hierarchy (since we will need to do this for nanopolish/medaka also)
-        try:
-            return int(self.variant.samples[self.sample]["MEAN_FWD_COVG"][genotype])
-        except KeyError:
-            return 0
-
-    @property
-    def mean_coverage_reverse(self) -> int:
-        genotype = self.genotype
-        # TODO: this is required due to Snippy, put this in a hierarchy (since we will need to do this for nanopolish/medaka also)
-        try:
-            return int(self.variant.samples[self.sample]["MEAN_REV_COVG"][genotype])
-        except KeyError:
-            return 0
-
-    @property
-    def mean_coverage(self) -> int:
-        return self.mean_coverage_forward + self.mean_coverage_reverse
+    @abstractmethod
+    def coverage(self) -> int:
+        pass
 
     @property
     def pos(self) -> int:
@@ -115,22 +73,131 @@ class VCF:
     def chrom(self) -> str:
         return self.variant.chrom
 
+
+
+
+class PandoraVCF(VCF):
+    def __eq__(self, other):
+        return self.__dict__ == other.__dict__
+
+    ####################################################################################################################
+    # Overriding methods
     @property
-    def likelihoods(self) -> Iterable[float]:
+    def genotype(self) -> int:
+        data_from_sample = self.variant.samples[self.sample]
+        all_gts = data_from_sample.get("GT")
+        assert len(all_gts) == 1
+        return all_gts[0]
+
+    @property
+    def has_genotype_bug(self) -> bool:
+        genotype = self.genotype
+        genotype_called_wrongly = genotype not in self._highest_likelihood_indexes
+        return genotype_called_wrongly
+
+    @property
+    def genotype_confidence(self) -> float:
+        data_from_sample = self.variant.samples[self.sample]
+        return float(data_from_sample.get("GT_CONF"))
+
+    @property
+    def svtype(self) -> str:
+        return self.variant.info["SVTYPE"]
+
+    @property
+    def coverage(self) -> int:
+        return self._mean_coverage_forward + self._mean_coverage_reverse
+
+    ####################################################################################################################
+
+
+    @property
+    def _mean_coverage_forward(self) -> int:
+        genotype = self.genotype
+        return int(self.variant.samples[self.sample]["MEAN_FWD_COVG"][genotype])
+
+    @property
+    def _mean_coverage_reverse(self) -> int:
+        genotype = self.genotype
+        return int(self.variant.samples[self.sample]["MEAN_REV_COVG"][genotype])
+
+    @property
+    def _likelihoods(self) -> Iterable[float]:
         return [
             float(likelihood)
             for likelihood in self.variant.samples[self.sample]["LIKELIHOOD"]
         ]
 
     @property
-    def highest_likelihood_indexes(self) -> Iterable[int]:
+    def _highest_likelihood_indexes(self) -> Iterable[int]:
         highest_likelihood_indexes = [
             index
-            for index, likelihood in enumerate(self.likelihoods)
-            if likelihood == max(self.likelihoods)
+            for index, likelihood in enumerate(self._likelihoods)
+            if likelihood == max(self._likelihoods)
         ]
         return highest_likelihood_indexes
 
     @property
-    def gaps(self) -> float:
+    def _gaps(self) -> float:
         return float(self.variant.samples[self.sample]["GAPS"][self.genotype])
+
+
+
+
+class SnippyVCF(VCF):
+    def __eq__(self, other):
+        return self.__dict__ == other.__dict__
+
+    ####################################################################################################################
+    # Overriding methods
+    @property
+    def genotype(self) -> int:
+        data_from_sample = self.variant.samples[self.sample]
+        all_gts = data_from_sample.get("GT")
+        assert all_gts == (1, 1)
+        return 1
+
+    @property
+    def has_genotype_bug(self) -> bool:
+        genotype = self.genotype # just to do the assert
+        return False
+
+    @property
+    def genotype_confidence(self) -> float:
+        return float(self.variant.qual)
+
+    @property
+    def svtype(self) -> str:
+        return self.variant.info["TYPE"][0]
+
+    @property
+    def coverage(self) -> int:
+        return int(self.variant.info["AO"][0])
+
+    ####################################################################################################################
+
+
+class VCFFactory:
+    @staticmethod
+    def create_Pandora_VCF_from_VariantRecord_and_Sample(variant: pysam.VariantRecord = None, sample: str = None) -> PandoraVCF:
+        vcf = PandoraVCF()
+        return VCFFactory.__create_VCF_from_VariantRecord_and_Sample(vcf, variant, sample)
+
+    @staticmethod
+    def create_Snippy_VCF_from_VariantRecord_and_Sample(variant: pysam.VariantRecord = None, sample: str = None) -> SnippyVCF:
+        vcf = SnippyVCF()
+        return VCFFactory.__create_VCF_from_VariantRecord_and_Sample(vcf, variant, sample)
+
+
+    @staticmethod
+    def __create_VCF_from_VariantRecord_and_Sample(vcf, variant: pysam.VariantRecord, sample: str):
+        vcf.variant = variant
+        vcf.sample = sample
+
+        if vcf.is_null_call:
+            raise NullVCFError()
+
+        if vcf.has_genotype_bug:
+            raise BuggedVCFError()
+
+        return vcf

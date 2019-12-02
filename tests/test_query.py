@@ -6,7 +6,7 @@ from tests.common import (
     retrieve_entry_from_test_vcf,
     retrieve_entry_from_test_query_vcf,
 )
-from evaluate.vcf_file import VCFFile
+from evaluate.vcf_file import VCFFile, VCFFactory
 import pysam
 
 
@@ -50,7 +50,7 @@ class TestQuery:
     def test_createProbesForGeneVariants_emptyVariants_returnEmptyProbes(self):
         samples = ["sample"]
         pysam_variant_file = pysam.VariantFile(TEST_QUERY_VCF, "r")
-        vcf_file = VCFFile(pysam_variant_file)
+        vcf_file = VCFFile(pysam_variant_file, VCFFactory.create_Pandora_VCF_from_VariantRecord_and_Sample)
         pysam_variant_file.close()
 
         query = Query(vcf_file, TEST_QUERY_REF, samples)
@@ -63,7 +63,7 @@ class TestQuery:
     def test_makeProbes_emptyVariantsReturnsEmptyProbes(self):
         samples = ["sample"]
         pysam_variant_file = pysam.VariantFile(TEST_CASES / "empty.vcf", "r")
-        vcf_file = VCFFile(pysam_variant_file)
+        vcf_file = VCFFile(pysam_variant_file, VCFFactory.create_Pandora_VCF_from_VariantRecord_and_Sample)
         pysam_variant_file.close()
         genes = TEST_QUERY_REF
 
@@ -77,7 +77,7 @@ class TestQuery:
     def test_makeProbes_emptyGenesReturnsEmptyProbes(self):
         samples = ["sample"]
         pysam_variant_file = pysam.VariantFile(TEST_CASES / "empty.vcf", "r")
-        vcf_file = VCFFile(pysam_variant_file)
+        vcf_file = VCFFile(pysam_variant_file, VCFFactory.create_Pandora_VCF_from_VariantRecord_and_Sample)
         pysam_variant_file.close()
         genes = TEST_CASES / "empty.fa"
 
@@ -91,7 +91,7 @@ class TestQuery:
     def test_makeProbes_oneGeneOneVcfRecordNotInGeneReturnsEmptyProbes(self):
         samples = ["sample"]
         pysam_variant_file = pysam.VariantFile(TEST_CASES / "empty.vcf", "r")
-        vcf_file = VCFFile(pysam_variant_file)
+        vcf_file = VCFFile(pysam_variant_file, VCFFactory.create_Pandora_VCF_from_VariantRecord_and_Sample)
         pysam_variant_file.close()
         genes = TEST_QUERY_REF
 
@@ -105,7 +105,7 @@ class TestQuery:
     def test_makeProbes_oneGeneOneVcfRecordInGeneReturnsOneProbe(self):
         samples = ["sample"]
         pysam_variant_file = pysam.VariantFile(TEST_CASES / "make_probes_1.vcf", "r")
-        vcf_file = VCFFile(pysam_variant_file)
+        vcf_file = VCFFile(pysam_variant_file, VCFFactory.create_Pandora_VCF_from_VariantRecord_and_Sample)
         pysam_variant_file.close()
         genes = TEST_CASES / "make_probes_1.fa"
         flank_width = 3
@@ -122,8 +122,6 @@ class TestQuery:
                         pos=4,
                         interval=ProbeInterval(3, 4),
                         svtype="COMPLEX",
-                        mean_fwd_covg=6,
-                        mean_rev_covg=7,
                         gt_conf=262.757,
                     ),
                     full_sequence="xxxFxxx",
@@ -137,7 +135,7 @@ class TestQuery:
     def test_makeProbes_oneGeneTwoNonCloseVcfRecordsInGeneReturnsTwoProbes(self):
         samples = ["sample"]
         pysam_variant_file = pysam.VariantFile(TEST_CASES / "make_probes_3.vcf", "r")
-        vcf_file = VCFFile(pysam_variant_file)
+        vcf_file = VCFFile(pysam_variant_file, VCFFactory.create_Pandora_VCF_from_VariantRecord_and_Sample)
         pysam_variant_file.close()
         genes = TEST_CASES / "make_probes_2.fa"
         flank_width = 5
@@ -154,8 +152,6 @@ class TestQuery:
                         pos=4,
                         interval=ProbeInterval(3, 6),
                         svtype="COMPLEX",
-                        mean_fwd_covg=6,
-                        mean_rev_covg=7,
                         gt_conf=262.757,
                     ),
                     full_sequence="xxxFOOxxxxx",
@@ -170,8 +166,6 @@ class TestQuery:
                         pos=8,
                         interval=ProbeInterval(5, 8),
                         svtype="COMPLEX",
-                        mean_fwd_covg=6,
-                        mean_rev_covg=7,
                         gt_conf=262.757,
                     ),
                     full_sequence="xxxxxFOOxxxxx",
@@ -185,7 +179,7 @@ class TestQuery:
     def test_makeProbes_twoGenesTwoNonCloseVcfRecordsInOneGeneReturnsTwoProbes(self):
         samples = ["sample"]
         pysam_variant_file = pysam.VariantFile(TEST_CASES / "make_probes_3.vcf", "r")
-        vcf_file = VCFFile(pysam_variant_file)
+        vcf_file = VCFFile(pysam_variant_file, VCFFactory.create_Pandora_VCF_from_VariantRecord_and_Sample)
         pysam_variant_file.close()
         genes = TEST_CASES / "make_probes_3.fa"
         flank_width = 5
@@ -202,8 +196,6 @@ class TestQuery:
                         pos=4,
                         interval=ProbeInterval(3, 6),
                         svtype="COMPLEX",
-                        mean_fwd_covg=6,
-                        mean_rev_covg=7,
                         gt_conf=262.757,
                     ),
                     full_sequence="xxxFOOxxxxx",
@@ -218,8 +210,6 @@ class TestQuery:
                         pos=8,
                         interval=ProbeInterval(5, 8),
                         svtype="COMPLEX",
-                        mean_fwd_covg=6,
-                        mean_rev_covg=7,
                         gt_conf=262.757,
                     ),
                     full_sequence="xxxxxFOOxxx",
@@ -233,7 +223,7 @@ class TestQuery:
     def test_makeProbes_twoGenesTwoVcfRecordsOneInEachGeneReturnsTwoProbes(self):
         samples = ["sample"]
         pysam_variant_file = pysam.VariantFile(TEST_CASES / "make_probes_4.vcf", "r")
-        vcf_file = VCFFile(pysam_variant_file)
+        vcf_file = VCFFile(pysam_variant_file, VCFFactory.create_Pandora_VCF_from_VariantRecord_and_Sample)
         pysam_variant_file.close()
         genes = TEST_CASES / "make_probes_3.fa"
         flank_width = 5
@@ -250,8 +240,6 @@ class TestQuery:
                         pos=4,
                         interval=ProbeInterval(3, 6),
                         svtype="COMPLEX",
-                        mean_fwd_covg=6,
-                        mean_rev_covg=7,
                         gt_conf=262.757,
                     ),
                     full_sequence="xxxFOOxxxxx",
@@ -266,8 +254,6 @@ class TestQuery:
                         pos=2,
                         interval=ProbeInterval(1, 4),
                         svtype="COMPLEX",
-                        mean_fwd_covg=6,
-                        mean_rev_covg=7,
                         gt_conf=262.757,
                     ),
                     full_sequence="xFOOx",
@@ -283,7 +269,7 @@ class TestQuery:
     ):
         samples = ["sample"]
         pysam_variant_file = pysam.VariantFile(TEST_CASES / "make_probes_6.vcf", "r")
-        vcf_file = VCFFile(pysam_variant_file)
+        vcf_file = VCFFile(pysam_variant_file, VCFFactory.create_Pandora_VCF_from_VariantRecord_and_Sample)
         pysam_variant_file.close()
         genes = TEST_CASES / "make_probes_6.fa"
         flank_width = 5
@@ -300,8 +286,6 @@ class TestQuery:
                         pos=4,
                         interval=ProbeInterval(3, 4),
                         svtype="COMPLEX",
-                        mean_fwd_covg=6,
-                        mean_rev_covg=7,
                         gt_conf=20.0,
                     ),
                     full_sequence="xxxFxxxxx",
@@ -317,7 +301,7 @@ class TestQuery:
         flank_width = 3
         query = Query(None, None, None, flank_width=flank_width)
         variant = retrieve_entry_from_test_vcf(2)
-        vcf = VCF.from_VariantRecord_and_Sample(variant, sample)
+        vcf = VCFFactory.create_Pandora_VCF_from_VariantRecord_and_Sample(variant, sample)
         interval = query.calculate_probe_boundaries_for_entry(vcf)
 
         actual = Query._create_probe_header(sample, vcf, interval)
@@ -327,8 +311,6 @@ class TestQuery:
             pos=1,
             interval=ProbeInterval(0, 12),
             svtype="COMPLEX",
-            mean_fwd_covg=24,
-            mean_rev_covg=30,
             gt_conf=262.757,
         )
 

@@ -1,6 +1,6 @@
 from unittest.mock import patch, Mock
 from evaluate.vcf_file import VCFFile
-from evaluate.vcf import VCF, NullVCFError, BuggedVCFError
+from evaluate.vcf import NullVCFError, BuggedVCFError, VCFFactory
 import pytest
 
 
@@ -50,88 +50,88 @@ def chrom_1_raises_NullVCFError_others_are_fine(pysam_variant_record, sample):
 
 class Test_VCFFile:
     def test___constructor___no_records_in_VCF_returns_nothing(self):
-        vcf_file = VCFFile([])
+        vcf_file = VCFFile([], VCFFactory.create_Pandora_VCF_from_VariantRecord_and_Sample)
         actual = vcf_file.sample_to_gene_to_VCFs
 
         expected = {}
         assert actual == expected
 
-    @patch.object(VCF, VCF.from_VariantRecord_and_Sample.__name__, return_value=vcf_record_1_mock)
+    @patch.object(VCFFactory, VCFFactory.create_Pandora_VCF_from_VariantRecord_and_Sample.__name__, return_value=vcf_record_1_mock)
     def test___constructor___one_record_in_one_sample_and_one_gene(self, from_VariantRecord_and_Sample_Mock,
                                                                    pysam_variant_record_mock_that_maps_to_chrom_1_and_one_sample):
-        vcf_file = VCFFile([pysam_variant_record_mock_that_maps_to_chrom_1_and_one_sample])
+        vcf_file = VCFFile([pysam_variant_record_mock_that_maps_to_chrom_1_and_one_sample], VCFFactory.create_Pandora_VCF_from_VariantRecord_and_Sample)
         actual = vcf_file.sample_to_gene_to_VCFs
 
         expected = {"sample_1": {"chrom_1": [vcf_record_1_mock]}}
         assert actual == expected
 
-    @patch.object(VCF, VCF.from_VariantRecord_and_Sample.__name__,
+    @patch.object(VCFFactory, VCFFactory.create_Pandora_VCF_from_VariantRecord_and_Sample.__name__,
                   return_value=vcf_record_1_mock)
     def test___constructor___one_record_in_two_samples_and_one_gene(self, from_VariantRecord_and_Sample_Mock,
                                                                     pysam_variant_record_mock_that_maps_to_chrom_1_and_two_samples):
-        vcf_file = VCFFile([pysam_variant_record_mock_that_maps_to_chrom_1_and_two_samples])
+        vcf_file = VCFFile([pysam_variant_record_mock_that_maps_to_chrom_1_and_two_samples], VCFFactory.create_Pandora_VCF_from_VariantRecord_and_Sample)
         actual = vcf_file.sample_to_gene_to_VCFs
 
         expected = {"sample_1": {"chrom_1": [vcf_record_1_mock]},
                     "sample_2": {"chrom_1": [vcf_record_1_mock]}}
         assert actual == expected
 
-    @patch.object(VCF, VCF.from_VariantRecord_and_Sample.__name__,
+    @patch.object(VCFFactory, VCFFactory.create_Pandora_VCF_from_VariantRecord_and_Sample.__name__,
                   side_effect=[vcf_record_1_mock, vcf_record_2_mock])
     def test___constructor___two_records_in_one_sample_and_two_genes(self, from_VariantRecord_and_Sample_Mock,
                                                                      pysam_variant_record_mock_that_maps_to_chrom_1_and_one_sample,
                                                                      pysam_variant_record_mock_that_maps_to_chrom_2_and_one_sample):
         vcf_file = VCFFile([pysam_variant_record_mock_that_maps_to_chrom_1_and_one_sample,
-                            pysam_variant_record_mock_that_maps_to_chrom_2_and_one_sample])
+                            pysam_variant_record_mock_that_maps_to_chrom_2_and_one_sample], VCFFactory.create_Pandora_VCF_from_VariantRecord_and_Sample)
         actual = vcf_file.sample_to_gene_to_VCFs
 
         expected = {"sample_1": {"chrom_1": [vcf_record_1_mock], "chrom_2": [vcf_record_2_mock]}}
         assert actual == expected
 
-    @patch.object(VCF, VCF.from_VariantRecord_and_Sample.__name__,
+    @patch.object(VCFFactory, VCFFactory.create_Pandora_VCF_from_VariantRecord_and_Sample.__name__,
                   side_effect=[vcf_record_1_mock, vcf_record_2_mock])
     def test___constructor___two_records_in_one_sample_and_one_gene(self, from_VariantRecord_and_Sample_Mock,
                                                                     pysam_variant_record_mock_that_maps_to_chrom_1_and_one_sample):
         vcf_file = VCFFile([pysam_variant_record_mock_that_maps_to_chrom_1_and_one_sample,
-                            pysam_variant_record_mock_that_maps_to_chrom_1_and_one_sample])
+                            pysam_variant_record_mock_that_maps_to_chrom_1_and_one_sample], VCFFactory.create_Pandora_VCF_from_VariantRecord_and_Sample)
         actual = vcf_file.sample_to_gene_to_VCFs
 
         expected = {"sample_1": {"chrom_1": [vcf_record_1_mock, vcf_record_2_mock]}}
         assert actual == expected
 
-    @patch.object(VCF, VCF.from_VariantRecord_and_Sample.__name__,
+    @patch.object(VCFFactory, VCFFactory.create_Pandora_VCF_from_VariantRecord_and_Sample.__name__,
                   side_effect=chrom_1_raises_NullVCFError_others_are_fine)
     def test___constructor___two_records_in_one_sample_and_two_genes___first_is_null_and_is_not_added(self, from_VariantRecord_and_Sample_Mock,
                                                                      pysam_variant_record_mock_that_maps_to_chrom_1_and_one_sample,
                                                                      pysam_variant_record_mock_that_maps_to_chrom_2_and_one_sample):
         vcf_file = VCFFile([pysam_variant_record_mock_that_maps_to_chrom_1_and_one_sample,
-                            pysam_variant_record_mock_that_maps_to_chrom_2_and_one_sample])
+                            pysam_variant_record_mock_that_maps_to_chrom_2_and_one_sample], VCFFactory.create_Pandora_VCF_from_VariantRecord_and_Sample)
         actual = vcf_file.sample_to_gene_to_VCFs
 
         expected = {"sample_1": {"chrom_2": [vcf_record_2_mock]}}
         assert actual == expected
 
 
-    @patch.object(VCF, VCF.from_VariantRecord_and_Sample.__name__,
+    @patch.object(VCFFactory, VCFFactory.create_Pandora_VCF_from_VariantRecord_and_Sample.__name__,
                   side_effect=chrom_1_raises_NullVCFError_others_are_fine)
     def test___constructor___two_records_in_one_sample_and_two_genes___second_is_null_and_is_not_added(self, from_VariantRecord_and_Sample_Mock,
                                                                      pysam_variant_record_mock_that_maps_to_chrom_1_and_one_sample,
                                                                      pysam_variant_record_mock_that_maps_to_chrom_2_and_one_sample):
         vcf_file = VCFFile([pysam_variant_record_mock_that_maps_to_chrom_2_and_one_sample,
-                            pysam_variant_record_mock_that_maps_to_chrom_1_and_one_sample,])
+                            pysam_variant_record_mock_that_maps_to_chrom_1_and_one_sample,], VCFFactory.create_Pandora_VCF_from_VariantRecord_and_Sample)
         actual = vcf_file.sample_to_gene_to_VCFs
 
         expected = {"sample_1": {"chrom_2": [vcf_record_2_mock]}}
         assert actual == expected
 
-    @patch.object(VCF, VCF.from_VariantRecord_and_Sample.__name__,
+    @patch.object(VCFFactory, VCFFactory.create_Pandora_VCF_from_VariantRecord_and_Sample.__name__,
                   side_effect=BuggedVCFError())
     @pytest.mark.xfail(strict=True)
     def test___constructor___two_records_in_one_sample_and_two_genes___first_is_bugged___expects_death(self, from_VariantRecord_and_Sample_Mock,
                                                                      pysam_variant_record_mock_that_maps_to_chrom_1_and_one_sample,
                                                                      pysam_variant_record_mock_that_maps_to_chrom_2_and_one_sample):
         vcf_file = VCFFile([pysam_variant_record_mock_that_maps_to_chrom_1_and_one_sample,
-                            pysam_variant_record_mock_that_maps_to_chrom_2_and_one_sample])
+                            pysam_variant_record_mock_that_maps_to_chrom_2_and_one_sample], VCFFactory.create_Pandora_VCF_from_VariantRecord_and_Sample)
 
 
     def test___constructor___several_records_in_several_samples_and_several_genes(self):
@@ -166,7 +166,7 @@ class Test_VCFFile:
 
 
 
-        with patch.object(VCF, VCF.from_VariantRecord_and_Sample.__name__,
+        with patch.object(VCFFactory, VCFFactory.create_Pandora_VCF_from_VariantRecord_and_Sample.__name__,
                           side_effect=[vcf_record_1_mock, vcf_record_2_mock, vcf_record_3_mock,
                                vcf_record_4_mock, vcf_record_5_mock, vcf_record_6_mock,
                                vcf_record_7_mock, vcf_record_8_mock]):
@@ -174,7 +174,7 @@ class Test_VCFFile:
                                 pysam_variant_record_mock_that_maps_to_chrom_1_and_sample_1_2_3,
                                 pysam_variant_record_mock_that_maps_to_chrom_2_and_sample_1_2,
                                 pysam_variant_record_mock_that_maps_to_chrom_2_and_sample_2,
-                                another_pysam_variant_record_mock_that_maps_to_chrom_2_and_sample_2])
+                                another_pysam_variant_record_mock_that_maps_to_chrom_2_and_sample_2], VCFFactory.create_Pandora_VCF_from_VariantRecord_and_Sample)
             actual = vcf_file.sample_to_gene_to_VCFs
 
             expected = {"sample_1": {"chrom_1": [vcf_record_1_mock, vcf_record_2_mock],

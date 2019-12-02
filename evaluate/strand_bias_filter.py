@@ -1,5 +1,5 @@
 from evaluate.filter import Filter
-from .vcf import VCF
+from .vcf import PandoraVCF
 
 
 class StrandBiasFilter(Filter):
@@ -10,10 +10,10 @@ class StrandBiasFilter(Filter):
     def strand_bias_threshold(self) -> float:
         return self._strand_bias_threshold
 
-    def record_should_be_filtered_out(self, record: VCF) -> bool:
-        if record.mean_coverage == 0:
+    def record_should_be_filtered_out(self, record: PandoraVCF) -> bool:
+        if record.coverage == 0:
             return True
-        strand_ratio = record.mean_coverage_forward / record.mean_coverage
+        strand_ratio = record._mean_coverage_forward / record.coverage
         bad_strand_ratio = (
             strand_ratio < self.strand_bias_threshold
             or strand_ratio > 1.0 - self.strand_bias_threshold

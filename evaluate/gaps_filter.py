@@ -1,5 +1,5 @@
 from evaluate.filter import Filter
-from .vcf import VCF
+from .vcf import PandoraVCF
 
 
 class GapsFilter(Filter):
@@ -10,5 +10,5 @@ class GapsFilter(Filter):
     def gaps_threshold(self) -> float:
         return self._gaps_threshold
 
-    def record_should_be_filtered_out(self, record: VCF) -> bool:
-        return record.gaps > self.gaps_threshold
+    def record_should_be_filtered_out(self, record: PandoraVCF) -> bool:
+        return record._gaps > self.gaps_threshold

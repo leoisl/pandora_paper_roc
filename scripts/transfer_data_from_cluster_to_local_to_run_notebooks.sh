@@ -1,4 +1,4 @@
-PANDORA_FILES_PATH="noah-login-ext:/hps/nobackup/research/zi/projects/pandora_paper_leandro/analysis/60x/random"
+PANDORA_FILES_PATH="noah-login-ext:/hps/nobackup/research/zi/projects/pandora_paper_leandro/analysis_random_subsampling/100x/random"
 mkdir -p cluster/analysis
 rsync --relative -zcvh ${PANDORA_FILES_PATH}/compare_with_denovo/pandora_multisample.vcf_ref.fa cluster/pandora
 rsync --relative -zcvh ${PANDORA_FILES_PATH}/compare_with_denovo/pandora_multisample.matrix cluster/pandora
