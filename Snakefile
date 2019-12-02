@@ -37,10 +37,7 @@ number_of_points_in_ROC_curve = config['number_of_points_in_ROC_curve']
 # Helper functions
 # ======================================================
 def get_coverage_filters(tool):
-    if tool.startswith("pandora"):
-        return [str(elem) for elem in config['coverage_filters']]
-    else:
-        return ["Not_App"]
+    return [str(elem) for elem in config['coverage_filters']]
 
 def get_strand_bias_filters(tool):
     if tool.startswith("pandora"):
