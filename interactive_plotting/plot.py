@@ -39,7 +39,7 @@ def get_snippy_trace_data_for_given_ref(df, snippy_ref, coverage_filters):
             })
     else:
         trace_name = f"Tool: {snippy_ref}"
-        config = (snippy_ref)
+        config = (snippy_ref, )
         df_for_snippy = df.query(f"tool==\"{snippy_ref}\"")
         trace_data.append({
             "trace_name": trace_name,
@@ -165,7 +165,7 @@ def add_visualization_page_to_dash_app(dash_app, page_name, ROC_data_path):
                                 traces.append(trace["trace"])
                                 highest_error_rate = max(highest_error_rate, trace["highest_error_rate"])
                         else:
-                            trace = config_to_all_traces[(snippy_ref)]
+                            trace = config_to_all_traces[config]
                             traces.append(trace["trace"])
                             highest_error_rate = max(highest_error_rate, trace["highest_error_rate"])
             else:
