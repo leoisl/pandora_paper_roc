@@ -1,5 +1,5 @@
 import pysam
-from typing import Iterable
+from typing import Iterable, List
 from abc import ABC, abstractmethod
 
 class BuggedVCFError(Exception):
@@ -10,6 +10,16 @@ class NullVCFError(Exception):
 
 
 class VCF(ABC):
+    def __init__(self, variant: pysam.VariantRecord = None, sample: str = None):
+        self.variant = variant
+        self.sample = sample
+
+        if self.is_null_call:
+            raise NullVCFError()
+
+        if self.has_genotype_bug:
+            raise BuggedVCFError()
+
     @property
     def is_null_call(self) -> bool:
         return self.genotype is None
@@ -64,6 +74,9 @@ class VCF(ABC):
     @property
     def stop(self) -> int:
         return int(self.variant.stop)
+
+    def positions_covered_by_variant_with_flanks(self, flank_length) -> List[int]:
+        return list(range(self.start-flank_length, self.stop+flank_length))
 
     @property
     def rlen(self) -> int:
@@ -180,24 +193,10 @@ class SnippyVCF(VCF):
 class VCFFactory:
     @staticmethod
     def create_Pandora_VCF_from_VariantRecord_and_Sample(variant: pysam.VariantRecord = None, sample: str = None) -> PandoraVCF:
-        vcf = PandoraVCF()
-        return VCFFactory.__create_VCF_from_VariantRecord_and_Sample(vcf, variant, sample)
+        vcf = PandoraVCF(variant, sample)
+        return vcf
 
     @staticmethod
     def create_Snippy_VCF_from_VariantRecord_and_Sample(variant: pysam.VariantRecord = None, sample: str = None) -> SnippyVCF:
-        vcf = SnippyVCF()
-        return VCFFactory.__create_VCF_from_VariantRecord_and_Sample(vcf, variant, sample)
-
-
-    @staticmethod
-    def __create_VCF_from_VariantRecord_and_Sample(vcf, variant: pysam.VariantRecord, sample: str):
-        vcf.variant = variant
-        vcf.sample = sample
-
-        if vcf.is_null_call:
-            raise NullVCFError()
-
-        if vcf.has_genotype_bug:
-            raise BuggedVCFError()
-
+        vcf = SnippyVCF(variant, sample)
         return vcf
