@@ -14,13 +14,13 @@ class Test_PandoraVCF:
     @patch.object(PandoraVCF, "is_null_call", new_callable=PropertyMock, return_value=True)
     def test___from_VariantRecord_and_Sample___null_PandoraVCF_raises_NullVCFError(self, *mocks):
         with pytest.raises(NullVCFError):
-            VCFFactory.create_Pandora_VCF_from_VariantRecord_and_Sample()
+            VCFFactory.create_Pandora_VCF_from_VariantRecord_and_Sample(1, 2)
 
     @patch.object(PandoraVCF, "is_null_call", new_callable=PropertyMock, return_value=False)
     @patch.object(PandoraVCF, "has_genotype_bug", new_callable=PropertyMock, return_value=True)
     def test___from_VariantRecord_and_Sample___non_null_PandoraVCF_but_has_genotype_bug_raises_BuggedVCFError(self, *mocks):
         with pytest.raises(BuggedVCFError):
-            VCFFactory.create_Pandora_VCF_from_VariantRecord_and_Sample()
+            VCFFactory.create_Pandora_VCF_from_VariantRecord_and_Sample(1, 2)
 
     @patch.object(PandoraVCF, "is_null_call", new_callable=PropertyMock, return_value=False)
     @patch.object(PandoraVCF, "has_genotype_bug", new_callable=PropertyMock, return_value=False)

@@ -14,11 +14,12 @@ class VCF(ABC):
         self.variant = variant
         self.sample = sample
 
-        if self.is_null_call:
-            raise NullVCFError()
+        if self.variant is not None and self.sample is not None:
+            if self.is_null_call:
+                raise NullVCFError()
 
-        if self.has_genotype_bug:
-            raise BuggedVCFError()
+            if self.has_genotype_bug:
+                raise BuggedVCFError()
 
     @property
     def is_null_call(self) -> bool:
