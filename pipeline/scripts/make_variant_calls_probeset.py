@@ -49,7 +49,8 @@ else:
     raise RuntimeError("VCFs should be from either pandora or snippy (should start with either these values)")
 
 with pysam.VariantFile(vcf_filepath) as pysam_variant_file:
-    filtered_vcf_file = FilteredVCFFile(pysam_variant_file=pysam_variant_file, filters=filters, VCF_creator_method=VCF_creator_method)
+    filtered_vcf_file = FilteredVCFFile(pysam_variant_file=pysam_variant_file, filters=filters, VCF_creator_method=VCF_creator_method,
+                                        isolated_variants=True, flank_length=flank_width)
 
 logging.info(f"Making probes")
 query_vcf = Query(

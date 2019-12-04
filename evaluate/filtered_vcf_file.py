@@ -7,8 +7,8 @@ from collections import defaultdict
 
 
 class FilteredVCFFile(VCFFile):
-    def __init__(self, pysam_variant_file: pysam.VariantFile, filters: VCF_Filters, VCF_creator_method):
-        VCFFile.__init__(self, pysam_variant_file, VCF_creator_method)
+    def __init__(self, pysam_variant_file: pysam.VariantFile, filters: VCF_Filters, VCF_creator_method, isolated_variants, flank_length):
+        VCFFile.__init__(self, pysam_variant_file, VCF_creator_method, isolated_variants, flank_length)
         self._sample_to_gene_to_VCFs = FilteredVCFFile._filter_records(
             self.sample_to_gene_to_VCFs, filters
         )
