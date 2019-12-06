@@ -1,3 +1,20 @@
+rule make_variant_calls_probeset_for_recall:
+    input:
+         vcf = lambda wildcards: data.xs((wildcards.sample_id, wildcards.coverage, wildcards.tool))["vcf"],
+         vcf_ref = lambda wildcards: data.xs((wildcards.sample_id, wildcards.coverage, wildcards.tool))["vcf_reference"]
+    output:
+          probeset = output_folder + "/recall/variant_calls_probesets/{sample_id}/{coverage}/{tool}/coverage_filter_{coverage_threshold}/strand_bias_filter_{strand_bias_threshold}/gaps_filter_{gaps_threshold}/variant_calls_probeset.fa"
+    params:
+          flank_length = config["variant_calls_flank_length_for_recall"]
+    threads: 1
+    resources:
+        mem_mb = lambda wildcards, attempt: 1000 * attempt
+    log:
+        "logs/make_variant_calls_probeset_for_recall/{sample_id}/{coverage}/{tool}/coverage_filter_{coverage_threshold}/strand_bias_filter_{strand_bias_threshold}/gaps_filter_{gaps_threshold}/variant_calls_probeset.log"
+    script:
+        "../scripts/make_variant_calls_probeset.py"
+
+
 rule make_recall_truth_probeset:
     input:
         truth1 = lambda wildcards: samples.xs(wildcards.sample1)["reference_assembly"],
@@ -6,7 +23,7 @@ rule make_recall_truth_probeset:
         probeset1 = output_folder + "/recall/truth_probesets/{sample1}/{sample1}_and_{sample2}.truth_probeset.fa",
         probeset2 = output_folder + "/recall/truth_probesets/{sample2}/{sample1}_and_{sample2}.truth_probeset.fa",
     params:
-         flank_length = config["truth_probes_flank_length"]
+         flank_length = config["truth_probes_flank_length_for_recall"]
     shadow:
         "shallow"
     threads: 1
@@ -21,8 +38,8 @@ rule make_recall_truth_probeset:
 rule map_recall_truth_probes_to_variant_call_probes:
     input:
          truth_probeset = output_folder + "/recall/truth_probesets/{sample_id}/{filename_prefix}.truth_probeset.fa",
-         variant_calls_probeset = output_folder + "/variant_calls_probesets/{sample_id}/{coverage}/{tool}/coverage_filter_{coverage_threshold}/strand_bias_filter_{strand_bias_threshold}/gaps_filter_{gaps_threshold}/variant_calls_probeset.fa",
-         variant_calls_probeset_index = output_folder + "/variant_calls_probesets/{sample_id}/{coverage}/{tool}/coverage_filter_{coverage_threshold}/strand_bias_filter_{strand_bias_threshold}/gaps_filter_{gaps_threshold}/variant_calls_probeset.fa.amb",
+         variant_calls_probeset = output_folder + "/recall/variant_calls_probesets/{sample_id}/{coverage}/{tool}/coverage_filter_{coverage_threshold}/strand_bias_filter_{strand_bias_threshold}/gaps_filter_{gaps_threshold}/variant_calls_probeset.fa",
+         variant_calls_probeset_index = output_folder + "/recall/variant_calls_probesets/{sample_id}/{coverage}/{tool}/coverage_filter_{coverage_threshold}/strand_bias_filter_{strand_bias_threshold}/gaps_filter_{gaps_threshold}/variant_calls_probeset.fa.amb",
     output:
          sam = output_folder + "/recall/map_probes/{sample_id}/{coverage}/{tool}/coverage_filter_{coverage_threshold}/strand_bias_filter_{strand_bias_threshold}/gaps_filter_{gaps_threshold}/{filename_prefix}.sam"
     threads: 4

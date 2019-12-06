@@ -14,12 +14,15 @@ properties:
     variant_calls:
         type:                   string
         description:            Path to CSV file containing the variant calls information.
-    variant_calls_probe_length:
+    variant_calls_flank_length_for_precision:
         type:                   number
-        description:            The flank length to use for variant calls.
-    truth_probes_flank_length:
+        description:            The flank length to use for variant calls in precision assessment. This has to be a large flank (i.e. between 100 and 200).
+    variant_calls_flank_length_for_recall:
         type:                   number
-        description:            The flank length to use for truth calls.
+        description:            The flank length to use for variant calls in recall assessment. This has to be a small flank (i.e. between 20 and 50).
+    truth_probes_flank_length_for_recall:
+        type:                   number
+        description:            The flank length to use for truth calls in recall assessment. This has to be a bit smaller than variant_calls_flank_length_for_recall.
     number_of_points_in_ROC_curve:
         type:                   number
         description:            Number of points to plot in the ROC curve. The higher, the better, but it is also slower.
@@ -44,8 +47,9 @@ properties:
 required:
   - samples
   - variant_calls
-  - variant_calls_probe_length
-  - truth_probes_flank_length
+  - variant_calls_flank_length_for_precision
+  - variant_calls_flank_length_for_recall
+  - truth_probes_flank_length_for_recall
   - coverage_filters
   - strand_bias_filters
   - gaps_filters

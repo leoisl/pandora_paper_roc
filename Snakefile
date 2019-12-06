@@ -57,16 +57,14 @@ def get_gaps_filters(tool):
 # ======================================================
 files = []
 
-# Common files
-for index, row in data.iterrows():
-    sample_id, coverage, tool = row["sample_id"], row["coverage"], row["tool"]
-    files_with_filters = expand(f"{output_folder}/variant_calls_probesets/{sample_id}/{coverage}/{tool}/coverage_filter_{{coverage_threshold}}/strand_bias_filter_{{strand_bias_threshold}}/gaps_filter_{{gaps_threshold}}/variant_calls_probeset.fa", coverage_threshold = get_coverage_filters(tool), strand_bias_threshold = get_strand_bias_filters(tool), gaps_threshold = get_gaps_filters(tool))
-    files.extend(files_with_filters)
-
-
-
 # Precision files
 all_precision_files=[]
+
+for index, row in data.iterrows():
+    sample_id, coverage, tool = row["sample_id"], row["coverage"], row["tool"]
+    files_with_filters = expand(f"{output_folder}/precision/variant_calls_probesets/{sample_id}/{coverage}/{tool}/coverage_filter_{{coverage_threshold}}/strand_bias_filter_{{strand_bias_threshold}}/gaps_filter_{{gaps_threshold}}/variant_calls_probeset.fa", coverage_threshold = get_coverage_filters(tool), strand_bias_threshold = get_strand_bias_filters(tool), gaps_threshold = get_gaps_filters(tool))
+    all_precision_files.extend(files_with_filters)
+
 for index, row in data.iterrows():
     sample_id, coverage, tool = row["sample_id"], row["coverage"], row["tool"]
     files_with_filters = expand(f"{output_folder}/precision/variant_calls_probesets_mapped_to_refs/{sample_id}/{coverage}/{tool}/coverage_filter_{{coverage_threshold}}/strand_bias_filter_{{strand_bias_threshold}}/gaps_filter_{{gaps_threshold}}/variant_calls_probeset_mapped.sam", coverage_threshold = get_coverage_filters(tool), strand_bias_threshold = get_strand_bias_filters(tool), gaps_threshold = get_gaps_filters(tool))
@@ -91,6 +89,12 @@ files.extend(all_precision_files)
 
 # Recall files
 all_recall_files=[]
+
+for index, row in data.iterrows():
+    sample_id, coverage, tool = row["sample_id"], row["coverage"], row["tool"]
+    files_with_filters = expand(f"{output_folder}/recall/variant_calls_probesets/{sample_id}/{coverage}/{tool}/coverage_filter_{{coverage_threshold}}/strand_bias_filter_{{strand_bias_threshold}}/gaps_filter_{{gaps_threshold}}/variant_calls_probeset.fa", coverage_threshold = get_coverage_filters(tool), strand_bias_threshold = get_strand_bias_filters(tool), gaps_threshold = get_gaps_filters(tool))
+    all_precision_files.extend(files_with_filters)
+
 for sample1, sample2 in sample_pairs:
     all_recall_files.extend(
         [
