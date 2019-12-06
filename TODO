@@ -1,0 +1,5 @@
+- Deal with multimapping
+- How to debug the curves (precision/recall-wise)?
+    - gene distance plot for precision
+    - what for recall?
+- make an isolated variants plot to see if they correlate?
