@@ -56,6 +56,11 @@ class TestMAPQSamRecordsFilter:
         actual = mapq_sam_records_filter.get_query_name_to_best_record([])
         assert actual == {}
 
+    def test___get_query_name_to_best_record___one_query_name_with_one_record___returns_the_only_record(self):
+        mapq_sam_records_filter = MAPQSamRecordsFilter([], mapping_quality_threshold=10)
+        actual = mapq_sam_records_filter.get_query_name_to_best_record([mapping_quality_49_mock])
+        assert actual == {mapping_quality_49_mock.query_name: mapping_quality_49_mock}
+
     def test___get_query_name_to_best_record___one_query_name_with_several_records___difference_exceeds_threshold___returns_best_mapping(self):
         mapq_sam_records_filter = MAPQSamRecordsFilter([], mapping_quality_threshold=10)
         actual = mapq_sam_records_filter.get_query_name_to_best_record([mapping_quality_49_mock, mapping_quality_40_mock,

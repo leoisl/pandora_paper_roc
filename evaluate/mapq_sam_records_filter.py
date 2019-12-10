@@ -51,12 +51,17 @@ class MAPQSamRecordsFilter(Filter):
             record_with_second_highest_mapping_quality = self.get_record_with_highest_mapping_quality(
                 records_copy)
 
-            mapping_quality_gap_is_too_small = \
-                record_with_highest_mapping_quality.mapping_quality - record_with_second_highest_mapping_quality.mapping_quality <= \
-                self._mapping_quality_threshold
+            there_is_no_second_record = record_with_second_highest_mapping_quality is None
 
-            if not mapping_quality_gap_is_too_small:
+            if there_is_no_second_record:
                 query_name_to_best_record[query_name] = record_with_highest_mapping_quality
+            else:
+                mapping_quality_gap_is_large_enough = \
+                    record_with_highest_mapping_quality.mapping_quality - record_with_second_highest_mapping_quality.mapping_quality > \
+                    self._mapping_quality_threshold
+
+                if mapping_quality_gap_is_large_enough:
+                    query_name_to_best_record[query_name] = record_with_highest_mapping_quality
 
         return query_name_to_best_record
 
