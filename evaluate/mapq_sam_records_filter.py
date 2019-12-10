@@ -21,9 +21,11 @@ class MAPQSamRecordsFilter(Filter):
     high MAPQ if the read aligns with mismatches but still the reported position is still much more probable than any other.
     """
     def __init__(self, records: List[AlignedSegment], mapping_quality_threshold: int = 10):
+        self._mapping_quality_threshold = mapping_quality_threshold
+
         query_name_to_best_record = self.get_query_name_to_best_record(records)
         self._records_to_keep = set(query_name_to_best_record.values())
-        self._mapping_quality_threshold = mapping_quality_threshold
+
 
 
     def get_record_with_highest_mapping_quality (self, records: List[AlignedSegment]) -> Optional[AlignedSegment]:
