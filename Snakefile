@@ -71,6 +71,7 @@ for index, row in data.iterrows():
     all_precision_files.extend(files_with_filters)
 
 cov_tool_and_filters_to_precision_report_files = defaultdict(list)
+all_nb_of_records_removed_with_unique_sam_records_filter_files_for_precision = []
 for index, row in data.iterrows():
     sample_id, coverage, tool = row["sample_id"], row["coverage"], row["tool"]
     for coverage_threshold in get_coverage_filters(tool):
@@ -79,6 +80,10 @@ for index, row in data.iterrows():
                 report_file = f"{output_folder}/precision/reports_from_probe_mappings/{sample_id}/{coverage}/{tool}/coverage_filter_{coverage_threshold}/strand_bias_filter_{strand_bias_threshold}/gaps_filter_{gaps_threshold}/variant_calls_probeset_report.tsv"
                 all_precision_files.append(report_file)
                 cov_tool_and_filters_to_precision_report_files[(coverage, tool, coverage_threshold, strand_bias_threshold, gaps_threshold)].append(report_file)
+
+                nb_of_records_removed_with_unique_sam_records_filter_file = f"{output_folder}/precision/reports_from_probe_mappings/{sample_id}/{coverage}/{tool}/coverage_filter_{coverage_threshold}/strand_bias_filter_{strand_bias_threshold}/gaps_filter_{gaps_threshold}/nb_of_records_removed_with_mapq_sam_records_filter.csv"
+                all_precision_files.append(nb_of_records_removed_with_unique_sam_records_filter_file)
+                all_nb_of_records_removed_with_unique_sam_records_filter_files_for_precision.append(nb_of_records_removed_with_unique_sam_records_filter_file)
 
 for coverage, tool, coverage_threshold, strand_bias_threshold, gaps_threshold in cov_tool_and_filters_to_precision_report_files:
     all_precision_files.append(f"{output_folder}/precision/precision_files/{coverage}/{tool}/coverage_filter_{coverage_threshold}/strand_bias_filter_{strand_bias_threshold}/gaps_filter_{gaps_threshold}/precision.tsv")
@@ -134,9 +139,11 @@ all_plot_data_intermediate_files = []
 for coverage, tool, coverage_threshold, strand_bias_threshold, gaps_threshold in cov_tool_and_filters_to_recall_report_files:
     all_plot_data_intermediate_files.append(f"{output_folder}/plot_data/{coverage}/{tool}/coverage_filter_{coverage_threshold}/strand_bias_filter_{strand_bias_threshold}/gaps_filter_{gaps_threshold}/ROC_data.tsv")
 final_plot_data_file = f"{output_folder}/plot_data/ROC_data.tsv"
+final_all_nb_of_records_removed_with_unique_sam_records_filter_file = f"{output_folder}/plot_data/nb_of_records_removed_with_unique_sam_records_filter_for_precision.csv"
 
 files.extend(all_plot_data_intermediate_files)
 files.append(final_plot_data_file)
+files.append(final_all_nb_of_records_removed_with_unique_sam_records_filter_file)
 
 
 

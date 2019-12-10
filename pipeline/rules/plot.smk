@@ -13,15 +13,29 @@ rule merge_precision_and_recall_dfs:
         "../scripts/merge_precision_and_recall_dfs.py"
 
 
-rule merge_all_plot_data:
+rule concat_all_plot_data:
     input:
          all_plot_data_intermediate_files = all_plot_data_intermediate_files
     output:
-         final_plot_data_file =output_folder + "/plot_data/ROC_data.tsv"
+         final_plot_data_file = output_folder + "/plot_data/ROC_data.tsv"
     threads: 1
     resources:
         mem_mb = lambda wildcards, attempt: 2000 * attempt
     log:
-        "logs/merge_all_plot_data/ROC_data.log"
+        "logs/concat_all_plot_data/ROC_data.log"
     script:
-        "../scripts/merge_all_plot_data.py"
+        "../scripts/concat_all_plot_data.py"
+
+
+rule concat_all_nb_of_records_removed_with_unique_sam_records_filter_files_for_precision:
+    input:
+         all_nb_of_records_removed_with_unique_sam_records_filter_files_for_precision
+    output:
+         output_folder + "/plot_data/nb_of_records_removed_with_unique_sam_records_filter_for_precision.csv"
+    threads: 1
+    resources:
+        mem_mb = lambda wildcards, attempt: 2000 * attempt
+    log:
+        "logs/concat_all_nb_of_records_removed_with_unique_sam_records_filter_files_for_precision/nb_of_records_removed_with_unique_sam_records_filter_for_precision.log"
+    script:
+        "../scripts/concat_all_nb_of_records_removed_with_unique_sam_records_filter_files.py"
