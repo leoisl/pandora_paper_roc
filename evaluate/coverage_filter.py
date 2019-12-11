@@ -11,4 +11,4 @@ class CoverageFilter(Filter):
         return self._coverage_threshold
 
     def record_should_be_filtered_out(self, record: VCF) -> bool:
-        return record.mean_coverage < self.coverage_threshold
+        return record.coverage < self.coverage_threshold

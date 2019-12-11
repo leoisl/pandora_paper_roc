@@ -109,8 +109,6 @@ class TestProbeHeader:
             pos=1,
             interval=ProbeInterval(0, 72),
             svtype="INDEL",
-            mean_fwd_covg=2,
-            mean_rev_covg=3,
             gt_conf=10.9922,
         )
 
@@ -124,8 +122,6 @@ class TestProbeHeader:
             sample="CFT073",
             chrom="1",
             svtype="INDEL",
-            mean_fwd_covg=2,
-            mean_rev_covg=3,
             gt_conf=10.9922,
         )
 
@@ -141,8 +137,6 @@ class TestProbeHeader:
             sample="CFT073",
             chrom="1",
             svtype="INDEL",
-            mean_fwd_covg=2,
-            mean_rev_covg=3,
             gt_conf=10.9922,
         )
 
@@ -157,17 +151,15 @@ class TestProbeHeader:
         assert actual == expected
 
     def test_str_singleVariableProbeHeaderReturnsStringWithOneField(self):
-        header = ProbeHeader(mean_rev_covg=9)
+        header = ProbeHeader(svtype="SNP")
 
         actual = str(header)
-        expected = ">MEAN_REV_COVG=9;"
+        expected = ">SVTYPE=SNP;"
 
         assert actual == expected
 
     def test_str_allFieldsInProbeHeaderReturnsStringWithAllFields(self):
         header = ProbeHeader(
-            mean_rev_covg=9,
-            mean_fwd_covg=9,
             pos=3,
             gt_conf=2.2,
             chrom="4",
@@ -177,7 +169,7 @@ class TestProbeHeader:
         )
 
         actual = str(header)
-        expected = ">CHROM=4;SAMPLE=foo;POS=3;INTERVAL=[5,6);SVTYPE=SNP;MEAN_FWD_COVG=9;MEAN_REV_COVG=9;GT_CONF=2.2;"
+        expected = ">CHROM=4;SAMPLE=foo;POS=3;INTERVAL=[5,6);SVTYPE=SNP;GT_CONF=2.2;"
 
         assert actual == expected
 

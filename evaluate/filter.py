@@ -1,8 +1,8 @@
-from typing import Iterable
+from typing import Iterable, List
 
 
 class Filter:
-    def filter_records(self, records: Iterable) -> Iterable:
+    def filter_records(self, records: Iterable) -> List:
         return [
             record
             for record in records

@@ -58,6 +58,9 @@ class PrecisionMasker(Masker):
             transform_Nones_into_halfway_positions=True
         )
         ref_positions_query_aligns_to = ref_positions[slice(*query_interval)]
+        if len(ref_positions_query_aligns_to)==0:
+            return None
+
         ref_start, ref_end = (
             math.floor(ref_positions_query_aligns_to[0]),
             math.ceil(ref_positions_query_aligns_to[-1]),

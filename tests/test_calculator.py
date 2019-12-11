@@ -79,6 +79,32 @@ class TestCalculator:
         assert actual == expected
 
 
+    def test_getMinimumGtConf_no_gt_conf_columnRaisesKeyError(self):
+        calculator = Calculator([pd.DataFrame()])
+        with pytest.raises(KeyError):
+            calculator.get_minimum_gt_conf()
+
+    def test_getMinimumGtConf_emptyReportReturnsNaN(self):
+        calculator = Calculator([pd.DataFrame(data={"gt_conf": []})])
+        actual = calculator.get_minimum_gt_conf()
+
+        assert math.isnan(actual)
+
+    def test_getMinimumGtConf_oneGTConfInReportReturnsGTConf(self):
+        calculator = Calculator([pd.DataFrame(data={"gt_conf": [1.5]})])
+        actual = calculator.get_minimum_gt_conf()
+        expected = 1.5
+
+        assert actual == expected
+
+    def test_getMinimumGtConf_threeGTConfsInReportReturnsHighest(self):
+        calculator = Calculator([pd.DataFrame(data={"gt_conf": [10.5, 5.0, 0.2]})])
+        actual = calculator.get_minimum_gt_conf()
+        expected = 0.2
+
+        assert actual == expected
+
+
 class TestRecallCalculator:
     def test_fromFiles_TwoFilesReturnsValidRecallCalculator(self):
         contents_1 = """sample	query_probe_header	ref_probe_header	classification

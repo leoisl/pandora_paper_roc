@@ -42,10 +42,11 @@ class TestFilteredVCFFile:
     def test___constructor(self, filter_records_mock, VCFFile_init_mock, sample_to_gene_to_VCFs_property_mock):
         pysam_variant_file_mock = Mock()
         filters_mock = Mock()
+        VCF_creator_method_mock = Mock()
 
-        filtered_vcf_file = FilteredVCFFile(pysam_variant_file_mock, filters_mock)
+        filtered_vcf_file = FilteredVCFFile(pysam_variant_file_mock, filters_mock, VCF_creator_method_mock)
 
-        VCFFile_init_mock.assert_called_once_with(filtered_vcf_file, pysam_variant_file_mock)
+        VCFFile_init_mock.assert_called_once_with(filtered_vcf_file, pysam_variant_file_mock, VCF_creator_method_mock)
         filter_records_mock.assert_called_once_with(TestFilteredVCFFile.sample_to_gene_to_VCFs_mock, filters_mock)
 
 

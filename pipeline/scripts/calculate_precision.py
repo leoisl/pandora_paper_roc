@@ -24,9 +24,7 @@ precision_report_files_for_all_samples = (
 )
 output = Path(snakemake.output.precision_file_for_all_samples)
 
-min_gt = float(snakemake.wildcards.min_gt)
-step_gt = float(snakemake.wildcards.step_gt)
-max_gt = float(snakemake.wildcards.max_gt)
+number_of_points_in_ROC_curve = float(snakemake.params.number_of_points_in_ROC_curve)
 
 tool = snakemake.wildcards.tool
 coverage = snakemake.wildcards.coverage
@@ -42,7 +40,9 @@ precision_calculator = PrecisionCalculator.from_files(
 )
 
 
-max_gt = min(max_gt, precision_calculator.get_maximum_gt_conf())
+min_gt = precision_calculator.get_minimum_gt_conf()
+max_gt = precision_calculator.get_maximum_gt_conf()
+step_gt = (max_gt - min_gt) / number_of_points_in_ROC_curve
 logging.info(
     f"Calculating precision with min_gt = {min_gt}, step_gt = {step_gt}, and max_gt = {max_gt}"
 )
@@ -50,7 +50,11 @@ logging.info(
 gts = []
 precisions = []
 error_rates = []
-all_gts = list(np.arange(min_gt, max_gt, step_gt)) + [max_gt]
+all_gts = list(np.arange(min_gt, max_gt, step_gt))
+if len(all_gts) == number_of_points_in_ROC_curve:
+    all_gts.append(max_gt)
+assert(len(all_gts) == number_of_points_in_ROC_curve + 1)
+
 for gt in all_gts:
     try:
         precision = precision_calculator.calculate_precision(gt)
@@ -69,6 +73,7 @@ precision_df = pd.DataFrame(
         "strand_bias_threshold": [strand_bias_threshold] * len(gts),
         "gaps_threshold": [gaps_threshold] * len(gts),
         "GT": gts,
+        "step_GT": list(range(len(gts))),
         "precision": precisions,
         "error_rate": error_rates
     }

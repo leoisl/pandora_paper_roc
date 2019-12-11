@@ -13,10 +13,17 @@ class VCF_Filters(UserList):
 
     @staticmethod
     def get_all_VCF_Filters(
-        coverage_threshold: float, strand_bias_threshold: float, gaps_threshold: float
+        coverage_threshold: str, strand_bias_threshold: str, gaps_threshold: str
     ) -> "VCF_Filters":
         vcf_filters = VCF_Filters()
-        vcf_filters.append(CoverageFilter(coverage_threshold))
-        vcf_filters.append(StrandBiasFilter(strand_bias_threshold))
-        vcf_filters.append(GapsFilter(gaps_threshold))
+
+        if coverage_threshold != "Not_App":
+            vcf_filters.append(CoverageFilter(float(coverage_threshold)))
+
+        if strand_bias_threshold != "Not_App":
+            vcf_filters.append(StrandBiasFilter(float(strand_bias_threshold)))
+
+        if gaps_threshold != "Not_App":
+            vcf_filters.append(GapsFilter(float(gaps_threshold)))
+
         return vcf_filters

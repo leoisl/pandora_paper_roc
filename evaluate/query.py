@@ -35,8 +35,8 @@ class Query:
                         str, str
                     ] = self._create_probes_for_gene_variants(gene, vcf_records)
 
-                    for sample, probe in sample_to_probe_for_this_gene.items():
-                        sample_to_probes_for_all_genes[sample] += probe
+                    for probe_sample, probe in sample_to_probe_for_this_gene.items():
+                        sample_to_probes_for_all_genes[probe_sample] += probe
 
         return sample_to_probes_for_all_genes
 
@@ -104,8 +104,6 @@ class Query:
             pos=vcf.pos,
             interval=call_interval,
             svtype=vcf.svtype,
-            mean_fwd_covg=vcf.mean_coverage_forward,
-            mean_rev_covg=vcf.mean_coverage_reverse,
             gt_conf=vcf.genotype_confidence,
         )
 
