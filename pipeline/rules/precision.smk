@@ -1,6 +1,23 @@
+rule make_variant_calls_probeset_for_precision:
+    input:
+         vcf = lambda wildcards: data.xs((wildcards.sample_id, wildcards.coverage, wildcards.tool))["vcf"],
+         vcf_ref = lambda wildcards: data.xs((wildcards.sample_id, wildcards.coverage, wildcards.tool))["vcf_reference"]
+    output:
+          probeset = output_folder + "/precision/variant_calls_probesets/{sample_id}/{coverage}/{tool}/coverage_filter_{coverage_threshold}/strand_bias_filter_{strand_bias_threshold}/gaps_filter_{gaps_threshold}/variant_calls_probeset.fa"
+    params:
+          flank_length = config["variant_calls_flank_length_for_precision"]
+    threads: 1
+    resources:
+        mem_mb = lambda wildcards, attempt: 1000 * attempt
+    log:
+        "logs/make_variant_calls_probeset_for_precision/{sample_id}/{coverage}/{tool}/coverage_filter_{coverage_threshold}/strand_bias_filter_{strand_bias_threshold}/gaps_filter_{gaps_threshold}/variant_calls_probeset.log"
+    script:
+        "../scripts/make_variant_calls_probeset.py"
+
+
 rule map_variant_call_probeset_to_reference_assembly:
     input:
-        variant_call_probeset = rules.make_variant_calls_probeset.output.probeset,
+        variant_call_probeset = rules.make_variant_calls_probeset_for_precision.output.probeset,
         reference_assembly = lambda wildcards: data.xs((wildcards.sample_id, wildcards.coverage, wildcards.tool))["reference_assembly"],
         reference_assembly_index = lambda wildcards: data.xs((wildcards.sample_id, wildcards.coverage, wildcards.tool))["reference_assembly"]+".amb"
     output:
@@ -19,7 +36,8 @@ rule create_precision_report_from_probe_mappings:
         variant_call_probeset_mapped_to_ref = rules.map_variant_call_probeset_to_reference_assembly.output.variant_call_probeset_mapped_to_ref,
         mask = lambda wildcards: data.xs((wildcards.sample_id, wildcards.coverage, wildcards.tool))["mask"]
     output:
-        variant_call_precision_report = output_folder + "/precision/reports_from_probe_mappings/{sample_id}/{coverage}/{tool}/coverage_filter_{coverage_threshold}/strand_bias_filter_{strand_bias_threshold}/gaps_filter_{gaps_threshold}/variant_calls_probeset_report.tsv"
+        variant_call_precision_report = output_folder + "/precision/reports_from_probe_mappings/{sample_id}/{coverage}/{tool}/coverage_filter_{coverage_threshold}/strand_bias_filter_{strand_bias_threshold}/gaps_filter_{gaps_threshold}/variant_calls_probeset_report.tsv",
+        nb_of_records_removed_with_mapq_sam_records_filter_filepath = output_folder + "/precision/reports_from_probe_mappings/{sample_id}/{coverage}/{tool}/coverage_filter_{coverage_threshold}/strand_bias_filter_{strand_bias_threshold}/gaps_filter_{gaps_threshold}/nb_of_records_removed_with_mapq_sam_records_filter.csv"
     threads: 1
     resources:
         mem_mb = lambda wildcards, attempt: 1000 * attempt

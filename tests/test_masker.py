@@ -398,6 +398,28 @@ class TestPrecisionMasker:
 
         assert actual == expected
 
+    @patch.object(
+        Classification, "is_unmapped", return_value=False, new_callable=PropertyMock
+    )
+    @patch.object(
+        Classification,
+        "get_aligned_pairs",
+        return_value=AlignedPairs([(5, 0, "A"), (6, 1, "C"), (7, 2, "G"), (8, 3, "G")]),
+    )
+    @patch.object(AlignedPairs, "get_index_of_query_interval", return_value=(0, 0))
+    @patch.object(AlignedPairs, "get_ref_positions", return_value=[])
+    def test_getIntervalWhereProbeAlignsToTruth_refPositionsQueryAlignsToIsEmpty_returnsNone(
+            self, *mock
+    ):
+        classification = Classification()
+
+        actual = PrecisionMasker.get_interval_where_probe_aligns_to_truth(
+            classification
+        )
+        expected = None
+
+        assert actual == expected
+
 
 class TestRecallMasker:
     @patch.object(
