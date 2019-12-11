@@ -35,18 +35,35 @@ rule make_recall_truth_probeset:
         "../scripts/make_recall_truth_probeset.py"
 
 
-rule map_recall_truth_probes_to_variant_call_probes:
+rule restrict_recall_truth_probeset_to_probes_that_map_uniquely_to_the_truth:
     input:
-         truth_probeset = output_folder + "/recall/truth_probesets/{sample_id}/{filename_prefix}.truth_probeset.fa",
-         variant_calls_probeset = output_folder + "/recall/variant_calls_probesets/{sample_id}/{coverage}/{tool}/coverage_filter_{coverage_threshold}/strand_bias_filter_{strand_bias_threshold}/gaps_filter_{gaps_threshold}/variant_calls_probeset.fa",
-         variant_calls_probeset_index = output_folder + "/recall/variant_calls_probesets/{sample_id}/{coverage}/{tool}/coverage_filter_{coverage_threshold}/strand_bias_filter_{strand_bias_threshold}/gaps_filter_{gaps_threshold}/variant_calls_probeset.fa.amb",
+        truth = lambda wildcards: samples.xs(wildcards.sample_id)["reference_assembly"],
+        unrestricted_probeset = output_folder + "/recall/truth_probesets/{sample_id}/{sample_pair}.truth_probeset.fa"
     output:
-         sam = output_folder + "/recall/map_probes/{sample_id}/{coverage}/{tool}/coverage_filter_{coverage_threshold}/strand_bias_filter_{strand_bias_threshold}/gaps_filter_{gaps_threshold}/{filename_prefix}.sam"
+        unrestricted_probeset_mapped_to_truth_sam = output_folder + "/recall/restricted_truth_probesets/{sample_id}/{sample_pair}.unrestricted_truth_probeset.mapped_to_truth.sam",
+        restricted_probeset = output_folder + "/recall/restricted_truth_probesets/{sample_id}/{sample_pair}.restricted_truth_probeset.fa",
+        nb_of_truth_probes_removed_with_unique_sam_records_filter_filepath = output_folder + "/recall/restricted_truth_probesets/{sample_id}/{sample_pair}.nb_of_truth_probes_removed_with_unique_sam_records_filter.csv"
     threads: 4
     resources:
         mem_mb = lambda wildcards, attempt: 2000 * attempt
     log:
-        "logs/map_recall_truth_probes_to_variant_call_probes/{sample_id}/{coverage}/{tool}/coverage_filter_{coverage_threshold}/strand_bias_filter_{strand_bias_threshold}/gaps_filter_{gaps_threshold}/{filename_prefix}.log"
+        "logs/restrict_recall_truth_probeset_to_probes_that_map_uniquely_to_the_truth/{sample_id}_{sample_pair}.log"
+    script:
+        "../scripts/restrict_recall_truth_probeset_to_probes_that_map_uniquely_to_the_truth.py"
+
+
+rule map_recall_truth_probes_to_variant_call_probes:
+    input:
+         truth_probeset = output_folder + "/recall/restricted_truth_probesets/{sample_id}/{sample_pair}.restricted_truth_probeset.fa",
+         variant_calls_probeset = output_folder + "/recall/variant_calls_probesets/{sample_id}/{coverage}/{tool}/coverage_filter_{coverage_threshold}/strand_bias_filter_{strand_bias_threshold}/gaps_filter_{gaps_threshold}/variant_calls_probeset.fa",
+         variant_calls_probeset_index = output_folder + "/recall/variant_calls_probesets/{sample_id}/{coverage}/{tool}/coverage_filter_{coverage_threshold}/strand_bias_filter_{strand_bias_threshold}/gaps_filter_{gaps_threshold}/variant_calls_probeset.fa.amb",
+    output:
+         sam = output_folder + "/recall/map_probes/{sample_id}/{coverage}/{tool}/coverage_filter_{coverage_threshold}/strand_bias_filter_{strand_bias_threshold}/gaps_filter_{gaps_threshold}/{sample_pair}.sam"
+    threads: 4
+    resources:
+        mem_mb = lambda wildcards, attempt: 2000 * attempt
+    log:
+        "logs/map_recall_truth_probes_to_variant_call_probes/{sample_id}/{coverage}/{tool}/coverage_filter_{coverage_threshold}/strand_bias_filter_{strand_bias_threshold}/gaps_filter_{gaps_threshold}/{sample_pair}.log"
     script:
         "../scripts/map_recall_truth_probes_to_variant_call_probes.py"
 
@@ -55,12 +72,12 @@ rule create_recall_report_for_probe_mappings:
         sam = rules.map_recall_truth_probes_to_variant_call_probes.output.sam,
         mask = lambda wildcards: samples.xs(wildcards.sample_id)["mask"]
     output:
-        report = output_folder + "/recall/reports/{sample_id}/{coverage}/{tool}/coverage_filter_{coverage_threshold}/strand_bias_filter_{strand_bias_threshold}/gaps_filter_{gaps_threshold}/{filename_prefix}.report.tsv"
+        report = output_folder + "/recall/reports/{sample_id}/{coverage}/{tool}/coverage_filter_{coverage_threshold}/strand_bias_filter_{strand_bias_threshold}/gaps_filter_{gaps_threshold}/{sample_pair}.report.tsv"
     threads: 1
     resources:
         mem_mb = lambda wildcards, attempt: 2000 * attempt
     log:
-        "logs/create_recall_report_for_probe_mappings/{sample_id}/{coverage}/{tool}/coverage_filter_{coverage_threshold}/strand_bias_filter_{strand_bias_threshold}/gaps_filter_{gaps_threshold}/{filename_prefix}.report.log"
+        "logs/create_recall_report_for_probe_mappings/{sample_id}/{coverage}/{tool}/coverage_filter_{coverage_threshold}/strand_bias_filter_{strand_bias_threshold}/gaps_filter_{gaps_threshold}/{sample_pair}.report.log"
     script:
         "../scripts/create_recall_report_for_probe_mappings.py"
 
