@@ -15,6 +15,10 @@ class StatisticalClassification(Enum):
     TRUE_NEGATIVE = "tn"
 
 
+class EmptyReportError(Exception):
+    pass
+
+
 class Calculator:
     def get_confident_classifications(
         self, conf_threshold: float
@@ -28,6 +32,12 @@ class Calculator:
         self.report["gt_conf"] = self.report[probe_header].apply(
             lambda column_name: ProbeHeader.from_string(column_name).gt_conf
         )
+
+    def get_maximum_gt_conf(self) -> float:
+        return self.report["gt_conf"].max()
+
+    def get_minimum_gt_conf(self) -> float:
+        return self.report["gt_conf"].min()
 
     def __init__(self, reports: Iterable[pd.DataFrame]):
         self.report = pd.concat(reports)
@@ -87,7 +97,9 @@ class RecallCalculator(Calculator):
         try:
             return true_positives / (true_positives + false_negatives)
         except ZeroDivisionError:
-            return 0
+            raise EmptyReportError(
+                "There are not classifications to compute recall on (no true_positives or false_negatives)"
+            )
 
 
 class PrecisionCalculator(Calculator):
@@ -98,8 +110,10 @@ class PrecisionCalculator(Calculator):
     def calculate_precision(self, conf_threshold: float = 0.0) -> float:
         confident_classifications = self.get_confident_classifications(conf_threshold)
         true_positives = sum(confident_classifications)
-        number_of_positives = len(self.report)
+        number_of_positives = len(confident_classifications)
         try:
             return true_positives / number_of_positives
         except ZeroDivisionError:
-            return 0.0
+            raise EmptyReportError(
+                "There are not classifications to compute precision on"
+            )

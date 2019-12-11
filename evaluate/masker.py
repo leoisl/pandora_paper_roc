@@ -1,10 +1,12 @@
 from intervaltree import IntervalTree, Interval
 import math
 from evaluate.classification import Classification
-from typing import TextIO, Iterable, Type, Optional
+from typing import TextIO, Type, Optional
+import pysam
+from evaluate.filter import Filter
 
 
-class Masker:
+class Masker(Filter):
     def __init__(self, tree: IntervalTree = None):
         if tree is None:
             tree = IntervalTree()
@@ -13,25 +15,20 @@ class Masker:
     def __eq__(self, other: "Masker") -> bool:
         return self.tree == other.tree
 
-    @staticmethod
-    def from_bed(bed: TextIO) -> "Masker":
+    @classmethod
+    def from_bed(cls: Type, bed: TextIO) -> "Type[Masker]":
         tree = IntervalTree()
         for region in bed:
             chrom, start, end = region.strip().split("\t")
             tree.addi(int(start), int(end), chrom)
-        return Masker(tree=tree)
+        return cls(tree=tree)
 
-    def filter_records(
-        self, classifications: Iterable[Type[Classification]]
-    ) -> Iterable[Type[Classification]]:
-        return [
-            classification
-            for classification in classifications
-            if not self.record_overlaps_mask(classification)
-        ]
+    def record_should_be_filtered_out(self, record: pysam.AlignedSegment) -> bool:
+        return self.record_overlaps_mask(record)
 
-    def record_overlaps_mask(self, record: Type[Classification]) -> bool:
-        interval = self.get_interval_where_probe_aligns_to_truth(record)
+    def record_overlaps_mask(self, record: pysam.AlignedSegment) -> bool:
+        classification = Classification(record)
+        interval = self.get_interval_where_probe_aligns_to_truth(classification)
         if interval is None:
             return False
 
@@ -39,7 +36,9 @@ class Masker:
         return any(interval.data == iv.data for iv in overlaps)
 
     @staticmethod
-    def get_interval_where_probe_aligns_to_truth(record: Classification) -> Interval:
+    def get_interval_where_probe_aligns_to_truth(
+        record: Classification
+    ) -> Optional[Interval]:
         raise NotImplementedError()
 
 
@@ -59,6 +58,9 @@ class PrecisionMasker(Masker):
             transform_Nones_into_halfway_positions=True
         )
         ref_positions_query_aligns_to = ref_positions[slice(*query_interval)]
+        if len(ref_positions_query_aligns_to)==0:
+            return None
+
         ref_start, ref_end = (
             math.floor(ref_positions_query_aligns_to[0]),
             math.ceil(ref_positions_query_aligns_to[-1]),

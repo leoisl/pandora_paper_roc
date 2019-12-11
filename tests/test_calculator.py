@@ -5,12 +5,15 @@ from evaluate.calculator import (
     RecallCalculator,
     StatisticalClassification,
     PrecisionCalculator,
+    Calculator,
+    EmptyReportError,
 )
 from evaluate.classification import AlignmentAssessment
 from pathlib import Path
 
 import pytest
 from io import StringIO
+import math
 
 
 def create_tmp_file(contents: str) -> Path:
@@ -47,6 +50,59 @@ def create_precision_report_row(
         "classification": classification,
     }
     return pd.Series(data=data)
+
+
+class TestCalculator:
+    def test_getMaximumGtConf_no_gt_conf_columnRaisesKeyError(self):
+        calculator = Calculator([pd.DataFrame()])
+        with pytest.raises(KeyError):
+            calculator.get_maximum_gt_conf()
+
+    def test_getMaximumGtConf_emptyReportReturnsNaN(self):
+        calculator = Calculator([pd.DataFrame(data={"gt_conf": []})])
+        actual = calculator.get_maximum_gt_conf()
+
+        assert math.isnan(actual)
+
+    def test_getMaximumGtConf_oneGTConfInReportReturnsGTConf(self):
+        calculator = Calculator([pd.DataFrame(data={"gt_conf": [1.5]})])
+        actual = calculator.get_maximum_gt_conf()
+        expected = 1.5
+
+        assert actual == expected
+
+    def test_getMaximumGtConf_threeGTConfsInReportReturnsHighest(self):
+        calculator = Calculator([pd.DataFrame(data={"gt_conf": [1.5, 10.5, 5.0]})])
+        actual = calculator.get_maximum_gt_conf()
+        expected = 10.5
+
+        assert actual == expected
+
+
+    def test_getMinimumGtConf_no_gt_conf_columnRaisesKeyError(self):
+        calculator = Calculator([pd.DataFrame()])
+        with pytest.raises(KeyError):
+            calculator.get_minimum_gt_conf()
+
+    def test_getMinimumGtConf_emptyReportReturnsNaN(self):
+        calculator = Calculator([pd.DataFrame(data={"gt_conf": []})])
+        actual = calculator.get_minimum_gt_conf()
+
+        assert math.isnan(actual)
+
+    def test_getMinimumGtConf_oneGTConfInReportReturnsGTConf(self):
+        calculator = Calculator([pd.DataFrame(data={"gt_conf": [1.5]})])
+        actual = calculator.get_minimum_gt_conf()
+        expected = 1.5
+
+        assert actual == expected
+
+    def test_getMinimumGtConf_threeGTConfsInReportReturnsHighest(self):
+        calculator = Calculator([pd.DataFrame(data={"gt_conf": [10.5, 5.0, 0.2]})])
+        actual = calculator.get_minimum_gt_conf()
+        expected = 0.2
+
+        assert actual == expected
 
 
 class TestRecallCalculator:
@@ -170,16 +226,14 @@ CFT073	>CHROM=1;POS=1281;INTERVAL=[70,80);		unmapped
         with pytest.raises(ValueError):
             RecallCalculator.statistical_classification(classification)
 
-    def test_calculateRecall_noReportsReturnsZero(self):
+    def test_calculateRecall_noReportsRaisesEmptyReportError(self):
         columns = ["sample", "query_probe_header", "ref_probe_header", "classification"]
         report = pd.DataFrame(columns=columns)
         calculator = RecallCalculator([report])
         threshold = 0
 
-        actual = calculator.calculate_recall(conf_threshold=threshold)
-        expected = 0
-
-        assert actual == expected
+        with pytest.raises(EmptyReportError):
+            calculator.calculate_recall(conf_threshold=threshold)
 
     def test_calculateRecall_oneReportNoTruePositivesReturnsZero(self):
         columns = ["sample", "query_probe_header", "ref_probe_header", "classification"]
@@ -264,7 +318,9 @@ CFT073	>CHROM=1;POS=1281;INTERVAL=[70,80);		unmapped
 
         assert actual == expected
 
-    def test_calculateRecall_oneReportNoTruePositivesOrFalseNegativesReturnsZero(self):
+    def test_calculateRecall_oneReportNoTruePositivesOrFalseNegativesRaisesEmptyReportError(
+        self
+    ):
         columns = ["sample", "query_probe_header", "ref_probe_header", "classification"]
         report = pd.DataFrame(
             data=[
@@ -280,8 +336,29 @@ CFT073	>CHROM=1;POS=1281;INTERVAL=[70,80);		unmapped
         calculator = RecallCalculator([report])
         threshold = 60
 
+        with pytest.raises(EmptyReportError):
+            calculator.calculate_recall(conf_threshold=threshold)
+
+    def test_calculateRecall_oneReportAllTruePositivesAllBelowThresholdRaisesValueError(
+        self
+    ):
+        columns = ["sample", "query_probe_header", "ref_probe_header", "classification"]
+        report = pd.DataFrame(
+            data=[
+                create_recall_report_row(
+                    AlignmentAssessment.PRIMARY_CORRECT, gt_conf=50
+                ),
+                create_recall_report_row(
+                    AlignmentAssessment.PRIMARY_CORRECT, gt_conf=80
+                ),
+            ],
+            columns=columns,
+        )
+        calculator = RecallCalculator([report])
+        threshold = 100
+
         actual = calculator.calculate_recall(conf_threshold=threshold)
-        expected = 0
+        expected = 0.0
 
         assert actual == expected
 
@@ -353,15 +430,13 @@ class TestPrecisionCalculator:
 
         assert actual.equals(expected)
 
-    def test_calculatePrecision_NoReportsReturnsZero(self):
+    def test_calculatePrecision_NoReportsRaisesEmptyReportError(self):
         columns = ["sample", "query_probe_header", "ref_probe_header", "classification"]
         report = pd.DataFrame(columns=columns)
         calculator = PrecisionCalculator([report])
 
-        actual = calculator.calculate_precision()
-        expected = 0.0
-
-        assert actual == expected
+        with pytest.raises(EmptyReportError):
+            calculator.calculate_precision()
 
     def test_calculatePrecision_OneReportWithOneRowCompletelyCorrectReturnsOne(self):
         columns = ["sample", "query_probe_header", "ref_probe_header", "classification"]
@@ -387,7 +462,7 @@ class TestPrecisionCalculator:
 
         assert actual == expected
 
-    def test_calculatePrecision_OneReportWithOneRowCompletelyCorrectBelowConfThreasholdReturnsZero(
+    def test_calculatePrecision_OneReportWithOneRowCompletelyCorrectBelowConfThreasholdRaisesEmptyReportError(
         self
     ):
         columns = ["sample", "query_probe_header", "ref_probe_header", "classification"]
@@ -397,10 +472,8 @@ class TestPrecisionCalculator:
         calculator = PrecisionCalculator([report])
         confidence_threshold = 60
 
-        actual = calculator.calculate_precision(confidence_threshold)
-        expected = 0.0
-
-        assert actual == expected
+        with pytest.raises(EmptyReportError):
+            calculator.calculate_precision(confidence_threshold)
 
     def test_calculatePrecision_OneReportWithOneRowCompletelyCorrectEqualConfThreasholdReturnsOne(
         self
@@ -449,6 +522,6 @@ class TestPrecisionCalculator:
         confidence_threshold = 80
 
         actual = calculator.calculate_precision(confidence_threshold)
-        expected = 0.7 / 3
+        expected = 0.7 / 2
 
         assert actual == expected

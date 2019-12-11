@@ -1,0 +1,17 @@
+$schema:             "http://json-schema.org/draft-07/schema#"
+
+description:         an entry in the sample sheet
+properties:
+    sample_id:
+        type:        string
+        description: Sample ID for individual sample.
+    reference:
+        type:        string
+        description: The reference assembly/sequence for the sample.
+    mask:
+        type:        string
+        description: The BED file of the regions to mask for the sample.
+
+required:
+    - sample_id
+    - reference

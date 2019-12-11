@@ -1,0 +1,5 @@
+sample_id,tool,coverage,reference,vcf
+CFT073,snippy_CP010116.1,all,/home/leandro/git/pandora1_paper/cluster/snippy/snippy_CFT073_CP010116.1.ref.fa,/home/leandro/git/pandora1_paper/cluster/snippy/snippy_CFT073_CP010116.1.vcf
+CFT073,snippy_CP013185.1,all,/home/leandro/git/pandora1_paper/cluster/snippy/snippy_CFT073_CP013185.1.ref.fa,/home/leandro/git/pandora1_paper/cluster/snippy/snippy_CFT073_CP013185.1.vcf
+H131800734,snippy_CP010116.1,all,/home/leandro/git/pandora1_paper/cluster/snippy/snippy_H131800734_CP010116.1.ref.fa,/home/leandro/git/pandora1_paper/cluster/snippy/snippy_H131800734_CP010116.1.vcf
+H131800734,snippy_CP013185.1,all,/home/leandro/git/pandora1_paper/cluster/snippy/snippy_H131800734_CP013185.1.ref.fa,/home/leandro/git/pandora1_paper/cluster/snippy/snippy_H131800734_CP013185.1.vcf
