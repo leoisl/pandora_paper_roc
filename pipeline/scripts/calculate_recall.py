@@ -56,9 +56,9 @@ assert(len(all_gts) == number_of_points_in_ROC_curve + 1)
 
 for gt in all_gts:
     try:
-        recall = recall_calculator.calculate_recall(gt)
+        recall_info = recall_calculator.calculate_recall(gt)
         gts.append(gt)
-        recalls.append(recall)
+        recalls.append(recall_info.recall)
     except EmptyReportError:
         pass
 

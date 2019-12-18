@@ -57,10 +57,10 @@ assert(len(all_gts) == number_of_points_in_ROC_curve + 1)
 
 for gt in all_gts:
     try:
-        precision = precision_calculator.calculate_precision(gt)
+        precision_info = precision_calculator.calculate_precision(gt)
         gts.append(gt)
-        precisions.append(precision)
-        error_rates.append(1 - precision)
+        precisions.append(precision_info.precision)
+        error_rates.append(1 - precision_info.precision)
     except EmptyReportError:
         pass
 
