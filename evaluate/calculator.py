@@ -1,5 +1,4 @@
 from typing import Iterable, Type, List
-import logging
 
 import pandas as pd
 
@@ -17,6 +16,19 @@ class StatisticalClassification(Enum):
 
 class EmptyReportError(Exception):
     pass
+
+
+class CalculatorInfo:
+    def __init__(self, true_positives: float, total: float):
+        self.true_positives = float(true_positives)
+        self.total = float(total)
+
+        try:
+            self.ratio = true_positives / total
+        except ZeroDivisionError:
+            raise EmptyReportError(
+                "There are not classifications to compute recall/precision on."
+            )
 
 
 class Calculator:
@@ -51,69 +63,75 @@ class Calculator:
         return self.report.equals(other.report)
 
 
+class RecallInfo(CalculatorInfo):
+    def __init__(self, true_positives: float, number_of_truth_probes: float):
+        super().__init__(true_positives, number_of_truth_probes)
+        self.recall = self.ratio
+
+
 class RecallCalculator(Calculator):
     def __init__(self, reports: Iterable[pd.DataFrame]):
         super().__init__(reports)
         self.create_gt_conf_column_from("ref_probe_header")
+        self.report = self.get_df_with_best_mapping_for_all_truth_probes()
+        self.number_of_truth_probes = len(self.report)
+
+    def _get_all_truth_probes(self):
+        return self.report.query_probe_header.unique()
 
     @staticmethod
-    def statistical_classification(classification: str) -> StatisticalClassification:
-        return {
-            AlignmentAssessment.UNMAPPED: StatisticalClassification.FALSE_NEGATIVE,
-            AlignmentAssessment.PARTIALLY_MAPPED: StatisticalClassification.FALSE_NEGATIVE,
-            AlignmentAssessment.PRIMARY_CORRECT: StatisticalClassification.TRUE_POSITIVE,
-            AlignmentAssessment.PRIMARY_INCORRECT: StatisticalClassification.FALSE_POSITIVE,
-            AlignmentAssessment.SECONDARY_CORRECT: StatisticalClassification.TRUE_POSITIVE,
-            AlignmentAssessment.SECONDARY_INCORRECT: StatisticalClassification.FALSE_POSITIVE,
-            AlignmentAssessment.SUPPLEMENTARY_CORRECT: StatisticalClassification.TRUE_POSITIVE,
-            AlignmentAssessment.SUPPLEMENTARY_INCORRECT: StatisticalClassification.FALSE_POSITIVE,
-        }[AlignmentAssessment(classification)]
+    def _get_best_mapping_for_truth_probe(df, truth_probe):
+        all_mappings_for_the_truth_probe = df.query("query_probe_header == @truth_probe").\
+            sort_values(by=["gt_conf"], ascending=False) # this sort is necessary to select the highest gt_conf later easier
 
-    def calculate_recall(self, conf_threshold: float = 0) -> float:
+        # the truth probe has to be found in the df
+        assert len(all_mappings_for_the_truth_probe) > 0
+
+        correct_classification_query_str = f"classification == @AlignmentAssessment.PRIMARY_CORRECT or " \
+            f"classification == @AlignmentAssessment.SECONDARY_CORRECT or " \
+            f"classification == @AlignmentAssessment.SUPPLEMENTARY_CORRECT"
+        mappings_with_correct_classifications = all_mappings_for_the_truth_probe.query(correct_classification_query_str)
+        if len(mappings_with_correct_classifications) > 0:
+            # selects the highest gt_conf correct mapping, which is a TP
+            mapping_to_return = mappings_with_correct_classifications.iloc[0]
+            mapping_to_return["classification"] = StatisticalClassification.TRUE_POSITIVE
+        else:
+            # selects the highest gt_conf incorrect mapping, which is a FN
+            mapping_to_return = all_mappings_for_the_truth_probe.iloc[0]
+            mapping_to_return["classification"] = StatisticalClassification.FALSE_NEGATIVE
+
+        return mapping_to_return
+
+    def _get_best_mapping_for_all_truth_probes(self):
+        all_truth_probes = self._get_all_truth_probes()
+        truth_probe_to_best_mapping = {}
+        for truth_probe in all_truth_probes:
+            truth_probe_to_best_mapping[truth_probe] = self._get_best_mapping_for_truth_probe(self.report, truth_probe)
+        return truth_probe_to_best_mapping
+
+    def get_df_with_best_mapping_for_all_truth_probes(self):
+        truth_probe_to_best_mapping = self._get_best_mapping_for_all_truth_probes()
+        return pd.DataFrame(columns=self.report.columns, data=truth_probe_to_best_mapping.values())
+
+    def calculate_recall(self, conf_threshold: float = 0) -> RecallInfo:
         confident_classifications = self.get_confident_classifications(conf_threshold)
-        counter = Counter(
-            [
-                RecallCalculator.statistical_classification(classification)
-                for classification in confident_classifications
-            ]
-        )
+        counter = Counter(confident_classifications)
         true_positives = counter[StatisticalClassification.TRUE_POSITIVE]
+        return RecallInfo(true_positives, self.number_of_truth_probes)
 
-        num_unconfident_classifications = len(self.report) - len(
-            confident_classifications
-        )
-        false_negatives = (
-            counter[StatisticalClassification.FALSE_NEGATIVE]
-            + num_unconfident_classifications
-        )
 
-        logging.info(
-            (
-                f"Got {true_positives} true positives and {false_negatives}"
-                " false negatives when calculating recall."
-            )
-        )
-
-        try:
-            return true_positives / (true_positives + false_negatives)
-        except ZeroDivisionError:
-            raise EmptyReportError(
-                "There are not classifications to compute recall on (no true_positives or false_negatives)"
-            )
-
+class PrecisionInfo(CalculatorInfo):
+    def __init__(self, true_positives: float, number_of_calls: float):
+        super().__init__(true_positives, number_of_calls)
+        self.precision = self.ratio
 
 class PrecisionCalculator(Calculator):
     def __init__(self, reports: Iterable[pd.DataFrame]):
         super().__init__(reports)
         self.create_gt_conf_column_from("query_probe_header")
 
-    def calculate_precision(self, conf_threshold: float = 0.0) -> float:
+    def calculate_precision(self, conf_threshold: float = 0.0) -> PrecisionInfo:
         confident_classifications = self.get_confident_classifications(conf_threshold)
         true_positives = sum(confident_classifications)
-        number_of_positives = len(confident_classifications)
-        try:
-            return true_positives / number_of_positives
-        except ZeroDivisionError:
-            raise EmptyReportError(
-                "There are not classifications to compute precision on"
-            )
+        number_of_calls = len(confident_classifications)
+        return PrecisionInfo(true_positives, number_of_calls)
