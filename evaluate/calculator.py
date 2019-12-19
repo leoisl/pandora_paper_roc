@@ -6,6 +6,7 @@ from .classification import *
 
 from pathlib import Path
 
+from collections import defaultdict
 
 class StatisticalClassification(Enum):
     FALSE_NEGATIVE = "fn"
@@ -76,13 +77,31 @@ class RecallCalculator(Calculator):
         self.report = self.get_df_with_best_mapping_for_all_truth_probes()
         self.number_of_truth_probes = len(self.report)
 
-    def _get_all_truth_probes(self):
-        return self.report.query_probe_header.unique()
+    @staticmethod
+    def _get_all_truth_probes(df):
+        return df.query_probe_header.unique()
 
     @staticmethod
-    def _get_best_mapping_for_truth_probe(df, truth_probe):
-        all_mappings_for_the_truth_probe = df.query("query_probe_header == @truth_probe").\
-            sort_values(by=["gt_conf"], ascending=False) # this sort is necessary to select the highest gt_conf later easier
+    def _get_truth_probe_to_all_mappings_series(df):
+        truth_probe_to_all_mappings_series = defaultdict(list)
+        for index, series in df.iterrows():
+            truth_probe_to_all_mappings_series[series.query_probe_header].append(series)
+        return truth_probe_to_all_mappings_series
+
+    @staticmethod
+    def _get_truth_probe_to_all_mappings_dfs(df):
+        truth_probe_to_all_mappings_series = RecallCalculator._get_truth_probe_to_all_mappings_series(df)
+        truth_probe_to_all_mappings_dfs = {}
+        for truth_probe, series_list in truth_probe_to_all_mappings_series.items():
+            truth_probe_to_all_mappings_dfs[truth_probe] = pd.DataFrame (
+                columns=df.columns,
+                data = series_list
+            ).sort_values(by=["gt_conf"], ascending=False) # this sort is necessary to select the highest gt_conf later easier
+        return truth_probe_to_all_mappings_dfs
+
+    @staticmethod
+    def _get_best_mapping_for_truth_probe(truth_probe_to_all_mappings_dfs, truth_probe):
+        all_mappings_for_the_truth_probe = truth_probe_to_all_mappings_dfs[truth_probe]
 
         # the truth probe has to be found in the df
         assert len(all_mappings_for_the_truth_probe) > 0
@@ -103,10 +122,11 @@ class RecallCalculator(Calculator):
         return mapping_to_return
 
     def _get_best_mapping_for_all_truth_probes(self):
-        all_truth_probes = self._get_all_truth_probes()
+        all_truth_probes = self._get_all_truth_probes(self.report)
+        truth_probe_to_all_mappings_dfs = self._get_truth_probe_to_all_mappings_dfs(self.report)
         truth_probe_to_best_mapping = {}
         for truth_probe in all_truth_probes:
-            truth_probe_to_best_mapping[truth_probe] = self._get_best_mapping_for_truth_probe(self.report, truth_probe)
+            truth_probe_to_best_mapping[truth_probe] = self._get_best_mapping_for_truth_probe(truth_probe_to_all_mappings_dfs, truth_probe)
         return truth_probe_to_best_mapping
 
     def get_df_with_best_mapping_for_all_truth_probes(self):
