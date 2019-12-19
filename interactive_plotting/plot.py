@@ -172,7 +172,7 @@ def add_visualization_page_to_dash_app(dash_app, page_name, ROC_data_path):
         html.Div(dash_table.DataTable(id="data_with_no_gt_conf_filter",
                               columns=[{"name": column, "id": column} for column in df_with_no_gt_conf_filters.columns if "Unnamed" not in column],
                              data=df_with_no_gt_conf_filters.to_dict('records'))),
-        html.H4("Whole data:"),
+        html.H3("Whole data:"),
         html.Div(dash_table.DataTable(id="whole_data",
                                       columns=[{"name": column, "id": column} for column in
                                                df.columns if "Unnamed" not in column],
