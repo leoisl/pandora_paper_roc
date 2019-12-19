@@ -106,9 +106,9 @@ class RecallCalculator(Calculator):
         # the truth probe has to be found in the df
         assert len(all_mappings_for_the_truth_probe) > 0
 
-        correct_classification_query_str = f"classification == @AlignmentAssessment.PRIMARY_CORRECT or " \
-            f"classification == @AlignmentAssessment.SECONDARY_CORRECT or " \
-            f"classification == @AlignmentAssessment.SUPPLEMENTARY_CORRECT"
+        correct_classification_query_str = f"classification == @AlignmentAssessment.PRIMARY_CORRECT.value or " \
+            f"classification == @AlignmentAssessment.SECONDARY_CORRECT.value or " \
+            f"classification == @AlignmentAssessment.SUPPLEMENTARY_CORRECT.value"
         mappings_with_correct_classifications = all_mappings_for_the_truth_probe.query(correct_classification_query_str)
         if len(mappings_with_correct_classifications) > 0:
             # selects the highest gt_conf correct mapping, which is a TP

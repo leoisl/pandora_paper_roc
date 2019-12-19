@@ -32,7 +32,7 @@ def create_recall_report_row(
         "sample": sample,
         "query_probe_header": str(truth_probe_header),
         "ref_probe_header": str(vcf_probe_header),
-        "classification": classification,
+        "classification": classification.value,
     }
     if with_gt_conf:
         data["gt_conf"] = gt_conf
@@ -173,7 +173,8 @@ CFT073	>CHROM=1;POS=1281;INTERVAL=[70,80);		unmapped
         )
         report = RecallCalculator._get_truth_probe_to_all_mappings_dfs(report)
         actual = RecallCalculator._get_best_mapping_for_truth_probe(report, "truth_probe_1")
-        expected = create_recall_report_row("truth_probe_1", StatisticalClassification.TRUE_POSITIVE, gt_conf=100, with_gt_conf=True)
+        expected = create_recall_report_row("truth_probe_1", AlignmentAssessment.PRIMARY_CORRECT, gt_conf=100, with_gt_conf=True)
+        expected.classification = StatisticalClassification.TRUE_POSITIVE
 
         assert actual.equals(expected)
 
@@ -190,7 +191,8 @@ CFT073	>CHROM=1;POS=1281;INTERVAL=[70,80);		unmapped
         )
         report = RecallCalculator._get_truth_probe_to_all_mappings_dfs(report)
         actual = RecallCalculator._get_best_mapping_for_truth_probe(report, "truth_probe_1")
-        expected = create_recall_report_row("truth_probe_1", StatisticalClassification.TRUE_POSITIVE, gt_conf=100, with_gt_conf=True)
+        expected = create_recall_report_row("truth_probe_1", AlignmentAssessment.SECONDARY_CORRECT, gt_conf=100, with_gt_conf=True)
+        expected.classification = StatisticalClassification.TRUE_POSITIVE
 
         assert actual.equals(expected)
 
@@ -207,7 +209,8 @@ CFT073	>CHROM=1;POS=1281;INTERVAL=[70,80);		unmapped
         )
         report = RecallCalculator._get_truth_probe_to_all_mappings_dfs(report)
         actual = RecallCalculator._get_best_mapping_for_truth_probe(report, "truth_probe_1")
-        expected = create_recall_report_row("truth_probe_1", StatisticalClassification.TRUE_POSITIVE, gt_conf=100, with_gt_conf=True)
+        expected = create_recall_report_row("truth_probe_1", AlignmentAssessment.SUPPLEMENTARY_CORRECT, gt_conf=100, with_gt_conf=True)
+        expected.classification = StatisticalClassification.TRUE_POSITIVE
 
         assert actual.equals(expected)
 
@@ -226,7 +229,8 @@ CFT073	>CHROM=1;POS=1281;INTERVAL=[70,80);		unmapped
         )
         report = RecallCalculator._get_truth_probe_to_all_mappings_dfs(report)
         actual = RecallCalculator._get_best_mapping_for_truth_probe(report, "truth_probe_1")
-        expected = create_recall_report_row("truth_probe_1", StatisticalClassification.TRUE_POSITIVE, gt_conf=200, with_gt_conf=True)
+        expected = create_recall_report_row("truth_probe_1", AlignmentAssessment.SECONDARY_CORRECT, gt_conf=200, with_gt_conf=True)
+        expected.classification = StatisticalClassification.TRUE_POSITIVE
 
         assert actual.equals(expected)
 
@@ -243,7 +247,8 @@ CFT073	>CHROM=1;POS=1281;INTERVAL=[70,80);		unmapped
         )
         report = RecallCalculator._get_truth_probe_to_all_mappings_dfs(report)
         actual = RecallCalculator._get_best_mapping_for_truth_probe(report, "truth_probe_1")
-        expected = create_recall_report_row("truth_probe_1", StatisticalClassification.FALSE_NEGATIVE, gt_conf=150, with_gt_conf=True)
+        expected = create_recall_report_row("truth_probe_1", AlignmentAssessment.PRIMARY_INCORRECT, gt_conf=150, with_gt_conf=True)
+        expected.classification = StatisticalClassification.FALSE_NEGATIVE
 
         assert actual.equals(expected)
 
@@ -261,7 +266,8 @@ CFT073	>CHROM=1;POS=1281;INTERVAL=[70,80);		unmapped
         )
         report = RecallCalculator._get_truth_probe_to_all_mappings_dfs(report)
         actual = RecallCalculator._get_best_mapping_for_truth_probe(report, "truth_probe_1")
-        expected = create_recall_report_row("truth_probe_1", StatisticalClassification.TRUE_POSITIVE, gt_conf=1, with_gt_conf=True)
+        expected = create_recall_report_row("truth_probe_1", AlignmentAssessment.PRIMARY_CORRECT, gt_conf=1, with_gt_conf=True)
+        expected.classification = StatisticalClassification.TRUE_POSITIVE
 
         assert actual.equals(expected)
 
