@@ -49,6 +49,8 @@ logging.info(
 
 gts = []
 recalls = []
+nb_of_truth_probes_found = []
+nb_of_truth_probes_in_total = []
 all_gts = list(np.arange(min_gt, max_gt, step_gt))
 if len(all_gts) == number_of_points_in_ROC_curve:
     all_gts.append(max_gt)
@@ -59,6 +61,8 @@ for gt in all_gts:
         recall_info = recall_calculator.calculate_recall(gt)
         gts.append(gt)
         recalls.append(recall_info.recall)
+        nb_of_truth_probes_found.append(recall_info.true_positives)
+        nb_of_truth_probes_in_total.append(recall_info.total)
     except EmptyReportError:
         pass
 
@@ -72,7 +76,9 @@ recall_df = pd.DataFrame(
         "gaps_threshold": [gaps_threshold] * len(gts),
         "GT": gts,
         "step_GT": list(range(len(gts))),
-        "recall": recalls
+        "recall": recalls,
+        "nb_of_truth_probes_found": nb_of_truth_probes_found,
+        "nb_of_truth_probes_in_total": nb_of_truth_probes_in_total
     }
 )
 

@@ -50,6 +50,8 @@ logging.info(
 gts = []
 precisions = []
 error_rates = []
+nb_of_correct_calls = []
+nb_of_total_calls = []
 all_gts = list(np.arange(min_gt, max_gt, step_gt))
 if len(all_gts) == number_of_points_in_ROC_curve:
     all_gts.append(max_gt)
@@ -61,6 +63,8 @@ for gt in all_gts:
         gts.append(gt)
         precisions.append(precision_info.precision)
         error_rates.append(1 - precision_info.precision)
+        nb_of_correct_calls.append(precision_info.true_positives)
+        nb_of_total_calls.append(precision_info.total)
     except EmptyReportError:
         pass
 
@@ -75,7 +79,9 @@ precision_df = pd.DataFrame(
         "GT": gts,
         "step_GT": list(range(len(gts))),
         "precision": precisions,
-        "error_rate": error_rates
+        "error_rate": error_rates,
+        "nb_of_correct_calls": nb_of_correct_calls,
+        "nb_of_total_calls": nb_of_total_calls
     }
 )
 

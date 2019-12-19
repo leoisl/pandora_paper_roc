@@ -12,7 +12,8 @@ recall_df = pd.read_csv(recall_file, sep="\t")
 # merge
 error_rate_and_recall_df = pd.merge(precision_df, recall_df,
                     on=["tool", "coverage", "coverage_threshold", "strand_bias_threshold", "gaps_threshold", "step_GT"])[
-    ["tool", "coverage", "coverage_threshold", "strand_bias_threshold", "gaps_threshold", "step_GT", "error_rate", "recall"]
+    ["tool", "coverage", "coverage_threshold", "strand_bias_threshold", "gaps_threshold", "step_GT", "error_rate",
+     "nb_of_correct_calls", "nb_of_total_calls", "recall", "nb_of_truth_probes_found", "nb_of_truth_probes_in_total"]
 ]
 
 # output
