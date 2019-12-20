@@ -56,6 +56,7 @@ def get_gaps_filters(tool):
 # Pipeline files
 # ======================================================
 files = []
+all_tools = list(data.tool.unique())
 
 # Precision files
 all_precision_files=[]
@@ -87,6 +88,8 @@ for index, row in data.iterrows():
 
 for coverage, tool, coverage_threshold, strand_bias_threshold, gaps_threshold in cov_tool_and_filters_to_precision_report_files:
     all_precision_files.append(f"{output_folder}/precision/precision_files/{coverage}/{tool}/coverage_filter_{coverage_threshold}/strand_bias_filter_{strand_bias_threshold}/gaps_filter_{gaps_threshold}/precision.tsv")
+    if tool.startswith("snippy"):
+        all_precision_files.append(f"{output_folder}/precision/precision_files/{coverage}/snippy_all_curves/coverage_filter_{coverage_threshold}/strand_bias_filter_{strand_bias_threshold}/gaps_filter_{gaps_threshold}/precision.tsv")
 
 files.extend(all_precision_files)
 
@@ -150,7 +153,8 @@ for index, row in data.iterrows():
 
 for coverage, tool, coverage_threshold, strand_bias_threshold, gaps_threshold in cov_tool_and_filters_to_recall_report_files:
     all_recall_files.append(f"{output_folder}/recall/recall_files/{coverage}/{tool}/coverage_filter_{coverage_threshold}/strand_bias_filter_{strand_bias_threshold}/gaps_filter_{gaps_threshold}/recall.tsv")
-
+    if tool.startswith("snippy"):
+        all_recall_files.append(f"{output_folder}/recall/recall_files/{coverage}/snippy_all_curves/coverage_filter_{coverage_threshold}/strand_bias_filter_{strand_bias_threshold}/gaps_filter_{gaps_threshold}/recall.tsv")
 files.extend(all_recall_files)
 
 
@@ -159,6 +163,10 @@ files.extend(all_recall_files)
 all_plot_data_intermediate_files = []
 for coverage, tool, coverage_threshold, strand_bias_threshold, gaps_threshold in cov_tool_and_filters_to_recall_report_files:
     all_plot_data_intermediate_files.append(f"{output_folder}/plot_data/{coverage}/{tool}/coverage_filter_{coverage_threshold}/strand_bias_filter_{strand_bias_threshold}/gaps_filter_{gaps_threshold}/ROC_data.tsv")
+    if tool.startswith("snippy"):
+        all_plot_data_intermediate_files.append(f"{output_folder}/plot_data/{coverage}/snippy_all_curves/coverage_filter_{coverage_threshold}/strand_bias_filter_{strand_bias_threshold}/gaps_filter_{gaps_threshold}/ROC_data.tsv")
+all_plot_data_intermediate_files = list(set(all_plot_data_intermediate_files))
+
 final_plot_data_file = f"{output_folder}/plot_data/ROC_data.tsv"
 final_all_nb_of_records_removed_with_mapq_sam_records_filter_file = f"{output_folder}/plot_data/nb_of_records_removed_with_mapq_sam_records_filter_for_precision.csv"
 final_all_nb_of_truth_probes_removed_with_mapq_sam_records_filter_file = f"{output_folder}/plot_data/nb_of_truth_probes_removed_with_unique_sam_records_filter_for_recall.csv"
@@ -168,7 +176,7 @@ files.append(final_plot_data_file)
 files.append(final_all_nb_of_records_removed_with_mapq_sam_records_filter_file)
 files.append(final_all_nb_of_truth_probes_removed_with_mapq_sam_records_filter_file)
 
-
+files = list(set(files))
 
 # ======================================================
 # Rules

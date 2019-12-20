@@ -87,7 +87,8 @@ rule calculate_recall:
     output:
          recall_file_for_all_samples = output_folder + "/recall/recall_files/{coverage}/{tool}/coverage_filter_{coverage_threshold}/strand_bias_filter_{strand_bias_threshold}/gaps_filter_{gaps_threshold}/recall.tsv"
     params:
-         number_of_points_in_ROC_curve = number_of_points_in_ROC_curve
+         number_of_points_in_ROC_curve = number_of_points_in_ROC_curve,
+         tool = lambda wildcards: wildcards.tool
     threads: 1
     resources:
         mem_mb = lambda wildcards, attempt: 4000 * attempt
@@ -95,3 +96,30 @@ rule calculate_recall:
         "logs/calculate_recall/{coverage}/{tool}/coverage_filter_{coverage_threshold}/strand_bias_filter_{strand_bias_threshold}/gaps_filter_{gaps_threshold}/recall.log"
     script:
         "../scripts/calculate_recall.py"
+
+
+def get_recall_report_files_for_all_samples_for_all_snippy(wildcards):
+    return list(itertools.chain.from_iterable(
+        cov_tool_and_filters_to_recall_report_files[wildcards.coverage, snippy_tool, wildcards.coverage_threshold, \
+            wildcards.strand_bias_threshold, wildcards.gaps_threshold] \
+            for snippy_tool in all_tools if snippy_tool.startswith("snippy")))
+
+rule calculate_recall_for_all_snippy:
+    input:
+         recall_report_files_for_all_samples = \
+            lambda wildcards: get_recall_report_files_for_all_samples_for_all_snippy(wildcards)
+    output:
+         recall_file_for_all_samples = output_folder + "/recall/recall_files/{coverage}/snippy_all_curves/coverage_filter_{coverage_threshold}/strand_bias_filter_{strand_bias_threshold}/gaps_filter_{gaps_threshold}/recall.tsv"
+    params:
+         number_of_points_in_ROC_curve = number_of_points_in_ROC_curve,
+         tool = "snippy_all_curves"
+    threads: 1
+    resources:
+        mem_mb = lambda wildcards, attempt: 8000 * attempt
+    log:
+        "logs/calculate_recall/{coverage}/snippy_all_curves/coverage_filter_{coverage_threshold}/strand_bias_filter_{strand_bias_threshold}/gaps_filter_{gaps_threshold}/recall.log"
+    script:
+        "../scripts/calculate_recall.py"
+
+
+ruleorder: calculate_recall_for_all_snippy > calculate_recall

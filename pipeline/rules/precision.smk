@@ -53,7 +53,8 @@ rule calculate_precision:
     output:
          precision_file_for_all_samples = output_folder + "/precision/precision_files/{coverage}/{tool}/coverage_filter_{coverage_threshold}/strand_bias_filter_{strand_bias_threshold}/gaps_filter_{gaps_threshold}/precision.tsv"
     params:
-         number_of_points_in_ROC_curve = number_of_points_in_ROC_curve
+         number_of_points_in_ROC_curve = number_of_points_in_ROC_curve,
+         tool = lambda wildcards: wildcards.tool
     threads: 1
     resources:
         mem_mb = lambda wildcards, attempt: 4000 * attempt
@@ -61,3 +62,28 @@ rule calculate_precision:
         "logs/calculate_precision/{coverage}/{tool}/coverage_filter_{coverage_threshold}/strand_bias_filter_{strand_bias_threshold}/gaps_filter_{gaps_threshold}/precision.log"
     script:
         "../scripts/calculate_precision.py"
+
+def get_precision_report_files_for_all_samples_for_all_snippy(wildcards):
+    return list(itertools.chain.from_iterable(
+        cov_tool_and_filters_to_precision_report_files[wildcards.coverage, snippy_tool, wildcards.coverage_threshold, \
+            wildcards.strand_bias_threshold, wildcards.gaps_threshold] \
+            for snippy_tool in all_tools if snippy_tool.startswith("snippy")))
+
+rule calculate_precision_for_all_snippy:
+    input:
+         precision_report_files_for_all_samples = lambda wildcards: get_precision_report_files_for_all_samples_for_all_snippy(wildcards)
+    output:
+         precision_file_for_all_samples = output_folder + "/precision/precision_files/{coverage}/snippy_all_curves/coverage_filter_{coverage_threshold}/strand_bias_filter_{strand_bias_threshold}/gaps_filter_{gaps_threshold}/precision.tsv"
+    params:
+         number_of_points_in_ROC_curve = number_of_points_in_ROC_curve,
+         tool = "snippy_all_curves"
+    threads: 1
+    resources:
+        mem_mb = lambda wildcards, attempt: 4000 * attempt
+    log:
+        "logs/calculate_precision/{coverage}/snippy_all_curves/coverage_filter_{coverage_threshold}/strand_bias_filter_{strand_bias_threshold}/gaps_filter_{gaps_threshold}/precision.log"
+    script:
+        "../scripts/calculate_precision.py"
+
+
+ruleorder: calculate_precision_for_all_snippy > calculate_precision

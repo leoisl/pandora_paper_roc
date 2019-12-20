@@ -26,7 +26,7 @@ output = Path(snakemake.output.precision_file_for_all_samples)
 
 number_of_points_in_ROC_curve = float(snakemake.params.number_of_points_in_ROC_curve)
 
-tool = snakemake.wildcards.tool
+tool = snakemake.params.tool
 coverage = snakemake.wildcards.coverage
 coverage_threshold = snakemake.wildcards.coverage_threshold
 strand_bias_threshold = snakemake.wildcards.strand_bias_threshold
