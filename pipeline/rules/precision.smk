@@ -79,7 +79,7 @@ rule calculate_precision_for_all_snippy:
          tool = "snippy_all_curves"
     threads: 1
     resources:
-        mem_mb = lambda wildcards, attempt: {1: 40000, 2: 60000, 3: 80000, 4: 120000}
+        mem_mb = lambda wildcards, attempt: {1: 40000, 2: 60000, 3: 80000}.get(attempt, 120000)
     log:
         "logs/calculate_precision/{coverage}/snippy_all_curves/coverage_filter_{coverage_threshold}/strand_bias_filter_{strand_bias_threshold}/gaps_filter_{gaps_threshold}/precision.log"
     script:
