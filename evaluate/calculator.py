@@ -53,7 +53,7 @@ class Calculator:
         return self.report["gt_conf"].min()
 
     def __init__(self, reports: Iterable[pd.DataFrame]):
-        self.report = pd.concat(reports).drop_duplicates()
+        self.report = pd.concat(reports)
 
 
     @classmethod
@@ -74,6 +74,7 @@ class RecallInfo(CalculatorInfo):
 class RecallCalculator(Calculator):
     def __init__(self, reports: Iterable[pd.DataFrame]):
         super().__init__(reports)
+        self.report.drop_duplicates(subset=["sample", "query_probe_header", "classification"], inplace=True)
         self.create_gt_conf_column_from("ref_probe_header")
         self.report = self.get_df_with_best_mapping_for_all_truth_probes()
         self.number_of_truth_probes = len(self.report)
