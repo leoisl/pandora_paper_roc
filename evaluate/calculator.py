@@ -53,7 +53,8 @@ class Calculator:
         return self.report["gt_conf"].min()
 
     def __init__(self, reports: Iterable[pd.DataFrame]):
-        self.report = pd.concat(reports)
+        self.report = pd.concat(reports).drop_duplicates()
+
 
     @classmethod
     def from_files(cls, paths: List[Path]) -> Type["Calculator"]:

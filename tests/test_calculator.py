@@ -619,16 +619,16 @@ class TestPrecisionCalculator:
         report = pd.DataFrame(
             data=[
                 create_precision_report_row(0.0, gt_conf=100),
-                create_precision_report_row(0.0, gt_conf=100),
+                create_precision_report_row(0.0, gt_conf=101),
                 create_precision_report_row(0.0, gt_conf=10),
-                create_precision_report_row(0.0, gt_conf=100),
+                create_precision_report_row(0.0, gt_conf=102),
             ],
             columns=columns,
         )
         calculator = PrecisionCalculator([report])
         actual = calculator.report.gt_conf
 
-        expected = pd.Series([100.0, 100.0, 10.0, 100.0])
+        expected = pd.Series([100.0, 101.0, 10.0, 102.0])
 
         assert actual.equals(expected)
 
