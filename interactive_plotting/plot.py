@@ -33,8 +33,8 @@ def get_snippy_trace_data_for_given_ref(df, snippy_ref):
     }
     return trace_data
 
-def compute_all_possible_traces(df, tools, dataset_coverages, coverage_filters, strand_bias_filters, gaps_filters,
-                                x_label, y_label):
+def compute_traces_in_product_of_args(df, tools, dataset_coverages, coverage_filters, strand_bias_filters, gaps_filters,
+                                      x_label, y_label):
     config_to_trace = {}
     for tool in tools:
         if tool == "snippy_all":
@@ -99,9 +99,9 @@ def get_first_elem_of_list_as_list_itself (the_list):
         return []
 
 
-def update_figure_core(config_to_all_traces, tool_checklist_values, dataset_coverage_checklist_values,
-                       coverage_checklist_values, strand_bias_checklist_values, gaps_checklist_values,
-                       xaxis_label, yaxis_label, set_ranges):
+def get_figure_for_graph(config_to_all_traces, tool_checklist_values, dataset_coverage_checklist_values,
+                         coverage_checklist_values, strand_bias_checklist_values, gaps_checklist_values,
+                         xaxis_label, yaxis_label, set_ranges):
     traces = []
     highest_error_rate = 0.01
     for tool in tool_checklist_values:
@@ -134,7 +134,7 @@ def update_figure_core(config_to_all_traces, tool_checklist_values, dataset_cove
             "layout": layout}
 
 
-def add_visualization_page_to_dash_app(dash_app, page_name, ROC_data_path):
+def get_main_plot_page(dash_app, page_name, ROC_data_path):
     # load df
     df = pd.read_csv(ROC_data_path, sep="\t")
 
@@ -154,61 +154,73 @@ def add_visualization_page_to_dash_app(dash_app, page_name, ROC_data_path):
     strand_bias_filters = remove_value_from_list(strand_bias_filters, "Not_App")
     gaps_filters = remove_value_from_list(gaps_filters, "Not_App")
 
-    # set up the layout
     df_with_no_gt_conf_filters = df.query("step_GT == 0")
-    dash_app.layouts[page_name] = html.Div([
+
+
+
+    # register the update callback
+    if f'{page_name}_graph_proportion.children' not in dash_app.callback_map:
+        @dash_app.callback(
+            Output(f'{page_name}_graph_proportion', 'children'),
+            [Input(component_id=f'{page_name}_tool_checklist', component_property='value'),
+             Input(component_id=f'{page_name}_dataset_checklist', component_property='value'),
+             Input(component_id=f'{page_name}_coverage_checklist', component_property='value'),
+             Input(component_id=f'{page_name}_strand_bias_checklist', component_property='value'),
+             Input(component_id=f'{page_name}_gaps_checklist', component_property='value')])
+        def update_figure_proportion(tool_checklist_values, dataset_coverage_checklist_values, coverage_checklist_values, strand_bias_checklist_values, gaps_checklist_values):
+            config_to_all_traces_proportion = compute_traces_in_product_of_args(df,
+                                                                                tool_checklist_values,
+                                                                                dataset_coverage_checklist_values,
+                                                                                coverage_checklist_values,
+                                                                                strand_bias_checklist_values,
+                                                                                gaps_checklist_values,
+                                                                                x_label="error_rate", y_label="recall")
+            return dcc.Graph(figure = get_figure_for_graph(config_to_all_traces_proportion, tool_checklist_values, dataset_coverage_checklist_values,
+                                                           coverage_checklist_values, strand_bias_checklist_values, gaps_checklist_values,
+                                                           xaxis_label="Error rate", yaxis_label="Recall", set_ranges=True))
+
+    if f'{page_name}_graph_raw.children' not in dash_app.callback_map:
+        @dash_app.callback(
+            Output(f'{page_name}_graph_raw', 'children'),
+            [Input(component_id=f'{page_name}_tool_checklist', component_property='value'),
+             Input(component_id=f'{page_name}_dataset_checklist', component_property='value'),
+             Input(component_id=f'{page_name}_coverage_checklist', component_property='value'),
+             Input(component_id=f'{page_name}_strand_bias_checklist', component_property='value'),
+             Input(component_id=f'{page_name}_gaps_checklist', component_property='value')])
+        def update_figure_raw(tool_checklist_values, dataset_coverage_checklist_values, coverage_checklist_values, strand_bias_checklist_values, gaps_checklist_values):
+            config_to_all_traces_raw = compute_traces_in_product_of_args(df,
+                                                                        tool_checklist_values,
+                                                                        dataset_coverage_checklist_values,
+                                                                        coverage_checklist_values,
+                                                                        strand_bias_checklist_values,
+                                                                        gaps_checklist_values,
+                                                                         x_label="nb_of_correct_calls", y_label="nb_of_truth_probes_found")
+            return dcc.Graph(figure = get_figure_for_graph(config_to_all_traces_raw, tool_checklist_values, dataset_coverage_checklist_values,
+                                                           coverage_checklist_values, strand_bias_checklist_values, gaps_checklist_values,
+                                                           xaxis_label="Nb of correct calls", yaxis_label="Nb of truth variants found", set_ranges=False))
+
+
+
+    return html.Div([
         html.Div([html.H1(f"Pandora ROC evaluation - {page_name}")], style={'textAlign': "center"}),
         get_div_for_the_filters(filter_name=f"{page_name}_tool", filter_description="Tool", filter_values=tools, selected_values=tools),
         get_div_for_the_filters(filter_name=f"{page_name}_dataset", filter_description="Dataset coverage filter (pandora only)", filter_values=dataset_coverages, selected_values=dataset_coverages),
         get_div_for_the_filters(filter_name=f"{page_name}_coverage", filter_description="Coverage filter (pandora only)", filter_values=coverage_filters, selected_values=get_first_elem_of_list_as_list_itself(coverage_filters)),
         get_div_for_the_filters(filter_name=f"{page_name}_strand_bias", filter_description="Strand bias filter (pandora only)", filter_values=strand_bias_filters, selected_values=get_first_elem_of_list_as_list_itself(strand_bias_filters)),
         get_div_for_the_filters(filter_name=f"{page_name}_gaps", filter_description="Gaps filter (pandora only)", filter_values=gaps_filters, selected_values=get_first_elem_of_list_as_list_itself(gaps_filters)),
-        html.H1("Proportion ROC curve"),
-        html.Div([dcc.Graph(id=f"{page_name}_graph_proportion", style={'height': '1000px', 'width': '1000px'})]),
-        html.H1("Raw numbers ROC curve"),
-        html.Div([dcc.Graph(id=f"{page_name}_graph_raw", style={'height': '1000px', 'width': '1000px'})]),
+        html.H1("Proportion ROC curve (WARNING: this may take some minutes to load if there are many curves)"),
+        html.Div(children=[
+            dcc.Loading(id=f"loading_{page_name}_graph_proportion",
+                        children=[html.Div(id=f"{page_name}_graph_proportion")],
+                        type="graph")]),
+        html.H1("Raw numbers ROC curve (WARNING: this may take some minutes to load if there are many curves)"),
+        html.Div(children=[
+            dcc.Loading(id=f"loading_{page_name}_graph_raw",
+                        children=[html.Div(id=f"{page_name}_graph_raw")],
+                        type="graph")]),
         html.H1("Extra informations:"),
         html.H3("Data with no GT conf filtering:"),
         html.Div(dash_table.DataTable(id="data_with_no_gt_conf_filter",
                               columns=[{"name": column, "id": column} for column in df_with_no_gt_conf_filters.columns if "Unnamed" not in column],
                              data=df_with_no_gt_conf_filters.to_dict('records'))),
-        # html.H3("Whole data:"),
-        # html.Div(dash_table.DataTable(id="whole_data",
-        #                               columns=[{"name": column, "id": column} for column in
-        #                                        df.columns if "Unnamed" not in column],
-        #                               data=df.to_dict('records')))
     ], className="container")
-
-    # pre-compute all traces
-    config_to_all_traces_proportion = compute_all_possible_traces(df, tools, dataset_coverages, coverage_filters,
-                                                       strand_bias_filters, gaps_filters,
-                                                       x_label="error_rate", y_label="recall")
-    config_to_all_traces_raw = compute_all_possible_traces(df, tools, dataset_coverages, coverage_filters,
-                                                                  strand_bias_filters, gaps_filters,
-                                                                  x_label="nb_of_correct_calls", y_label="nb_of_truth_probes_found")
-
-
-    # register the update callback
-    @dash_app.callback(
-        Output(f'{page_name}_graph_proportion', 'figure'),
-        [Input(component_id=f'{page_name}_tool_checklist', component_property='value'),
-         Input(component_id=f'{page_name}_dataset_checklist', component_property='value'),
-         Input(component_id=f'{page_name}_coverage_checklist', component_property='value'),
-         Input(component_id=f'{page_name}_strand_bias_checklist', component_property='value'),
-         Input(component_id=f'{page_name}_gaps_checklist', component_property='value')])
-    def update_figure_proportion(tool_checklist_values, dataset_coverage_checklist_values, coverage_checklist_values, strand_bias_checklist_values, gaps_checklist_values):
-        return update_figure_core(config_to_all_traces_proportion, tool_checklist_values, dataset_coverage_checklist_values,
-                                  coverage_checklist_values, strand_bias_checklist_values, gaps_checklist_values,
-                                  xaxis_label="Error rate", yaxis_label="Recall", set_ranges=True)
-
-    @dash_app.callback(
-        Output(f'{page_name}_graph_raw', 'figure'),
-        [Input(component_id=f'{page_name}_tool_checklist', component_property='value'),
-         Input(component_id=f'{page_name}_dataset_checklist', component_property='value'),
-         Input(component_id=f'{page_name}_coverage_checklist', component_property='value'),
-         Input(component_id=f'{page_name}_strand_bias_checklist', component_property='value'),
-         Input(component_id=f'{page_name}_gaps_checklist', component_property='value')])
-    def update_figure_raw(tool_checklist_values, dataset_coverage_checklist_values, coverage_checklist_values, strand_bias_checklist_values, gaps_checklist_values):
-        return update_figure_core(config_to_all_traces_raw, tool_checklist_values, dataset_coverage_checklist_values,
-                                  coverage_checklist_values, strand_bias_checklist_values, gaps_checklist_values,
-                                  xaxis_label="Nb of correct calls", yaxis_label="Nb of truth variants found", set_ranges=False)
