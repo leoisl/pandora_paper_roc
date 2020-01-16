@@ -76,9 +76,9 @@ def update_all_checklists(plots_value):
     [Output(f'graph_proportion', 'children'),
      Output(f'graph_raw', 'children'),
      Output('data_with_no_gt_conf_filter', 'children')],
-    [Input('plots-dropdown', 'value'),
-     Input('button', 'n_clicks')],
+    [Input('button', 'n_clicks')],
     [
+     State('plots-dropdown', 'value'),
      State(component_id='tool_checklist', component_property='value'),
      State(component_id='dataset_checklist', component_property='value'),
      State(component_id='coverage_checklist', component_property='value'),
