@@ -156,7 +156,7 @@ def get_figure_for_graph(config_to_all_traces, tool_checklist_values, dataset_co
             "layout": layout}
 
 
-def get_df_and_check_args_for_graph(plots_value, tool_checklist_values, dataset_coverage_checklist_values, coverage_checklist_values,
+def get_df_and_check_args_for_graph(plots_value, button_value, tool_checklist_values, dataset_coverage_checklist_values, coverage_checklist_values,
                              strand_bias_checklist_values, gaps_checklist_values):
     if None in [plots_value, tool_checklist_values, dataset_coverage_checklist_values, coverage_checklist_values,
                              strand_bias_checklist_values, gaps_checklist_values]:
@@ -170,7 +170,7 @@ def get_df_and_check_args_for_graph(plots_value, tool_checklist_values, dataset_
 
 
 
-def get_graph_proportion (df, plots_value, tool_checklist_values, dataset_coverage_checklist_values, coverage_checklist_values,
+def get_graph_proportion (df, plots_value, button_value, tool_checklist_values, dataset_coverage_checklist_values, coverage_checklist_values,
                              strand_bias_checklist_values, gaps_checklist_values):
     config_to_all_traces_proportion = compute_traces_in_product_of_args(df,
                                                                         tool_checklist_values,
@@ -188,7 +188,7 @@ def get_graph_proportion (df, plots_value, tool_checklist_values, dataset_covera
 
 
 
-def get_graph_raw (df, plots_value, tool_checklist_values, dataset_coverage_checklist_values, coverage_checklist_values,
+def get_graph_raw (df, plots_value, button_value, tool_checklist_values, dataset_coverage_checklist_values, coverage_checklist_values,
                              strand_bias_checklist_values, gaps_checklist_values):
     config_to_all_traces_raw = compute_traces_in_product_of_args(df,
                                                                         tool_checklist_values,

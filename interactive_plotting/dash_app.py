@@ -1,5 +1,5 @@
 import dash
-from dash.dependencies import Input, Output
+from dash.dependencies import Input, Output, State
 
 from plot_helpers import *
 
@@ -18,13 +18,14 @@ dash_app.layout = html.Div([
         options=get_available_analyses()
     ),
 
-    html.H3("2. Apply filters:"),
+    html.H3("2. Apply filters and press go:"),
     get_empty_div_for_the_filters(filter_name=f"tool", filter_description="Tool"),
     get_empty_div_for_the_filters(filter_name=f"dataset", filter_description="Dataset coverage filter (pandora only)"),
     get_empty_div_for_the_filters(filter_name=f"coverage", filter_description="Coverage filter (pandora only)"),
     get_empty_div_for_the_filters(filter_name=f"strand_bias", filter_description="Strand bias filter (pandora only)"),
     get_empty_div_for_the_filters(filter_name=f"gaps", filter_description="Gaps filter (pandora only)"),
-
+    html.Button('Go', id='button', className="row", style={"display": "block", "width": "60%", "margin-left": "auto",
+                                     "margin-right": "auto"}),
 
     html.H3("3. See data (might take some seconds to plot):"),
     html.H3("Proportion ROC curve:"),
@@ -76,11 +77,13 @@ def update_all_checklists(plots_value):
      Output(f'graph_raw', 'children'),
      Output('data_with_no_gt_conf_filter', 'children')],
     [Input('plots-dropdown', 'value'),
-     Input(component_id='tool_checklist', component_property='value'),
-     Input(component_id='dataset_checklist', component_property='value'),
-     Input(component_id='coverage_checklist', component_property='value'),
-     Input(component_id='strand_bias_checklist', component_property='value'),
-     Input(component_id='gaps_checklist', component_property='value')
+     Input('button', 'n_clicks')],
+    [
+     State(component_id='tool_checklist', component_property='value'),
+     State(component_id='dataset_checklist', component_property='value'),
+     State(component_id='coverage_checklist', component_property='value'),
+     State(component_id='strand_bias_checklist', component_property='value'),
+     State(component_id='gaps_checklist', component_property='value')
      ])
 def update_all_graphs (*args):
     df = get_df_and_check_args_for_graph (*args)
