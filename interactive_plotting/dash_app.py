@@ -1,45 +1,90 @@
 import dash
-from plot import get_main_plot_page
-import dash_html_components as html
-import dash_core_components as dcc
 from dash.dependencies import Input, Output
-from config import pages
-import base64
 
+from plot_helpers import *
 
-image_404 = base64.b64encode(open("assets/images/404.png", 'rb').read())
-
-# set up the analyses links
-analyses_links = []
-for config_dict in pages:
-    analyses_links.append(dcc.Link(config_dict["name"], href=config_dict["name"]))
-    analyses_links.append(html.Br())
 
 
 # set up the app
 external_stylesheets = ["css/style.css"]
 dash_app = dash.Dash("ROC_pandora", assets_folder="assets", external_stylesheets=external_stylesheets)
-dash_app.config.suppress_callback_exceptions = True
-dash_app.layouts = {}
 
+# set up the layout
 dash_app.layout = html.Div([
-    dcc.Location(id='url', refresh=False),
-    html.Div(id='page-content')
-])
+    html.Div(html.H1(f"Pandora ROC evaluation"), style={'textAlign': "center"}),
+    html.H3("1. Choose analysis:"),
+    dcc.Dropdown(
+        id='plots-dropdown',
+        options=get_available_analyses()
+    ),
+
+    html.H3("2. Apply filters:"),
+    get_empty_div_for_the_filters(filter_name=f"tool", filter_description="Tool"),
+    get_empty_div_for_the_filters(filter_name=f"dataset", filter_description="Dataset coverage filter (pandora only)"),
+    get_empty_div_for_the_filters(filter_name=f"coverage", filter_description="Coverage filter (pandora only)"),
+    get_empty_div_for_the_filters(filter_name=f"strand_bias", filter_description="Strand bias filter (pandora only)"),
+    get_empty_div_for_the_filters(filter_name=f"gaps", filter_description="Gaps filter (pandora only)"),
 
 
-@dash_app.callback(Output('page-content', 'children'),
-              [Input('url', 'pathname')])
-def display_page(pathname):
-    if pathname == "/":
-        return html.Div([html.H3("Available analysis:")] + analyses_links)
+    html.H3("3. See data (might take some seconds to plot):"),
+    html.H3("Proportion ROC curve:"),
+    html.Div(children=[
+        dcc.Loading(id=f"loading_graph_proportion",
+                    children=[html.Div(id="graph_proportion")],
+                    type="graph")]),
+    html.H3("Raw numbers ROC curve:"),
+    html.Div(children=[
+        dcc.Loading(id=f"loading_graph_raw",
+                    children=[html.Div(id="graph_raw")],
+                    type="graph")]),
 
-    for config_dict in pages:
-        name = config_dict["name"]
-        if pathname == f'/{name}' or pathname == f'/{name}/':
-            return get_main_plot_page(dash_app, config_dict["name"], config_dict["ROC_path"])
+    html.H3("Extra informations:"),
+    html.H3("Data with no GT conf filtering:"),
+    html.Div(children=[
+        dcc.Loading(id=f"loading_data_with_no_gt_conf_filter",
+                    children=[html.Div(id="data_with_no_gt_conf_filter")],
+                    type="graph")])
+    ])
 
-    return html.Div([html.Img(src='data:image/png;base64,{}'.format(image_404.decode()))])
+
+
+# set up the callbacks
+@dash_app.callback(
+    [Output('tool_checklist', 'options'),
+     Output('tool_checklist', 'value'),
+     Output('dataset_checklist', 'options'),
+     Output('dataset_checklist', 'value'),
+     Output('coverage_checklist', 'options'),
+     Output('coverage_checklist', 'value'),
+     Output('strand_bias_checklist', 'options'),
+     Output('strand_bias_checklist', 'value'),
+     Output('gaps_checklist', 'options'),
+     Output('gaps_checklist', 'value'),
+     ],
+    [Input('plots-dropdown', 'value')])
+def update_all_checklists(plots_value):
+    df = get_df_given_analysis_name(plots_value)
+    list_of_output_tuples = update_tool_checklist(df), update_dataset_checklist(df), update_coverage_checklist(df),\
+           update_strand_bias_checklist(df), update_gaps_checklist(df)
+    flattened_output = list(itertools.chain(*list_of_output_tuples))
+    return flattened_output
+
+
+
+@dash_app.callback(
+    [Output(f'graph_proportion', 'children'),
+     Output(f'graph_raw', 'children'),
+     Output('data_with_no_gt_conf_filter', 'children')],
+    [Input('plots-dropdown', 'value'),
+     Input(component_id='tool_checklist', component_property='value'),
+     Input(component_id='dataset_checklist', component_property='value'),
+     Input(component_id='coverage_checklist', component_property='value'),
+     Input(component_id='strand_bias_checklist', component_property='value'),
+     Input(component_id='gaps_checklist', component_property='value')
+     ])
+def update_all_graphs (*args):
+    return get_graph_proportion(*args), get_graph_raw(*args), get_data_table_with_no_gt_conf_filter(*args)
+
 
 if __name__ == '__main__':
     dash_app.run_server(debug=True)
