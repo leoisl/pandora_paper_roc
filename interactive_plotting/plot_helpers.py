@@ -186,7 +186,8 @@ def get_graph_proportion (plots_value, tool_checklist_values, dataset_coverage_c
                                                  dataset_coverage_checklist_values,
                                                  coverage_checklist_values, strand_bias_checklist_values,
                                                  gaps_checklist_values,
-                                                 xaxis_label="Error rate", yaxis_label="Recall", set_ranges=True))
+                                                 xaxis_label="Error rate", yaxis_label="Recall", set_ranges=True),
+                     style={'height': '1000px', 'width': '1000px'})
 
 
 
@@ -206,7 +207,8 @@ def get_graph_raw (plots_value, tool_checklist_values, dataset_coverage_checklis
                                                  dataset_coverage_checklist_values,
                                                  coverage_checklist_values, strand_bias_checklist_values,
                                                  gaps_checklist_values,
-                                                 xaxis_label="Nb of correct calls", yaxis_label="Nb of truth variants found", set_ranges=False))
+                                                 xaxis_label="Nb of correct calls", yaxis_label="Nb of truth variants found", set_ranges=False),
+                     style={'height': '1000px', 'width': '1000px'})
 
 
 def get_data_table_with_no_gt_conf_filter(plots_value, tool_checklist_values, dataset_coverage_checklist_values, coverage_checklist_values,
