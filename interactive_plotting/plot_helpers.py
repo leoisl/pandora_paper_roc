@@ -170,11 +170,8 @@ def get_df_and_check_args_for_graph(plots_value, tool_checklist_values, dataset_
 
 
 
-def get_graph_proportion (plots_value, tool_checklist_values, dataset_coverage_checklist_values, coverage_checklist_values,
+def get_graph_proportion (df, plots_value, tool_checklist_values, dataset_coverage_checklist_values, coverage_checklist_values,
                              strand_bias_checklist_values, gaps_checklist_values):
-    df = get_df_and_check_args_for_graph (plots_value, tool_checklist_values, dataset_coverage_checklist_values, coverage_checklist_values,
-                             strand_bias_checklist_values, gaps_checklist_values)
-
     config_to_all_traces_proportion = compute_traces_in_product_of_args(df,
                                                                         tool_checklist_values,
                                                                         dataset_coverage_checklist_values,
@@ -191,11 +188,8 @@ def get_graph_proportion (plots_value, tool_checklist_values, dataset_coverage_c
 
 
 
-def get_graph_raw (plots_value, tool_checklist_values, dataset_coverage_checklist_values, coverage_checklist_values,
+def get_graph_raw (df, plots_value, tool_checklist_values, dataset_coverage_checklist_values, coverage_checklist_values,
                              strand_bias_checklist_values, gaps_checklist_values):
-    df = get_df_and_check_args_for_graph (plots_value, tool_checklist_values, dataset_coverage_checklist_values, coverage_checklist_values,
-                             strand_bias_checklist_values, gaps_checklist_values)
-
     config_to_all_traces_raw = compute_traces_in_product_of_args(df,
                                                                         tool_checklist_values,
                                                                         dataset_coverage_checklist_values,
@@ -211,10 +205,7 @@ def get_graph_raw (plots_value, tool_checklist_values, dataset_coverage_checklis
                      style={'height': '1000px', 'width': '1000px'})
 
 
-def get_data_table_with_no_gt_conf_filter(plots_value, tool_checklist_values, dataset_coverage_checklist_values, coverage_checklist_values,
-                             strand_bias_checklist_values, gaps_checklist_values):
-    df = get_df_and_check_args_for_graph(plots_value, tool_checklist_values, dataset_coverage_checklist_values,
-                                         coverage_checklist_values, strand_bias_checklist_values, gaps_checklist_values)
+def get_data_table_with_no_gt_conf_filter(df):
     df_with_no_gt_conf_filters = df.query("step_GT == 0")
     return dash_table.DataTable(
         columns=[{"name": column, "id": column} for column in df_with_no_gt_conf_filters.columns if "Unnamed" not in column],

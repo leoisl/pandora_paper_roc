@@ -83,7 +83,8 @@ def update_all_checklists(plots_value):
      Input(component_id='gaps_checklist', component_property='value')
      ])
 def update_all_graphs (*args):
-    return get_graph_proportion(*args), get_graph_raw(*args), get_data_table_with_no_gt_conf_filter(*args)
+    df = get_df_and_check_args_for_graph (*args)
+    return get_graph_proportion(df, *args), get_graph_raw(df, *args), get_data_table_with_no_gt_conf_filter(df)
 
 
 if __name__ == '__main__':
