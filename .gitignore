@@ -132,8 +132,6 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
-
-Pipfile.lock
 *.amb
 *.ann
 *.bwt

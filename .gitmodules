@@ -1,0 +1,3 @@
+[submodule "vcf_consensus_builder"]
+	path = vcf_consensus_builder
+	url = https://github.com/leoisl/vcf_consensus_builder
