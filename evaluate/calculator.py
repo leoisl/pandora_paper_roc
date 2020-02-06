@@ -112,11 +112,11 @@ class RecallCalculator(Calculator):
         mappings_with_correct_classifications = all_mappings_for_the_truth_probe.query(correct_classification_query_str)
         if len(mappings_with_correct_classifications) > 0:
             # selects the highest gt_conf correct mapping, which is a TP
-            mapping_to_return = mappings_with_correct_classifications.iloc[0]
+            mapping_to_return = mappings_with_correct_classifications.iloc[0].copy()
             mapping_to_return["classification"] = StatisticalClassification.TRUE_POSITIVE
         else:
             # selects the highest gt_conf incorrect mapping, which is a FN
-            mapping_to_return = all_mappings_for_the_truth_probe.iloc[0]
+            mapping_to_return = all_mappings_for_the_truth_probe.iloc[0].copy()
             mapping_to_return["classification"] = StatisticalClassification.FALSE_NEGATIVE
 
         return mapping_to_return
