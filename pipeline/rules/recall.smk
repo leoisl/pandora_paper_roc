@@ -1,18 +1,76 @@
-rule make_variant_calls_probeset_for_recall:
+global data, output_folder, samples, cov_tool_and_filters_to_recall_report_files, number_of_points_in_ROC_curve
+
+rule make_empty_depth_file:
     input:
-         vcf = lambda wildcards: data.xs((wildcards.sample_id, wildcards.coverage, wildcards.tool))["vcf"],
-         vcf_ref = lambda wildcards: data.xs((wildcards.sample_id, wildcards.coverage, wildcards.tool))["vcf_reference"]
+        file = "{file}"
     output:
-          probeset = output_folder + "/recall/variant_calls_probesets/{sample_id}/{coverage}/{tool}/coverage_filter_{coverage_threshold}/strand_bias_filter_{strand_bias_threshold}/gaps_filter_{gaps_threshold}/variant_calls_probeset.fa"
-    params:
-          flank_length = config["variant_calls_flank_length_for_recall"]
+        empty_depth_file = "{file}.depth"
     threads: 1
     resources:
-        mem_mb = lambda wildcards, attempt: 1000 * attempt
+        mem_mb = lambda wildcards, attempt: 100 * attempt
     log:
-        "logs/make_variant_calls_probeset_for_recall/{sample_id}/{coverage}/{tool}/coverage_filter_{coverage_threshold}/strand_bias_filter_{strand_bias_threshold}/gaps_filter_{gaps_threshold}/variant_calls_probeset.log"
-    script:
-        "../scripts/make_variant_calls_probeset.py"
+        "logs/make_empty_depth_file{file}.log"
+    shell:
+        "touch {output.empty_depth_file}"
+
+rule gzip_vcf_file:
+    input:
+        vcf_file = "{filename}.vcf"
+    output:
+        gzipped_vcf_file = "{filename}.vcf.gz"
+    threads: 1
+    resources:
+        mem_mb = lambda wildcards, attempt: 4000 * attempt
+    log:
+        "logs/gzip_vcf_file{filename}.log"
+    shell:
+        "bgzip -c {input.vcf_file} > {output.gzipped_vcf_file}"
+
+
+rule index_gzipped_vcf_file:
+    input:
+        gzipped_vcf_file = rules.gzip_vcf_file.output.gzipped_vcf_file
+    output:
+        indexed_gzipped_vcf_file = "{filename}.vcf.gz.tbi"
+    threads: 1
+    resources:
+        mem_mb = lambda wildcards, attempt: 4000 * attempt
+    log:
+        "logs/index_gzipped_vcf_file{filename}.log"
+    shell:
+        "tabix -p vcf {input.gzipped_vcf_file}"
+
+
+rule make_vcf_for_a_single_sample:
+    input:
+        gzipped_multisample_vcf_file = rules.gzip_vcf_file.output.gzipped_vcf_file,
+        indexed_gzipped_vcf_file = rules.index_gzipped_vcf_file.output.indexed_gzipped_vcf_file
+    output:
+        singlesample_vcf_file = "{filename}.vcf.sample_{sample_id}.vcf",
+    threads: 1
+    resources:
+        mem_mb = lambda wildcards, attempt: 4000 * attempt
+    log:
+        "logs/make_vcf_for_a_single_sample{filename}_sample_{sample_id}.log"
+    shell:
+        "bcftools view -s {wildcards.sample_id} {input.gzipped_multisample_vcf_file} > {output.singlesample_vcf_file}"
+
+
+rule make_mutated_vcf_ref_for_recall:
+    input:
+         singlesample_vcf = lambda wildcards: f"{data.xs((wildcards.sample_id, wildcards.coverage, wildcards.tool))['vcf']}.sample_{wildcards.sample_id}.vcf",
+         vcf_ref = lambda wildcards: data.xs((wildcards.sample_id, wildcards.coverage, wildcards.tool))['vcf_reference'],
+         empty_depth_file = lambda wildcards: f"{data.xs((wildcards.sample_id, wildcards.coverage, wildcards.tool))['vcf_reference']}.depth",
+    output:
+          mutated_vcf_ref = output_folder + "/recall/mutated_refs/{sample_id}/{coverage}/{tool}/coverage_filter_{coverage_threshold}/strand_bias_filter_{strand_bias_threshold}/gaps_filter_{gaps_threshold}/mutated_ref.fa"
+    threads: 1
+    resources:
+        mem_mb = lambda wildcards, attempt: 4000 * attempt
+    log:
+        "logs/make_mutated_ref_for_recall/{sample_id}/{coverage}/{tool}/coverage_filter_{coverage_threshold}/strand_bias_filter_{strand_bias_threshold}/gaps_filter_{gaps_threshold}/mutated_ref.log"
+    shell:
+        "python vcf_consensus_builder/cli.py -v {input.singlesample_vcf} -r {input.vcf_ref} -d {input.empty_depth_file} "
+        "-o {output.mutated_vcf_ref} --low-coverage 0 --no-coverage 0 -VVVV"
 
 
 rule make_recall_truth_probeset:
@@ -35,39 +93,22 @@ rule make_recall_truth_probeset:
         "../scripts/make_recall_truth_probeset.py"
 
 
-rule restrict_recall_truth_probeset_to_probes_that_map_uniquely_to_the_truth:
+rule map_recall_truth_probeset_to_mutated_vcf_ref:
     input:
-        truth = lambda wildcards: samples.xs(wildcards.sample_id)["reference_assembly"],
-        unrestricted_probeset = output_folder + "/recall/truth_probesets/{sample_id}/{sample_pair}.truth_probeset.fa"
-    output:
-        unrestricted_probeset_mapped_to_truth_sam = output_folder + "/recall/restricted_truth_probesets/{sample_id}/{sample_pair}.unrestricted_truth_probeset.mapped_to_truth.sam",
-        restricted_probeset = output_folder + "/recall/restricted_truth_probesets/{sample_id}/{sample_pair}.restricted_truth_probeset.fa",
-        nb_of_truth_probes_removed_with_unique_sam_records_filter_filepath = output_folder + "/recall/restricted_truth_probesets/{sample_id}/{sample_pair}.nb_of_truth_probes_removed_with_unique_sam_records_filter.csv"
-    threads: 4
-    resources:
-        mem_mb = lambda wildcards, attempt: 2000 * attempt
-    log:
-        "logs/restrict_recall_truth_probeset_to_probes_that_map_uniquely_to_the_truth/{sample_id}_{sample_pair}.log"
-    script:
-        "../scripts/restrict_recall_truth_probeset_to_probes_that_map_uniquely_to_the_truth.py"
-
-
-rule map_recall_truth_probes_to_variant_call_probes:
-    input:
-         truth_probeset = output_folder + "/recall/restricted_truth_probesets/{sample_id}/{sample_pair}.restricted_truth_probeset.fa",
-         variant_calls_probeset = output_folder + "/recall/variant_calls_probesets/{sample_id}/{coverage}/{tool}/coverage_filter_{coverage_threshold}/strand_bias_filter_{strand_bias_threshold}/gaps_filter_{gaps_threshold}/variant_calls_probeset.fa",
-         variant_calls_probeset_index = output_folder + "/recall/variant_calls_probesets/{sample_id}/{coverage}/{tool}/coverage_filter_{coverage_threshold}/strand_bias_filter_{strand_bias_threshold}/gaps_filter_{gaps_threshold}/variant_calls_probeset.fa.amb",
+         truth_probeset = output_folder + "/recall/truth_probesets/{sample_id}/{sample_pair}.truth_probeset.fa",
+         mutated_vcf_ref = rules.make_mutated_vcf_ref_for_recall.output.mutated_vcf_ref,
+         mutated_vcf_ref_index = rules.make_mutated_vcf_ref_for_recall.output.mutated_vcf_ref + ".amb"
     output:
          sam = output_folder + "/recall/map_probes/{sample_id}/{coverage}/{tool}/coverage_filter_{coverage_threshold}/strand_bias_filter_{strand_bias_threshold}/gaps_filter_{gaps_threshold}/{sample_pair}.sam"
     threads: 4
     resources:
-        mem_mb = lambda wildcards, attempt: 2000 * attempt
+        mem_mb = lambda wildcards, attempt: 4000 * attempt
     log:
-        "logs/map_recall_truth_probes_to_variant_call_probes/{sample_id}/{coverage}/{tool}/coverage_filter_{coverage_threshold}/strand_bias_filter_{strand_bias_threshold}/gaps_filter_{gaps_threshold}/{sample_pair}.log"
+        "logs/map_recall_truth_probeset_to_mutated_vcf_ref/{sample_id}/{coverage}/{tool}/coverage_filter_{coverage_threshold}/strand_bias_filter_{strand_bias_threshold}/gaps_filter_{gaps_threshold}/{sample_pair}.log"
     script:
-        "../scripts/map_recall_truth_probes_to_variant_call_probes.py"
+        "../scripts/map_recall_truth_variants_to_mutated_vcf_ref.py"
 
-rule create_recall_report_for_probe_mappings:
+rule create_recall_report_for_truth_variants_mappings:
     input:
         sam = rules.map_recall_truth_probes_to_variant_call_probes.output.sam,
         mask = lambda wildcards: samples.xs(wildcards.sample_id)["mask"]

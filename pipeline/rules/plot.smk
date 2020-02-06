@@ -39,18 +39,3 @@ rule concat_all_nb_of_records_removed_with_mapq_sam_records_filter_files_for_pre
         "logs/concat_all_nb_of_records_removed_with_mapq_sam_records_filter_files_for_precision/nb_of_records_removed_with_mapq_sam_records_filter_for_precision.log"
     script:
         "../scripts/concat_all_nb_of_records_removed_with_mapq_sam_records_filter_files.py"
-
-
-
-rule concat_all_nb_of_truth_probes_removed_with_unique_sam_records_filter_files_for_recall:
-    input:
-         all_nb_of_truth_probes_removed_with_unique_sam_records_filter_files_for_recall = all_nb_of_truth_probes_removed_with_unique_sam_records_filter_files_for_recall
-    output:
-         nb_of_truth_probes_removed_with_unique_sam_records_filter_for_recall_filepath = output_folder + "/plot_data/nb_of_truth_probes_removed_with_unique_sam_records_filter_for_recall.csv"
-    threads: 1
-    resources:
-        mem_mb = lambda wildcards, attempt: 2000 * attempt
-    log:
-        "logs/concat_all_nb_of_truth_probes_removed_with_unique_sam_records_filter_files_for_recall/nb_of_truth_probes_removed_with_unique_sam_records_filter_for_recall.log"
-    script:
-        "../scripts/concat_all_nb_of_truth_probes_removed_with_unique_sam_records_filter_files.py"

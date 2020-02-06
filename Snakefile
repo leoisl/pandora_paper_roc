@@ -108,27 +108,6 @@ for sample1, sample2 in sample_pairs:
         ]
     )
 
-all_nb_of_truth_probes_removed_with_unique_sam_records_filter_files_for_recall = []
-for sample1, sample2 in sample_pairs:
-    all_recall_files.extend(
-        [
-            f"{output_folder}/recall/restricted_truth_probesets/{sample1}/{sample1}_and_{sample2}.unrestricted_truth_probeset.mapped_to_truth.sam",
-            f"{output_folder}/recall/restricted_truth_probesets/{sample1}/{sample1}_and_{sample2}.nb_of_truth_probes_removed_with_unique_sam_records_filter.csv",
-            f"{output_folder}/recall/restricted_truth_probesets/{sample1}/{sample1}_and_{sample2}.restricted_truth_probeset.fa",
-            f"{output_folder}/recall/restricted_truth_probesets/{sample2}/{sample1}_and_{sample2}.unrestricted_truth_probeset.mapped_to_truth.sam",
-            f"{output_folder}/recall/restricted_truth_probesets/{sample2}/{sample1}_and_{sample2}.nb_of_truth_probes_removed_with_unique_sam_records_filter.csv",
-            f"{output_folder}/recall/restricted_truth_probesets/{sample2}/{sample1}_and_{sample2}.restricted_truth_probeset.fa"
-        ]
-    )
-    all_nb_of_truth_probes_removed_with_unique_sam_records_filter_files_for_recall.extend(
-        [
-            f"{output_folder}/recall/restricted_truth_probesets/{sample1}/{sample1}_and_{sample2}.nb_of_truth_probes_removed_with_unique_sam_records_filter.csv",
-            f"{output_folder}/recall/restricted_truth_probesets/{sample2}/{sample1}_and_{sample2}.nb_of_truth_probes_removed_with_unique_sam_records_filter.csv"
-        ]
-    )
-
-
-
 for index, row in data.iterrows():
     sample_id, coverage, tool = row["sample_id"], row["coverage"], row["tool"]
     for sample1, sample2 in [pair for pair in sample_pairs if sample_id in pair]:
@@ -161,12 +140,11 @@ for coverage, tool, coverage_threshold, strand_bias_threshold, gaps_threshold in
     all_plot_data_intermediate_files.append(f"{output_folder}/plot_data/{coverage}/{tool}/coverage_filter_{coverage_threshold}/strand_bias_filter_{strand_bias_threshold}/gaps_filter_{gaps_threshold}/ROC_data.tsv")
 final_plot_data_file = f"{output_folder}/plot_data/ROC_data.tsv"
 final_all_nb_of_records_removed_with_mapq_sam_records_filter_file = f"{output_folder}/plot_data/nb_of_records_removed_with_mapq_sam_records_filter_for_precision.csv"
-final_all_nb_of_truth_probes_removed_with_mapq_sam_records_filter_file = f"{output_folder}/plot_data/nb_of_truth_probes_removed_with_unique_sam_records_filter_for_recall.csv"
 
 files.extend(all_plot_data_intermediate_files)
 files.append(final_plot_data_file)
 files.append(final_all_nb_of_records_removed_with_mapq_sam_records_filter_file)
-files.append(final_all_nb_of_truth_probes_removed_with_mapq_sam_records_filter_file)
+
 
 
 

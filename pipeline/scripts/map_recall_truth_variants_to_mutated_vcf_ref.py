@@ -18,7 +18,7 @@ from evaluate.bwa import BWA
 
 # setup
 query = Path(snakemake.input.truth_probeset)
-ref = Path(snakemake.input.variant_calls_probeset)
+ref = Path(snakemake.input.mutated_vcf_ref)
 output = Path(snakemake.output.sam)
 threads = int(snakemake.threads)
 
