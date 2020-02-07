@@ -23,7 +23,8 @@ from evaluate.reporter import RecallReporter
 mask_filepath = snakemake.input.mask
 sam_filepath = snakemake.input.sam
 sample_id = snakemake.wildcards.sample_id
-output = snakemake.output.report
+variant_call_recall_report = snakemake.output.report
+gt_conf_percentile = int(snakemake.wildcards.gt_conf_percentile)
 
 
 # API usage
@@ -41,10 +42,16 @@ classifier = RecallClassifier(sam=records, name=sample_id)
 logging.info("Creating reporter")
 reporter = RecallReporter(classifiers=[classifier])
 
+logging.info("Generating report")
+
+# TODO: we are passing gt_conf_percentile (values in [0, 100, 1]) as gt_conf
+# TODO: fix this? It does not really matter as we use step gt (which is gt_conf_percentile) anyway later
+report = reporter.generate_report(gt_conf_percentile)
+
 
 # output
-logging.info("Generating and saving report")
-with open(output, "w") as output:
-    reporter.save(output)
+logging.info("Saving report")
+with open(variant_call_recall_report, "w") as output:
+    reporter.save_report(report, output)
 
 logging.info("Done")

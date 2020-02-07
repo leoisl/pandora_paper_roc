@@ -65,7 +65,7 @@ class TestRecallReporter:
         delim = "\t"
         reporter = RecallReporter(classifiers=[RecallClassifier()], delim=delim)
         fh = StringIO(newline="")
-        reporter.save(fh)
+        reporter.save_report(fh)
 
         fh.seek(0)
         actual = fh.read()
@@ -83,7 +83,7 @@ class TestRecallReporter:
         reporter = RecallReporter(classifiers=[classifier], delim=delim)
 
         fh = StringIO(newline="")
-        reporter.save(fh)
+        reporter.save_report(fh)
 
         fh.seek(0)
         actual = fh.read()
@@ -122,7 +122,7 @@ class TestRecallReporter:
         reporter = RecallReporter(classifiers=[classifier], delim=delim)
 
         fh = StringIO(newline="")
-        reporter.save(fh)
+        reporter.save_report(fh)
 
         fh.seek(0)
         actual = fh.read()
@@ -163,7 +163,7 @@ class TestRecallReporter:
         reporter = RecallReporter(classifiers=[classifier1, classifier2], delim=delim)
 
         fh = StringIO(newline="")
-        reporter.save(fh)
+        reporter.save_report(fh)
 
         fh.seek(0)
         actual = fh.read()

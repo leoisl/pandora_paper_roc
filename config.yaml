@@ -7,5 +7,3 @@ samples:                                  metadata/samples.csv
 variant_calls:                            metadata/variant_calls.csv
 variant_calls_flank_length_for_precision: 150
 truth_probes_flank_length_for_recall:     100
-
-number_of_points_in_ROC_curve:            1000

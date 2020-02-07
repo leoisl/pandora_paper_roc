@@ -20,10 +20,6 @@ properties:
     truth_probes_flank_length_for_recall:
         type:                   number
         description:            The flank length to use for truth probes in recall assessment. This has to be a large flank (i.e. between 100 and 200).
-    number_of_points_in_ROC_curve:
-        type:                   number
-        description:            Number of points to plot in the ROC curve. The higher, the better, but it is also slower.
-        default:                1000
     coverage_filters:
         type:                   array
         description:            VCF records having mean coverage smaller than this value will be filtered out from the analysis. One plot is produced for each value.

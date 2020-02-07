@@ -19,10 +19,10 @@ import numpy as np
 
 
 # setup
-recall_report_files_for_all_samples = (
-    snakemake.input.recall_report_files_for_all_samples
+recall_report_files_for_all_samples_and_all_gt_conf_percentile = (
+    snakemake.input.recall_report_files_for_all_samples_and_all_gt_conf_percentile
 )
-output = Path(snakemake.output.recall_file_for_all_samples)
+output = Path(snakemake.output.recall_file_for_all_samples_and_all_gt_conf_percentile)
 
 number_of_points_in_ROC_curve = float(snakemake.params.number_of_points_in_ROC_curve)
 
@@ -36,7 +36,7 @@ gaps_threshold = snakemake.wildcards.gaps_threshold
 # API usage
 logging.info(f"Creating calculator")
 recall_calculator = RecallCalculator.from_files(
-    recall_report_files_for_all_samples
+    recall_report_files_for_all_samples_and_all_gt_conf_percentile
 )
 
 

@@ -61,10 +61,13 @@ classifier = PrecisionClassifier(sam=records, name=sample_id)
 logging.info("Creating reporter")
 reporter = PrecisionReporter(classifiers=[classifier])
 
+logging.info("Generating report")
+report = reporter.generate_report()
+
 
 # output
-logging.info("Generating and saving report")
+logging.info("Saving report")
 with open(variant_call_precision_report, "w") as output:
-    reporter.save(output)
+    reporter.save_report(report, output)
 
 logging.info("Done")
