@@ -61,11 +61,42 @@ class TestRecallReporter:
 
         assert actual.equals(expected)
 
+    def test_generateReport_twoClassificationsReturnsDataframeWithTwoEntriesWithFixedGTConf(self):
+        classifier = create_classifier_with_two_entries(RecallClassifier)
+        sample = "sample"
+        classifier.name = sample
+        reporter = RecallReporter(classifiers=[classifier])
+
+        actual = reporter.generate_report(fixed_GT_conf=123)
+        expected_data = []
+        for assessment, record in [
+            (AlignmentAssessment.PRIMARY_CORRECT, create_correct_primary_sam_record()),
+            (
+                AlignmentAssessment.SUPPLEMENTARY_INCORRECT,
+                create_incorrect_supplementary_sam_record(),
+            ),
+        ]:
+            expected_data.append(
+                [sample, record.query_name+"GT_CONF=123;", record.reference_name, assessment]
+            )
+        expected = pd.DataFrame(
+            expected_data,
+            columns=[
+                "sample",
+                "query_probe_header",
+                "ref_probe_header",
+                "classification",
+            ],
+        )
+
+        assert actual.equals(expected)
+
     def test_save_emptyReporterReturnsHeadersOnly(self):
         delim = "\t"
         reporter = RecallReporter(classifiers=[RecallClassifier()], delim=delim)
         fh = StringIO(newline="")
-        reporter.save_report(fh)
+        report = reporter.generate_report()
+        reporter.save_report(report, fh)
 
         fh.seek(0)
         actual = fh.read()
@@ -80,10 +111,12 @@ class TestRecallReporter:
         classifier = create_classifier_with_two_entries(RecallClassifier)
         sample = "sample"
         classifier.name = sample
+
         reporter = RecallReporter(classifiers=[classifier], delim=delim)
 
         fh = StringIO(newline="")
-        reporter.save_report(fh)
+        report = reporter.generate_report()
+        reporter.save_report(report, fh)
 
         fh.seek(0)
         actual = fh.read()
@@ -122,7 +155,8 @@ class TestRecallReporter:
         reporter = RecallReporter(classifiers=[classifier], delim=delim)
 
         fh = StringIO(newline="")
-        reporter.save_report(fh)
+        report = reporter.generate_report()
+        reporter.save_report(report, fh)
 
         fh.seek(0)
         actual = fh.read()
@@ -163,7 +197,8 @@ class TestRecallReporter:
         reporter = RecallReporter(classifiers=[classifier1, classifier2], delim=delim)
 
         fh = StringIO(newline="")
-        reporter.save_report(fh)
+        report = reporter.generate_report()
+        reporter.save_report(report, fh)
 
         fh.seek(0)
         actual = fh.read()
@@ -188,5 +223,21 @@ class TestRecallReporter:
         ).to_csv(expected, sep=delim, header=True, index=False)
         expected.seek(0)
         expected = expected.read()
+
+        assert actual == expected
+
+    def test____add_suffix_to_header_if_not_present___valid_value(self):
+        reporter = RecallReporter(classifiers=None)
+
+        actual = reporter._add_suffix_to_header_if_not_present("", "field_1", "value_1")
+        expected = "field_1=value_1;"
+
+        assert actual == expected
+
+    def test____add_suffix_to_header_if_not_present___invalid_value(self):
+        reporter = RecallReporter(classifiers=None)
+
+        actual = reporter._add_suffix_to_header_if_not_present("", "field_1", None)
+        expected = ""
 
         assert actual == expected
