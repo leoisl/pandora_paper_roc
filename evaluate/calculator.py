@@ -2,6 +2,8 @@ from .report import Report, PrecisionReport, RecallReport
 from collections import Counter
 from enum import Enum
 from .classification import AlignmentAssessment
+import numpy as np
+import pandas as pd
 
 
 class EmptyReportError(Exception):
@@ -33,21 +35,95 @@ class Calculator:
     def __init__(self, report: Report):
         self.report = report
 
+    def _get_all_genotype_points(self, number_of_datapoints):
+        min_gt = self.report.get_minimum_gt_conf()
+        max_gt = self.report.get_maximum_gt_conf()
+        step_gt = (max_gt - min_gt) / number_of_datapoints
+
+        all_gts = list(np.arange(min_gt, max_gt, step_gt))
+        if len(all_gts) == number_of_datapoints:
+            all_gts.append(max_gt)
+        assert (len(all_gts) == number_of_datapoints + 1)
+        return all_gts
+
+
 class PrecisionCalculator(Calculator):
     def __init__(self, report: PrecisionReport):
         super().__init__(report)
 
-    def calculate_precision(self, conf_threshold: float = 0.0) -> PrecisionInfo:
+    def get_precision_report(self, number_of_datapoints) -> pd.DataFrame:
+        all_gts = self._get_all_genotype_points(number_of_datapoints)
+
+        gts = []
+        precisions = []
+        error_rates = []
+        nb_of_correct_calls = []
+        nb_of_total_calls = []
+        for gt in all_gts:
+            try:
+                precision_info = self._calculate_precision_for_a_given_confidence(gt)
+                gts.append(gt)
+                precisions.append(precision_info.precision)
+                error_rates.append(1 - precision_info.precision)
+                nb_of_correct_calls.append(precision_info.true_positives)
+                nb_of_total_calls.append(precision_info.total)
+            except EmptyReportError:
+                pass
+
+        precision_df = pd.DataFrame(
+            data={
+                "GT": gts,
+                "step_GT": list(range(len(gts))),
+                "precision": precisions,
+                "error_rate": error_rates,
+                "nb_of_correct_calls": nb_of_correct_calls,
+                "nb_of_total_calls": nb_of_total_calls
+            }
+        )
+
+        return precision_df
+
+    def _calculate_precision_for_a_given_confidence(self, conf_threshold: float = 0.0) -> PrecisionInfo:
         confident_classifications = self.report.get_confident_classifications(conf_threshold)
         true_positives = sum(confident_classifications)
         number_of_calls = len(confident_classifications)
         return PrecisionInfo(true_positives, number_of_calls)
 
+
 class RecallCalculator(Calculator):
     def __init__(self, report: RecallReport):
         super().__init__(report)
 
-    def calculate_recall(self, conf_threshold: float = 0) -> RecallInfo:
+    def get_recall_report(self, number_of_datapoints) -> pd.DataFrame:
+        all_gts = self._get_all_genotype_points(number_of_datapoints)
+
+        gts = []
+        recalls = []
+        nb_of_truth_probes_found = []
+        nb_of_truth_probes_in_total = []
+        for gt in all_gts:
+            try:
+                recall_info = self._calculate_recall_for_a_given_confidence(gt)
+                gts.append(gt)
+                recalls.append(recall_info.recall)
+                nb_of_truth_probes_found.append(recall_info.true_positives)
+                nb_of_truth_probes_in_total.append(recall_info.total)
+            except EmptyReportError:
+                pass
+
+        recall_df = pd.DataFrame(
+            data={
+                "GT": gts,
+                "step_GT": list(range(len(gts))),
+                "recall": recalls,
+                "nb_of_truth_probes_found": nb_of_truth_probes_found,
+                "nb_of_truth_probes_in_total": nb_of_truth_probes_in_total
+            }
+        )
+
+        return recall_df
+
+    def _calculate_recall_for_a_given_confidence(self, conf_threshold: float = 0) -> RecallInfo:
         confident_classifications = self.report.get_confident_classifications(conf_threshold)
         counter = Counter(
             [
