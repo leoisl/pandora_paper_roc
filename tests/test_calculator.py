@@ -1,289 +1,199 @@
 import pandas as pd
-import tempfile
-from evaluate.probe import ProbeHeader
 from evaluate.calculator import (
-    RecallCalculator,
-    StatisticalClassification,
-    PrecisionCalculator,
     Calculator,
+    RecallCalculator,
+    PrecisionCalculator,
     EmptyReportError,
 )
 from evaluate.classification import AlignmentAssessment
-from pathlib import Path
-
 import pytest
-from io import StringIO
-import math
-
-
-def create_tmp_file(contents: str) -> Path:
-    with tempfile.NamedTemporaryFile(mode="r+", delete=False) as tmp:
-        tmp.write(contents)
-        tmp.truncate()
-
-    return Path(tmp.name)
-
-
-def create_recall_report_row(
-    truth_probe_header:str, classification: AlignmentAssessment, gt_conf: float = 0, sample: str = "sample1", with_gt_conf=False
-) -> pd.Series:
-    vcf_probe_header = ProbeHeader(gt_conf=gt_conf)
-    data = {
-        "sample": sample,
-        "query_probe_header": str(truth_probe_header),
-        "ref_probe_header": str(vcf_probe_header),
-        "classification": classification.value,
-    }
-    if with_gt_conf:
-        data["gt_conf"] = gt_conf
-
-    return pd.Series(data=data)
-
-
-def create_precision_report_row(
-    classification: float, gt_conf: float = 0, sample: str = "sample1"
-) -> pd.Series:
-    ref_probe_header = ProbeHeader()
-    pandora_probe_header = ProbeHeader(gt_conf=gt_conf)
-    data = {
-        "sample": sample,
-        "query_probe_header": str(pandora_probe_header),
-        "ref_probe_header": str(ref_probe_header),
-        "classification": classification,
-    }
-    return pd.Series(data=data)
-
+from unittest.mock import patch
+from evaluate.report import (
+    Report,
+    PrecisionReport,
+    RecallReport
+)
+from numpy.testing import assert_allclose
+from tests.common import create_recall_report_row, create_precision_report_row
 
 class TestCalculator:
-    def test_getMaximumGtConf_no_gt_conf_columnRaisesKeyError(self):
-        calculator = Calculator([pd.DataFrame()])
-        with pytest.raises(KeyError):
-            calculator.get_maximum_gt_conf()
+    @patch.object(Report, Report.get_minimum_gt_conf.__name__, return_value = 2.5)
+    @patch.object(Report, Report.get_maximum_gt_conf.__name__, return_value = 33.3)
+    def test____get_all_genotype_points___no_datapoints(self, *patches):
+        report_mock = Report([pd.DataFrame()])
+        calculator = Calculator(report_mock)
+        actual = calculator._get_all_genotype_points(0)
+        expected = []
+        assert_allclose(actual, expected)
 
-    def test_getMaximumGtConf_emptyReportReturnsNaN(self):
-        calculator = Calculator([pd.DataFrame(data={"gt_conf": []})])
-        actual = calculator.get_maximum_gt_conf()
+    @patch.object(Report, Report.get_minimum_gt_conf.__name__, return_value = 2.5)
+    @patch.object(Report, Report.get_maximum_gt_conf.__name__, return_value = 33.3)
+    def test____get_all_genotype_points___one_datapoint(self, *patches):
+        report_mock = Report([pd.DataFrame()])
+        calculator = Calculator(report_mock)
+        actual = calculator._get_all_genotype_points(1)
+        expected = [2.5]
+        assert_allclose(actual, expected)
 
-        assert math.isnan(actual)
+    @patch.object(Report, Report.get_minimum_gt_conf.__name__, return_value = 2.5)
+    @patch.object(Report, Report.get_maximum_gt_conf.__name__, return_value = 33.3)
+    def test____get_all_genotype_points___two_datapoints(self, *patches):
+        report_mock = Report([pd.DataFrame()])
+        calculator = Calculator(report_mock)
+        actual = calculator._get_all_genotype_points(2)
+        expected = [2.5, 33.3]
+        assert_allclose(actual, expected)
 
-    def test_getMaximumGtConf_oneGTConfInReportReturnsGTConf(self):
-        calculator = Calculator([pd.DataFrame(data={"gt_conf": [1.5]})])
-        actual = calculator.get_maximum_gt_conf()
-        expected = 1.5
+    @patch.object(Report, Report.get_minimum_gt_conf.__name__, return_value = 2.5)
+    @patch.object(Report, Report.get_maximum_gt_conf.__name__, return_value = 33.3)
+    def test____get_all_genotype_points___three_datapoints(self, *patches):
+        report_mock = Report([pd.DataFrame()])
+        calculator = Calculator(report_mock)
+        actual = calculator._get_all_genotype_points(3)
+        expected = [2.5, 17.9 ,33.3]
+        assert_allclose(actual, expected)
 
-        assert actual == expected
-
-    def test_getMaximumGtConf_threeGTConfsInReportReturnsHighest(self):
-        calculator = Calculator([pd.DataFrame(data={"gt_conf": [1.5, 10.5, 5.0]})])
-        actual = calculator.get_maximum_gt_conf()
-        expected = 10.5
-
-        assert actual == expected
-
-
-    def test_getMinimumGtConf_no_gt_conf_columnRaisesKeyError(self):
-        calculator = Calculator([pd.DataFrame()])
-        with pytest.raises(KeyError):
-            calculator.get_minimum_gt_conf()
-
-    def test_getMinimumGtConf_emptyReportReturnsNaN(self):
-        calculator = Calculator([pd.DataFrame(data={"gt_conf": []})])
-        actual = calculator.get_minimum_gt_conf()
-
-        assert math.isnan(actual)
-
-    def test_getMinimumGtConf_oneGTConfInReportReturnsGTConf(self):
-        calculator = Calculator([pd.DataFrame(data={"gt_conf": [1.5]})])
-        actual = calculator.get_minimum_gt_conf()
-        expected = 1.5
-
-        assert actual == expected
-
-    def test_getMinimumGtConf_threeGTConfsInReportReturnsHighest(self):
-        calculator = Calculator([pd.DataFrame(data={"gt_conf": [10.5, 5.0, 0.2]})])
-        actual = calculator.get_minimum_gt_conf()
-        expected = 0.2
-
-        assert actual == expected
+    @patch.object(Report, Report.get_minimum_gt_conf.__name__, return_value = 2.5)
+    @patch.object(Report, Report.get_maximum_gt_conf.__name__, return_value = 33.3)
+    def test____get_all_genotype_points___five_datapoints(self, *patches):
+        report_mock = Report([pd.DataFrame()])
+        calculator = Calculator(report_mock)
+        actual = calculator._get_all_genotype_points(5)
+        expected = [2.5, 10.2, 17.9, 25.6, 33.3]
+        assert_allclose(actual, expected)
 
 
-class TestRecallCalculator:
-    def test_fromFiles_TwoFilesReturnsValidRecallCalculator(self):
-        contents_1 = """sample	query_probe_header	ref_probe_header	classification
-CFT073	>CHROM=1;POS=1246;INTERVAL=[20,30);		unmapped
-CFT073	>CHROM=1;POS=1248;INTERVAL=[30,40);	>CHROM=GC00005358_3;SAMPLE=CFT073;POS=1;INTERVAL=[0,17);SVTYPE=PH_SNPs;MEAN_FWD_COVG=3;MEAN_REV_COVG=6;GT_CONF=60.1133;	primary_correct
-CFT073	>CHROM=1;POS=1252;INTERVAL=[40,50);		unmapped
-"""
-        contents_2 = """sample	query_probe_header	ref_probe_header	classification
-CFT073	>CHROM=1;POS=1260;INTERVAL=[50,60);	>CHROM=GC00000578_3;SAMPLE=CFT073;POS=165;INTERVAL=[25,29);SVTYPE=PH_SNPs;MEAN_FWD_COVG=3;MEAN_REV_COVG=3;GT_CONF=3.22199;	primary_incorrect
-CFT073	>CHROM=1;POS=1262;INTERVAL=[60,70);		unmapped
-CFT073	>CHROM=1;POS=1281;INTERVAL=[70,80);		unmapped
-"""
-        path_1 = create_tmp_file(contents_1)
-        path_2 = create_tmp_file(contents_2)
-
-        contents_1_input = StringIO(contents_1)
-        contents_2_input = StringIO(contents_2)
-        dataframes = [
-            pd.read_csv(contents_1_input, sep="\t", keep_default_na=False),
-            pd.read_csv(contents_2_input, sep="\t", keep_default_na=False),
-        ]
-
-        actual = RecallCalculator.from_files([path_1, path_2])
-        expected = RecallCalculator(dataframes)
-
-        path_1.unlink()
-        path_2.unlink()
-
-        assert actual == expected
-
-    def test_init_gtconfIsExtractedCorrectly(self):
+class TestPrecisionCalculator:
+    def test_calculatePrecision_NoReportsRaisesEmptyReportError(self):
         columns = ["sample", "query_probe_header", "ref_probe_header", "classification"]
-        report = pd.DataFrame(
+        df = pd.DataFrame(columns=columns)
+        report = PrecisionReport([df])
+        calculator = PrecisionCalculator(report)
+
+        with pytest.raises(EmptyReportError):
+            calculator._calculate_precision_for_a_given_confidence()
+
+    def test_calculatePrecision_OneReportWithOneRowCompletelyCorrectReturnsOne(self):
+        columns = ["sample", "query_probe_header", "ref_probe_header", "classification"]
+        df = pd.DataFrame(
+            data=[create_precision_report_row(1.0, gt_conf=100)], columns=columns
+        )
+        report = PrecisionReport([df])
+        calculator = PrecisionCalculator(report)
+
+        actual = calculator._calculate_precision_for_a_given_confidence()
+
+        assert actual.precision == 1.0
+        assert actual.true_positives == 1.0
+        assert actual.total == 1.0
+
+    def test_calculatePrecision_OneReportWithOneRowCompletelyIncorrectReturnsZero(self):
+        columns = ["sample", "query_probe_header", "ref_probe_header", "classification"]
+        df = pd.DataFrame(
+            data=[create_precision_report_row(0.0, gt_conf=100)], columns=columns
+        )
+        report = PrecisionReport([df])
+        calculator = PrecisionCalculator(report)
+
+        actual = calculator._calculate_precision_for_a_given_confidence()
+
+        assert actual.precision == 0.0
+        assert actual.true_positives == 0.0
+        assert actual.total == 1.0
+
+    def test_calculatePrecision_OneReportWithOneRowCompletelyCorrectBelowConfThreasholdRaisesEmptyReportError(
+        self
+    ):
+        columns = ["sample", "query_probe_header", "ref_probe_header", "classification"]
+        df = pd.DataFrame(
+            data=[create_precision_report_row(1.0, gt_conf=10)], columns=columns
+        )
+        report = PrecisionReport([df])
+        calculator = PrecisionCalculator(report)
+
+        confidence_threshold = 60
+
+        with pytest.raises(EmptyReportError):
+            calculator._calculate_precision_for_a_given_confidence(confidence_threshold)
+
+    def test_calculatePrecision_OneReportWithOneRowCompletelyCorrectEqualConfThreasholdReturnsOne(
+        self
+    ):
+        columns = ["sample", "query_probe_header", "ref_probe_header", "classification"]
+        df = pd.DataFrame(
+            data=[create_precision_report_row(1.0, gt_conf=60)], columns=columns
+        )
+        report = PrecisionReport([df])
+        calculator = PrecisionCalculator(report)
+
+        confidence_threshold = 60
+
+        actual = calculator._calculate_precision_for_a_given_confidence(confidence_threshold)
+
+        assert actual.precision == 1.0
+        assert actual.true_positives == 1.0
+        assert actual.total == 1.0
+
+    def test_calculatePrecision_OneReportWithTwoRowsPartiallyCorrect(self):
+        columns = ["sample", "query_probe_header", "ref_probe_header", "classification"]
+        df = pd.DataFrame(
             data=[
-                create_recall_report_row("truth_probe_1", AlignmentAssessment.UNMAPPED, gt_conf=100),
-                create_recall_report_row("truth_probe_2", AlignmentAssessment.UNMAPPED, gt_conf=100),
-                create_recall_report_row("truth_probe_3",
-                    AlignmentAssessment.PRIMARY_CORRECT, gt_conf=10
-                ),
-                create_recall_report_row("truth_probe_4",
-                    AlignmentAssessment.PRIMARY_INCORRECT, gt_conf=100
-                ),
+                create_precision_report_row(0.5, gt_conf=100),
+                create_precision_report_row(0.7, gt_conf=100),
             ],
             columns=columns,
         )
-        calculator = RecallCalculator([report])
-        actual = calculator.report.gt_conf
+        report = PrecisionReport([df])
+        calculator = PrecisionCalculator(report)
 
-        expected = pd.Series([100.0, 100.0, 10.0, 100.0])
+        actual = calculator._calculate_precision_for_a_given_confidence()
 
-        assert actual.equals(expected)
+        assert actual.precision == 1.2/2
+        assert actual.true_positives == 1.2
+        assert actual.total == 2.0
 
 
-    def test__getBestMappingForTruthProbe_hasPrimaryMapping(self):
-        report = pd.DataFrame(
+    def test_calculatePrecision_OneReportWithThreeRowsTwoPartiallyCorrectOneBelowThreshold(
+        self
+    ):
+        columns = ["sample", "query_probe_header", "ref_probe_header", "classification"]
+        df = pd.DataFrame(
             data=[
-                create_recall_report_row("truth_probe_1", AlignmentAssessment.UNMAPPED, gt_conf=100, with_gt_conf=True),
-                create_recall_report_row("truth_probe_1", AlignmentAssessment.PARTIALLY_MAPPED, gt_conf=100, with_gt_conf=True),
-                create_recall_report_row("truth_probe_1", AlignmentAssessment.PRIMARY_INCORRECT, gt_conf=100, with_gt_conf=True),
-                create_recall_report_row("truth_probe_1", AlignmentAssessment.SECONDARY_INCORRECT, gt_conf=100, with_gt_conf=True),
-                create_recall_report_row("truth_probe_1", AlignmentAssessment.SUPPLEMENTARY_INCORRECT, gt_conf=100, with_gt_conf=True),
-                create_recall_report_row("truth_probe_1", AlignmentAssessment.PRIMARY_CORRECT, gt_conf=100, with_gt_conf=True),
+                create_precision_report_row(0.4, gt_conf=100),
+                create_precision_report_row(0.8, gt_conf=20),
+                create_precision_report_row(0.3, gt_conf=100),
             ],
+            columns=columns,
         )
-        report = RecallCalculator._get_truth_probe_to_all_mappings_dfs(report)
-        actual = RecallCalculator._get_best_mapping_for_truth_probe(report, "truth_probe_1")
-        expected = create_recall_report_row("truth_probe_1", AlignmentAssessment.PRIMARY_CORRECT, gt_conf=100, with_gt_conf=True)
-        expected.classification = StatisticalClassification.TRUE_POSITIVE
+        report = PrecisionReport([df])
+        calculator = PrecisionCalculator(report)
 
-        assert actual.equals(expected)
+        confidence_threshold = 80
 
-    def test__getBestMappingForTruthProbe_hasSecondaryMapping(self):
-        report = pd.DataFrame(
-            data=[
-                create_recall_report_row("truth_probe_1", AlignmentAssessment.UNMAPPED, gt_conf=100, with_gt_conf=True),
-                create_recall_report_row("truth_probe_1", AlignmentAssessment.PARTIALLY_MAPPED, gt_conf=100, with_gt_conf=True),
-                create_recall_report_row("truth_probe_1", AlignmentAssessment.PRIMARY_INCORRECT, gt_conf=100, with_gt_conf=True),
-                create_recall_report_row("truth_probe_1", AlignmentAssessment.SECONDARY_INCORRECT, gt_conf=100, with_gt_conf=True),
-                create_recall_report_row("truth_probe_1", AlignmentAssessment.SUPPLEMENTARY_INCORRECT, gt_conf=100, with_gt_conf=True),
-                create_recall_report_row("truth_probe_1", AlignmentAssessment.SECONDARY_CORRECT, gt_conf=100, with_gt_conf=True),
-            ],
-        )
-        report = RecallCalculator._get_truth_probe_to_all_mappings_dfs(report)
-        actual = RecallCalculator._get_best_mapping_for_truth_probe(report, "truth_probe_1")
-        expected = create_recall_report_row("truth_probe_1", AlignmentAssessment.SECONDARY_CORRECT, gt_conf=100, with_gt_conf=True)
-        expected.classification = StatisticalClassification.TRUE_POSITIVE
+        actual = calculator._calculate_precision_for_a_given_confidence(confidence_threshold)
 
-        assert actual.equals(expected)
-
-    def test__getBestMappingForTruthProbe_hasSupplementaryMapping(self):
-        report = pd.DataFrame(
-            data=[
-                create_recall_report_row("truth_probe_1", AlignmentAssessment.UNMAPPED, gt_conf=100, with_gt_conf=True),
-                create_recall_report_row("truth_probe_1", AlignmentAssessment.PARTIALLY_MAPPED, gt_conf=100, with_gt_conf=True),
-                create_recall_report_row("truth_probe_1", AlignmentAssessment.PRIMARY_INCORRECT, gt_conf=100, with_gt_conf=True),
-                create_recall_report_row("truth_probe_1", AlignmentAssessment.SECONDARY_INCORRECT, gt_conf=100, with_gt_conf=True),
-                create_recall_report_row("truth_probe_1", AlignmentAssessment.SUPPLEMENTARY_INCORRECT, gt_conf=100, with_gt_conf=True),
-                create_recall_report_row("truth_probe_1", AlignmentAssessment.SUPPLEMENTARY_CORRECT, gt_conf=100, with_gt_conf=True),
-            ],
-        )
-        report = RecallCalculator._get_truth_probe_to_all_mappings_dfs(report)
-        actual = RecallCalculator._get_best_mapping_for_truth_probe(report, "truth_probe_1")
-        expected = create_recall_report_row("truth_probe_1", AlignmentAssessment.SUPPLEMENTARY_CORRECT, gt_conf=100, with_gt_conf=True)
-        expected.classification = StatisticalClassification.TRUE_POSITIVE
-
-        assert actual.equals(expected)
-
-    def test__getBestMappingForTruthProbe_hasPrimarySecondaryAndSupplementaryMapping_ChoosesTheOneWithHighestGTConf(self):
-        report = pd.DataFrame(
-            data=[
-                create_recall_report_row("truth_probe_1", AlignmentAssessment.UNMAPPED, gt_conf=100, with_gt_conf=True),
-                create_recall_report_row("truth_probe_1", AlignmentAssessment.PARTIALLY_MAPPED, gt_conf=100, with_gt_conf=True),
-                create_recall_report_row("truth_probe_1", AlignmentAssessment.PRIMARY_INCORRECT, gt_conf=100, with_gt_conf=True),
-                create_recall_report_row("truth_probe_1", AlignmentAssessment.SECONDARY_INCORRECT, gt_conf=100, with_gt_conf=True),
-                create_recall_report_row("truth_probe_1", AlignmentAssessment.SUPPLEMENTARY_INCORRECT, gt_conf=100, with_gt_conf=True),
-                create_recall_report_row("truth_probe_1", AlignmentAssessment.PRIMARY_CORRECT, gt_conf=100, with_gt_conf=True),
-                create_recall_report_row("truth_probe_1", AlignmentAssessment.SECONDARY_CORRECT, gt_conf=200, with_gt_conf=True),
-                create_recall_report_row("truth_probe_1", AlignmentAssessment.SUPPLEMENTARY_CORRECT, gt_conf=150, with_gt_conf=True),
-            ],
-        )
-        report = RecallCalculator._get_truth_probe_to_all_mappings_dfs(report)
-        actual = RecallCalculator._get_best_mapping_for_truth_probe(report, "truth_probe_1")
-        expected = create_recall_report_row("truth_probe_1", AlignmentAssessment.SECONDARY_CORRECT, gt_conf=200, with_gt_conf=True)
-        expected.classification = StatisticalClassification.TRUE_POSITIVE
-
-        assert actual.equals(expected)
+        assert actual.precision == 0.7/2.0
+        assert actual.true_positives == 0.7
+        assert actual.total == 2.0
 
 
-    def test__getBestMappingForTruthProbe_hasNoCorrectMapping_ChoosesTheOneWithHighestGTConf(self):
-        report = pd.DataFrame(
-            data=[
-                create_recall_report_row("truth_probe_1", AlignmentAssessment.UNMAPPED, gt_conf=100, with_gt_conf=True),
-                create_recall_report_row("truth_probe_1", AlignmentAssessment.PARTIALLY_MAPPED, gt_conf=140, with_gt_conf=True),
-                create_recall_report_row("truth_probe_1", AlignmentAssessment.PRIMARY_INCORRECT, gt_conf=150, with_gt_conf=True),
-                create_recall_report_row("truth_probe_1", AlignmentAssessment.SECONDARY_INCORRECT, gt_conf=110, with_gt_conf=True),
-                create_recall_report_row("truth_probe_1", AlignmentAssessment.SUPPLEMENTARY_INCORRECT, gt_conf=120, with_gt_conf=True),
-            ],
-        )
-        report = RecallCalculator._get_truth_probe_to_all_mappings_dfs(report)
-        actual = RecallCalculator._get_best_mapping_for_truth_probe(report, "truth_probe_1")
-        expected = create_recall_report_row("truth_probe_1", AlignmentAssessment.PRIMARY_INCORRECT, gt_conf=150, with_gt_conf=True)
-        expected.classification = StatisticalClassification.FALSE_NEGATIVE
-
-        assert actual.equals(expected)
 
 
-    def test__getBestMappingForTruthProbe_hasPrimaryCorrectMappingWithLowGTConf_ChoosesPrimaryCorrectMapping(self):
-        report = pd.DataFrame(
-            data=[
-                create_recall_report_row("truth_probe_1", AlignmentAssessment.UNMAPPED, gt_conf=100, with_gt_conf=True),
-                create_recall_report_row("truth_probe_1", AlignmentAssessment.PARTIALLY_MAPPED, gt_conf=140, with_gt_conf=True),
-                create_recall_report_row("truth_probe_1", AlignmentAssessment.PRIMARY_INCORRECT, gt_conf=150, with_gt_conf=True),
-                create_recall_report_row("truth_probe_1", AlignmentAssessment.SECONDARY_INCORRECT, gt_conf=110, with_gt_conf=True),
-                create_recall_report_row("truth_probe_1", AlignmentAssessment.SUPPLEMENTARY_INCORRECT, gt_conf=120, with_gt_conf=True),
-                create_recall_report_row("truth_probe_1", AlignmentAssessment.PRIMARY_CORRECT, gt_conf=1, with_gt_conf=True),
-            ],
-        )
-        report = RecallCalculator._get_truth_probe_to_all_mappings_dfs(report)
-        actual = RecallCalculator._get_best_mapping_for_truth_probe(report, "truth_probe_1")
-        expected = create_recall_report_row("truth_probe_1", AlignmentAssessment.PRIMARY_CORRECT, gt_conf=1, with_gt_conf=True)
-        expected.classification = StatisticalClassification.TRUE_POSITIVE
 
-        assert actual.equals(expected)
-
-
+class TestRecallCalculator:
     def test_calculateRecall_noReportsRaisesEmptyReportError(self):
         columns = ["sample", "query_probe_header", "ref_probe_header", "classification"]
-        report = pd.DataFrame(columns=columns)
-        calculator = RecallCalculator([report])
+        df = pd.DataFrame(columns=columns)
+        report = RecallReport([df])
+        calculator = RecallCalculator(report)
         threshold = 0
 
         with pytest.raises(EmptyReportError):
-            calculator.calculate_recall(conf_threshold=threshold)
+            calculator._calculate_recall_for_a_given_confidence(conf_threshold=threshold)
 
     def test_calculateRecall_oneReportNoTruePositivesReturnsZero(self):
         columns = ["sample", "query_probe_header", "ref_probe_header", "classification"]
-        report = pd.DataFrame(
+        df = pd.DataFrame(
             data=[
                 create_recall_report_row("truth_probe_1", AlignmentAssessment.UNMAPPED, gt_conf=100),
                 create_recall_report_row("truth_probe_2", AlignmentAssessment.UNMAPPED, gt_conf=100),
@@ -296,10 +206,12 @@ CFT073	>CHROM=1;POS=1281;INTERVAL=[70,80);		unmapped
             ],
             columns=columns,
         )
-        calculator = RecallCalculator([report])
+        report = RecallReport([df])
+        calculator = RecallCalculator(report)
+
         threshold = 60
 
-        actual = calculator.calculate_recall(conf_threshold=threshold)
+        actual = calculator._calculate_recall_for_a_given_confidence(conf_threshold=threshold)
 
         assert actual.recall == 0.0
         assert actual.true_positives == 0.0
@@ -307,7 +219,7 @@ CFT073	>CHROM=1;POS=1281;INTERVAL=[70,80);		unmapped
 
     def test_calculateRecall_oneReportNoTruePositivesTwoTruthProbesReturnsZero(self):
         columns = ["sample", "query_probe_header", "ref_probe_header", "classification"]
-        report = pd.DataFrame (
+        df = pd.DataFrame(
             data=[
                 create_recall_report_row("truth_probe_1", AlignmentAssessment.UNMAPPED, gt_conf=100),
                 create_recall_report_row("truth_probe_2", AlignmentAssessment.UNMAPPED, gt_conf=100),
@@ -326,10 +238,12 @@ CFT073	>CHROM=1;POS=1281;INTERVAL=[70,80);		unmapped
             ],
             columns=columns,
         )
-        calculator = RecallCalculator([report])
+        report = RecallReport([df])
+        calculator = RecallCalculator(report)
+
         threshold = 60
 
-        actual = calculator.calculate_recall(conf_threshold=threshold)
+        actual = calculator._calculate_recall_for_a_given_confidence(conf_threshold=threshold)
 
         assert actual.recall == 0.0
         assert actual.true_positives == 0.0
@@ -337,7 +251,7 @@ CFT073	>CHROM=1;POS=1281;INTERVAL=[70,80);		unmapped
 
     def test_calculateRecall_oneReportNoFalseNegativesReturnsOne(self):
         columns = ["sample", "query_probe_header", "ref_probe_header", "classification"]
-        report = pd.DataFrame(
+        df = pd.DataFrame(
             data=[
                 create_recall_report_row(
                     "truth_probe_1", AlignmentAssessment.PRIMARY_CORRECT, gt_conf=100
@@ -354,10 +268,12 @@ CFT073	>CHROM=1;POS=1281;INTERVAL=[70,80);		unmapped
             ],
             columns=columns,
         )
-        calculator = RecallCalculator([report])
+        report = RecallReport([df])
+        calculator = RecallCalculator(report)
+
         threshold = 60
 
-        actual = calculator.calculate_recall(conf_threshold=threshold)
+        actual = calculator._calculate_recall_for_a_given_confidence(conf_threshold=threshold)
 
         assert actual.recall == 1.0
         assert actual.true_positives == 4.0
@@ -366,7 +282,7 @@ CFT073	>CHROM=1;POS=1281;INTERVAL=[70,80);		unmapped
 
     def test_calculateRecall_oneReportNoFalseNegativesTwoProbesReturnsOne(self):
         columns = ["sample", "query_probe_header", "ref_probe_header", "classification"]
-        report = pd.DataFrame(
+        df = pd.DataFrame(
             data=[
                 create_recall_report_row(
                     "truth_probe_1", AlignmentAssessment.PRIMARY_CORRECT, gt_conf=100
@@ -395,10 +311,12 @@ CFT073	>CHROM=1;POS=1281;INTERVAL=[70,80);		unmapped
             ],
             columns=columns,
         )
-        calculator = RecallCalculator([report])
+        report = RecallReport([df])
+        calculator = RecallCalculator(report)
+
         threshold = 60
 
-        actual = calculator.calculate_recall(conf_threshold=threshold)
+        actual = calculator._calculate_recall_for_a_given_confidence(conf_threshold=threshold)
 
         assert actual.recall == 1.0
         assert actual.true_positives == 2.0
@@ -409,7 +327,7 @@ CFT073	>CHROM=1;POS=1281;INTERVAL=[70,80);		unmapped
         self
     ):
         columns = ["sample", "query_probe_header", "ref_probe_header", "classification"]
-        report = pd.DataFrame(
+        df = pd.DataFrame(
             data=[
                 create_recall_report_row(
                     "truth_probe_1", AlignmentAssessment.PRIMARY_CORRECT, gt_conf=10
@@ -438,10 +356,12 @@ CFT073	>CHROM=1;POS=1281;INTERVAL=[70,80);		unmapped
             ],
             columns=columns,
         )
-        calculator = RecallCalculator([report])
+        report = RecallReport([df])
+        calculator = RecallCalculator(report)
+
         threshold = 60
 
-        actual = calculator.calculate_recall(conf_threshold=threshold)
+        actual = calculator._calculate_recall_for_a_given_confidence(conf_threshold=threshold)
 
         assert actual.recall == 0.5
         assert actual.true_positives == 3.0
@@ -452,7 +372,7 @@ CFT073	>CHROM=1;POS=1281;INTERVAL=[70,80);		unmapped
         self
     ):
         columns = ["sample", "query_probe_header", "ref_probe_header", "classification"]
-        report = pd.DataFrame(
+        df = pd.DataFrame(
             data=[
                 create_recall_report_row(
                     "truth_probe_1", AlignmentAssessment.PRIMARY_CORRECT, gt_conf=50
@@ -463,10 +383,12 @@ CFT073	>CHROM=1;POS=1281;INTERVAL=[70,80);		unmapped
             ],
             columns=columns,
         )
-        calculator = RecallCalculator([report])
+        report = RecallReport([df])
+        calculator = RecallCalculator(report)
+
         threshold = 100
 
-        actual = calculator.calculate_recall(conf_threshold=threshold)
+        actual = calculator._calculate_recall_for_a_given_confidence(conf_threshold=threshold)
 
         assert actual.recall == 0.0
         assert actual.true_positives == 0.0
@@ -476,7 +398,7 @@ CFT073	>CHROM=1;POS=1281;INTERVAL=[70,80);		unmapped
         self
     ):
         columns = ["sample", "query_probe_header", "ref_probe_header", "classification"]
-        report = pd.DataFrame(
+        df = pd.DataFrame(
             data=[
                 create_recall_report_row(
                     "truth_probe_1", AlignmentAssessment.PRIMARY_CORRECT, gt_conf=50
@@ -487,10 +409,12 @@ CFT073	>CHROM=1;POS=1281;INTERVAL=[70,80);		unmapped
             ],
             columns=columns,
         )
-        calculator = RecallCalculator([report])
+        report = RecallReport([df])
+        calculator = RecallCalculator(report)
+
         threshold = 100
 
-        actual = calculator.calculate_recall(conf_threshold=threshold)
+        actual = calculator._calculate_recall_for_a_given_confidence(conf_threshold=threshold)
 
         assert actual.recall == 0.0
         assert actual.true_positives == 0.0
@@ -501,7 +425,7 @@ CFT073	>CHROM=1;POS=1281;INTERVAL=[70,80);		unmapped
         self
     ):
         columns = ["sample", "query_probe_header", "ref_probe_header", "classification"]
-        report = pd.DataFrame(
+        df = pd.DataFrame(
             data=[
                 create_recall_report_row(
                     "truth_probe_1", AlignmentAssessment.PRIMARY_INCORRECT, gt_conf=100
@@ -518,10 +442,12 @@ CFT073	>CHROM=1;POS=1281;INTERVAL=[70,80);		unmapped
             ],
             columns=columns,
         )
-        calculator = RecallCalculator([report])
+        report = RecallReport([df])
+        calculator = RecallCalculator(report)
+
         threshold = 60
 
-        actual = calculator.calculate_recall(conf_threshold=threshold)
+        actual = calculator._calculate_recall_for_a_given_confidence(conf_threshold=threshold)
 
         assert actual.recall == 0.25
         assert actual.true_positives == 1.0
@@ -532,7 +458,7 @@ CFT073	>CHROM=1;POS=1281;INTERVAL=[70,80);		unmapped
         self
     ):
         columns = ["sample", "query_probe_header", "ref_probe_header", "classification"]
-        report = pd.DataFrame(
+        df = pd.DataFrame(
             data=[
                 create_recall_report_row(
                     "truth_probe_1", AlignmentAssessment.PRIMARY_INCORRECT, gt_conf=100
@@ -549,10 +475,12 @@ CFT073	>CHROM=1;POS=1281;INTERVAL=[70,80);		unmapped
             ],
             columns=columns,
         )
-        calculator = RecallCalculator([report])
+        report = RecallReport([df])
+        calculator = RecallCalculator(report)
+
         threshold = 60
 
-        actual = calculator.calculate_recall(conf_threshold=threshold)
+        actual = calculator._calculate_recall_for_a_given_confidence(conf_threshold=threshold)
 
         assert actual.recall == 0.5
         assert actual.true_positives == 1.0
@@ -603,134 +531,15 @@ CFT073	>CHROM=1;POS=1281;INTERVAL=[70,80);		unmapped
             ],
             columns=columns,
         )
-        calculator = RecallCalculator([report1, report2])
+        report = RecallReport([report1, report2])
+        calculator = RecallCalculator(report)
+
         threshold = 60
 
-        actual = calculator.calculate_recall(conf_threshold=threshold)
+        actual = calculator._calculate_recall_for_a_given_confidence(conf_threshold=threshold)
 
         assert actual.recall == 0.5
         assert actual.true_positives == 5.0
         assert actual.total == 10.0
 
-
-class TestPrecisionCalculator:
-    def test_init_gtconfIsExtractedCorrectly(self):
-        columns = ["sample", "query_probe_header", "ref_probe_header", "classification"]
-        report = pd.DataFrame(
-            data=[
-                create_precision_report_row(0.0, gt_conf=100),
-                create_precision_report_row(0.0, gt_conf=100),
-                create_precision_report_row(0.0, gt_conf=10),
-                create_precision_report_row(0.0, gt_conf=100),
-            ],
-            columns=columns,
-        )
-        calculator = PrecisionCalculator([report])
-        actual = calculator.report.gt_conf
-
-        expected = pd.Series([100.0, 100.0, 10.0, 100.0])
-
-        assert actual.equals(expected)
-
-    def test_calculatePrecision_NoReportsRaisesEmptyReportError(self):
-        columns = ["sample", "query_probe_header", "ref_probe_header", "classification"]
-        report = pd.DataFrame(columns=columns)
-        calculator = PrecisionCalculator([report])
-
-        with pytest.raises(EmptyReportError):
-            calculator.calculate_precision()
-
-    def test_calculatePrecision_OneReportWithOneRowCompletelyCorrectReturnsOne(self):
-        columns = ["sample", "query_probe_header", "ref_probe_header", "classification"]
-        report = pd.DataFrame(
-            data=[create_precision_report_row(1.0, gt_conf=100)], columns=columns
-        )
-        calculator = PrecisionCalculator([report])
-
-        actual = calculator.calculate_precision()
-
-        assert actual.precision == 1.0
-        assert actual.true_positives == 1.0
-        assert actual.total == 1.0
-
-    def test_calculatePrecision_OneReportWithOneRowCompletelyIncorrectReturnsZero(self):
-        columns = ["sample", "query_probe_header", "ref_probe_header", "classification"]
-        report = pd.DataFrame(
-            data=[create_precision_report_row(0.0, gt_conf=100)], columns=columns
-        )
-        calculator = PrecisionCalculator([report])
-
-        actual = calculator.calculate_precision()
-
-        assert actual.precision == 0.0
-        assert actual.true_positives == 0.0
-        assert actual.total == 1.0
-
-    def test_calculatePrecision_OneReportWithOneRowCompletelyCorrectBelowConfThreasholdRaisesEmptyReportError(
-        self
-    ):
-        columns = ["sample", "query_probe_header", "ref_probe_header", "classification"]
-        report = pd.DataFrame(
-            data=[create_precision_report_row(1.0, gt_conf=10)], columns=columns
-        )
-        calculator = PrecisionCalculator([report])
-        confidence_threshold = 60
-
-        with pytest.raises(EmptyReportError):
-            calculator.calculate_precision(confidence_threshold)
-
-    def test_calculatePrecision_OneReportWithOneRowCompletelyCorrectEqualConfThreasholdReturnsOne(
-        self
-    ):
-        columns = ["sample", "query_probe_header", "ref_probe_header", "classification"]
-        report = pd.DataFrame(
-            data=[create_precision_report_row(1.0, gt_conf=60)], columns=columns
-        )
-        calculator = PrecisionCalculator([report])
-        confidence_threshold = 60
-
-        actual = calculator.calculate_precision(confidence_threshold)
-
-        assert actual.precision == 1.0
-        assert actual.true_positives == 1.0
-        assert actual.total == 1.0
-
-    def test_calculatePrecision_OneReportWithTwoRowsPartiallyCorrect(self):
-        columns = ["sample", "query_probe_header", "ref_probe_header", "classification"]
-        report = pd.DataFrame(
-            data=[
-                create_precision_report_row(0.5, gt_conf=100),
-                create_precision_report_row(0.7, gt_conf=100),
-            ],
-            columns=columns,
-        )
-        calculator = PrecisionCalculator([report])
-
-        actual = calculator.calculate_precision()
-
-        assert actual.precision == 1.2/2
-        assert actual.true_positives == 1.2
-        assert actual.total == 2.0
-
-
-    def test_calculatePrecision_OneReportWithThreeRowsTwoPartiallyCorrectOneBelowThreshold(
-        self
-    ):
-        columns = ["sample", "query_probe_header", "ref_probe_header", "classification"]
-        report = pd.DataFrame(
-            data=[
-                create_precision_report_row(0.4, gt_conf=100),
-                create_precision_report_row(0.8, gt_conf=20),
-                create_precision_report_row(0.3, gt_conf=100),
-            ],
-            columns=columns,
-        )
-        calculator = PrecisionCalculator([report])
-        confidence_threshold = 80
-
-        actual = calculator.calculate_precision(confidence_threshold)
-
-        assert actual.precision == 0.7/2.0
-        assert actual.true_positives == 0.7
-        assert actual.total == 2.0
 

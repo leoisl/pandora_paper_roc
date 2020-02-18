@@ -19,7 +19,6 @@ class CalculatorInfo:
             raise EmptyReportError(
                 "There are not classifications to compute recall/precision on."
             )
-
 class PrecisionInfo(CalculatorInfo):
     def __init__(self, true_positives: float, number_of_calls: float):
         super().__init__(true_positives, number_of_calls)
@@ -38,12 +37,7 @@ class Calculator:
     def _get_all_genotype_points(self, number_of_datapoints):
         min_gt = self.report.get_minimum_gt_conf()
         max_gt = self.report.get_maximum_gt_conf()
-        step_gt = (max_gt - min_gt) / number_of_datapoints
-
-        all_gts = list(np.arange(min_gt, max_gt, step_gt))
-        if len(all_gts) == number_of_datapoints:
-            all_gts.append(max_gt)
-        assert (len(all_gts) == number_of_datapoints + 1)
+        all_gts = np.linspace(min_gt, max_gt, number_of_datapoints)
         return all_gts
 
 
