@@ -53,12 +53,14 @@ class RecallReport(Report):
 
     def _concatenate_dfs_one_by_one_keeping_only_best_mappings(self, dfs: Iterable[pd.DataFrame]) -> None:
         self.report = None
-        for df in dfs:
+        for index, df in enumerate(dfs):
+            print(f"RecallReport._concatenate_dfs_one_by_one_keeping_only_best_mappings: processing df {index+1}...")
             if self.report is None:
                 self.report = df
                 continue
-            self.report = pd.concat([self.report, df])
+            self.report = pd.concat([self.report, df], ignore_index=True)
             self._keep_only_best_mapping_for_all_truth_probes()
+        self._keep_only_best_mapping_for_all_truth_probes()
 
 
     def _keep_only_best_mapping_for_all_truth_probes(self) -> None:
@@ -116,6 +118,6 @@ class RecallReport(Report):
             # selects the highest gt_conf incorrect mapping, which is a FN
             mapping_to_return = all_mappings_for_the_truth_probe.iloc[0].copy()
 
-        return mapping_to_return
+        return list(mapping_to_return) # turn into to list to lose series index and etc
 
 
