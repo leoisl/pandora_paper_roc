@@ -231,7 +231,7 @@ CFT073	>CHROM=1;POS=1281;INTERVAL=[70,80);		unmapped
         assert_frame_equal(actual, expected, check_dtype=False)
 
 
-    def test__getBestMappingForTruthProbe_hasNoCorrectMapping_ChoosesTheOneWithHighestGTConf(self):
+    def test_checkIfOnlyBestMappingIsKept_hasNoCorrectMapping_ChoosesTheOneWithHighestGTConf(self):
         dfs = pd.DataFrame(
             data=[
                 create_recall_report_row("truth_probe_1", AlignmentAssessment.UNMAPPED, gt_conf=100, with_gt_conf=True),
@@ -248,7 +248,7 @@ CFT073	>CHROM=1;POS=1281;INTERVAL=[70,80);		unmapped
         assert_frame_equal(actual, expected, check_dtype=False)
 
 
-    def test__getBestMappingForTruthProbe_hasPrimaryCorrectMappingWithLowGTConf_ChoosesPrimaryCorrectMapping(self):
+    def test_checkIfOnlyBestMappingIsKept_hasPrimaryCorrectMappingWithLowGTConf_ChoosesPrimaryCorrectMapping(self):
         dfs = pd.DataFrame(
             data=[
                 create_recall_report_row("truth_probe_1", AlignmentAssessment.UNMAPPED, gt_conf=100, with_gt_conf=True),
@@ -295,7 +295,7 @@ CFT073	>CHROM=1;POS=1281;INTERVAL=[70,80);		unmapped
         expected = pd.DataFrame(data=[create_recall_report_row("truth_probe_1", AlignmentAssessment.PRIMARY_CORRECT, gt_conf=100, with_gt_conf=True)])
         assert_frame_equal(actual, expected, check_dtype=False)
 
-    def test__getBestMappingForTruthProbe_hasNoCorrectMapping_ChoosesTheOneWithHighestGTConf_with_several_dfs(self):
+    def test_checkIfOnlyBestMappingIsKept_hasNoCorrectMapping_ChoosesTheOneWithHighestGTConf_with_several_dfs(self):
         dfs = [pd.DataFrame(data=[create_recall_report_row("truth_probe_1", AlignmentAssessment.UNMAPPED, gt_conf=100, with_gt_conf=True)]),
                pd.DataFrame(data=[create_recall_report_row("truth_probe_1", AlignmentAssessment.PARTIALLY_MAPPED, gt_conf=140, with_gt_conf=True)]),
                pd.DataFrame(data=[create_recall_report_row("truth_probe_1", AlignmentAssessment.PRIMARY_INCORRECT, gt_conf=150, with_gt_conf=True)]),
