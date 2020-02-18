@@ -6,8 +6,8 @@ from collections import defaultdict
 
 
 class Report:
-    def __init__(self):
-        self.report = [] # TODO: initialization postponed to subclasses
+    def __init__(self, dfs: Iterable[pd.DataFrame]):
+        self.report = pd.concat(dfs)
 
     def get_confident_classifications(
         self, conf_threshold: float
@@ -39,14 +39,12 @@ class Report:
 
 class PrecisionReport(Report):
     def __init__(self, dfs: Iterable[pd.DataFrame]):
-        super().__init__()
         self.report = pd.concat(dfs)
         self._create_gt_conf_column_from("query_probe_header")
 
 
 class RecallReport(Report):
     def __init__(self, dfs: Iterable[pd.DataFrame]):
-        super().__init__()
         self._concatenate_dfs_one_by_one_keeping_only_best_mappings(dfs)
         self._create_gt_conf_column_from("ref_probe_header")
 
@@ -64,6 +62,7 @@ class RecallReport(Report):
 
 
     def _keep_only_best_mapping_for_all_truth_probes(self) -> None:
+        self._create_gt_conf_column_from("ref_probe_header")
         truth_probe_to_best_mapping = self._get_best_mapping_for_all_truth_probes()
         self.report = pd.DataFrame(columns=self.report.columns, data=truth_probe_to_best_mapping.values())
 
