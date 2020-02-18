@@ -1,57 +1,15 @@
 import pandas as pd
 from pandas.testing import assert_frame_equal
-import tempfile
-from evaluate.probe import ProbeHeader
 from evaluate.report import (
     PrecisionReport,
     RecallReport,
     Report
 )
 from evaluate.classification import AlignmentAssessment
-from pathlib import Path
-
 import pytest
 from io import StringIO
 import math
-
-
-def create_tmp_file(contents: str) -> Path:
-    with tempfile.NamedTemporaryFile(mode="r+", delete=False) as tmp:
-        tmp.write(contents)
-        tmp.truncate()
-
-    return Path(tmp.name)
-
-
-def create_recall_report_row(
-    truth_probe_header:str, classification: AlignmentAssessment, gt_conf: float = 0, sample: str = "sample1", with_gt_conf=False
-) -> pd.Series:
-    vcf_probe_header = ProbeHeader(gt_conf=gt_conf)
-    data = {
-        "sample": sample,
-        "query_probe_header": str(truth_probe_header),
-        "ref_probe_header": str(vcf_probe_header),
-        "classification": classification.value,
-    }
-    if with_gt_conf:
-        data["gt_conf"] = gt_conf
-
-    return pd.Series(data=data)
-
-
-def create_precision_report_row(
-    classification: float, gt_conf: float = 0, sample: str = "sample1"
-) -> pd.Series:
-    ref_probe_header = ProbeHeader()
-    pandora_probe_header = ProbeHeader(gt_conf=gt_conf)
-    data = {
-        "sample": sample,
-        "query_probe_header": str(pandora_probe_header),
-        "ref_probe_header": str(ref_probe_header),
-        "classification": classification,
-    }
-    return pd.Series(data=data)
-
+from tests.common import create_tmp_file, create_recall_report_row, create_precision_report_row
 
 class TestReport:
     def test_getMaximumGtConf_no_gt_conf_columnRaisesKeyError(self):
