@@ -84,8 +84,9 @@ class RecallReport(Report):
 
     def _get_truth_probe_to_all_mappings_list(self):
         truth_probe_to_all_mappings_list = defaultdict(list)
-        for index, series in self.report.iterrows():
-            truth_probe_to_all_mappings_list[series.query_probe_header].append(list(series))
+        for series in self.report.to_records(index=False):
+            query_probe_header = series[1]
+            truth_probe_to_all_mappings_list[query_probe_header].append(series)
         return truth_probe_to_all_mappings_list
 
 
@@ -108,7 +109,7 @@ class RecallReport(Report):
         if best_classification is None:
             best_classification = all_mappings_for_the_truth_probe[0] # There is no correct one, get the wrong one with highest gt_conf
 
-        return best_classification
+        return list(best_classification)
 
 
     def _get_best_mapping_for_truth_probe(self, truth_probe_to_all_mappings_dfs, truth_probe):
