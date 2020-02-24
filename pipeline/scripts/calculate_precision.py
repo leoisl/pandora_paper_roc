@@ -24,7 +24,7 @@ precision_report_files_for_all_samples = (
 )
 output = Path(snakemake.output.precision_file_for_all_samples)
 
-number_of_points_in_ROC_curve = float(snakemake.params.number_of_points_in_ROC_curve)
+number_of_points_in_ROC_curve = int(snakemake.params.number_of_points_in_ROC_curve)
 
 tool = snakemake.wildcards.tool
 coverage = snakemake.wildcards.coverage

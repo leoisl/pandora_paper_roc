@@ -24,7 +24,7 @@ recall_report_files_for_all_samples_and_all_gt_conf_percentile = (
 )
 output = Path(snakemake.output.recall_file_for_all_samples_and_all_gt_conf_percentile)
 
-number_of_points_in_ROC_curve = float(snakemake.params.number_of_points_in_ROC_curve)
+number_of_points_in_ROC_curve = int(snakemake.params.number_of_points_in_ROC_curve)
 
 tool = snakemake.wildcards.tool
 coverage = snakemake.wildcards.coverage
