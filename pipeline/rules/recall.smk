@@ -170,7 +170,7 @@ rule calculate_recall:
          number_of_points_in_ROC_curve = 100 # from 0 to 100
     threads: 1
     resources:
-        mem_mb = lambda wildcards, attempt: 64000 * attempt
+        mem_mb = lambda wildcards, attempt: 16000 * attempt
     log:
         "logs/calculate_recall/{coverage}/{tool}/coverage_filter_{coverage_threshold}/strand_bias_filter_{strand_bias_threshold}/gaps_filter_{gaps_threshold}/recall.log"
     script:
