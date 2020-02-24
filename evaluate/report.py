@@ -71,7 +71,7 @@ class RecallReport(Report):
 
     def _get_best_mapping_for_all_truth_probes(self):
         all_truth_probes = self._get_all_truth_probes()
-        truth_probe_to_all_mappings_dfs = self._get_truth_probe_to_all_mappings_dfs()
+        truth_probe_to_all_mappings_dfs = self._get_truth_probe_to_all_mappings_sorted_by_gt_conf()
         truth_probe_to_best_mapping = {}
         for truth_probe in all_truth_probes:
             truth_probe_to_best_mapping[truth_probe] = self._get_best_mapping_for_truth_probe(truth_probe_to_all_mappings_dfs, truth_probe)
@@ -82,22 +82,33 @@ class RecallReport(Report):
         return self.report.query_probe_header.unique()
 
 
-    def _get_truth_probe_to_all_mappings_series(self):
-        truth_probe_to_all_mappings_series = defaultdict(list)
+    def _get_truth_probe_to_all_mappings_list(self):
+        truth_probe_to_all_mappings_list = defaultdict(list)
         for index, series in self.report.iterrows():
-            truth_probe_to_all_mappings_series[series.query_probe_header].append(series)
-        return truth_probe_to_all_mappings_series
+            truth_probe_to_all_mappings_list[series.query_probe_header].append(list(series))
+        return truth_probe_to_all_mappings_list
 
 
-    def _get_truth_probe_to_all_mappings_dfs(self):
-        truth_probe_to_all_mappings_series = self._get_truth_probe_to_all_mappings_series()
-        truth_probe_to_all_mappings_dfs = {}
-        for truth_probe, series_list in truth_probe_to_all_mappings_series.items():
-            truth_probe_to_all_mappings_dfs[truth_probe] = pd.DataFrame (
-                columns=self.report.columns,
-                data = series_list
-            ).sort_values(by=["gt_conf"], ascending=False) # this sort is necessary to select the highest gt_conf later easier
-        return truth_probe_to_all_mappings_dfs
+    def _get_truth_probe_to_all_mappings_sorted_by_gt_conf(self):
+        truth_probe_to_all_mappings_list = self._get_truth_probe_to_all_mappings_list()
+        for truth_probe, info_list in truth_probe_to_all_mappings_list.items():
+            truth_probe_to_all_mappings_list[truth_probe] = sorted(info_list, key=lambda row: row[-1], reverse=True)
+        return truth_probe_to_all_mappings_list
+
+
+    def _get_best_classification(self, all_mappings_for_the_truth_probe):
+        best_classification = None
+
+        # finds the best correct one
+        for mapping in all_mappings_for_the_truth_probe:
+            if mapping[3] in ["primary_correct", "secondary_correct", "supplementary_correct"]:
+                best_classification = mapping # this is the best one as the list is sorted by gt_conf
+                break
+
+        if best_classification is None:
+            best_classification = all_mappings_for_the_truth_probe[0] # There is no correct one, get the wrong one with highest gt_conf
+
+        return best_classification
 
 
     def _get_best_mapping_for_truth_probe(self, truth_probe_to_all_mappings_dfs, truth_probe):
@@ -107,17 +118,7 @@ class RecallReport(Report):
         truth_probe_found_in_the_df = len(all_mappings_for_the_truth_probe) > 0
         assert truth_probe_found_in_the_df
 
-        correct_classification_query_str = f"classification == @AlignmentAssessment.PRIMARY_CORRECT.value or " \
-            f"classification == @AlignmentAssessment.SECONDARY_CORRECT.value or " \
-            f"classification == @AlignmentAssessment.SUPPLEMENTARY_CORRECT.value"
-        mappings_with_correct_classifications = all_mappings_for_the_truth_probe.query(correct_classification_query_str)
-        if len(mappings_with_correct_classifications) > 0:
-            # selects the highest gt_conf correct mapping, which is a TP
-            mapping_to_return = mappings_with_correct_classifications.iloc[0].copy()
-        else:
-            # selects the highest gt_conf incorrect mapping, which is a FN
-            mapping_to_return = all_mappings_for_the_truth_probe.iloc[0].copy()
-
-        return list(mapping_to_return) # turn into to list to lose series index and etc
+        best_classification = self._get_best_classification(all_mappings_for_the_truth_probe)
+        return best_classification
 
 
