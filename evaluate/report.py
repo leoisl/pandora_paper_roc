@@ -1,9 +1,7 @@
-from .classification import *
 from pathlib import Path
 import pandas as pd
 from typing import Iterable, Type, List
-from collections import defaultdict
-
+import logging
 
 class Report:
     def __init__(self, dfs: Iterable[pd.DataFrame]):
@@ -70,7 +68,7 @@ class RecallReport(Report):
         self.report = None
         original_columns = []
         for index, df in enumerate(dfs):
-            print(f"RecallReport._concatenate_dfs_one_by_one_keeping_only_best_mappings: processing df {index+1}...")
+            logging.info(f"RecallReport._concatenate_dfs_one_by_one_keeping_only_best_mappings: processing df {index+1}...")
             if self.report is None:
                 self.report = df
                 original_columns = self.report.columns

@@ -52,7 +52,7 @@ metadata_df = pd.DataFrame(
         "gaps_threshold": [gaps_threshold] * len(precision_df),
     }
 )
-output_df = pd.concat([precision_df, precision_df], axis=1)
+output_df = pd.concat([precision_df, metadata_df], axis=1)
 
 
 # output

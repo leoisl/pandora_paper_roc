@@ -52,7 +52,7 @@ metadata_df = pd.DataFrame(
         "gaps_threshold": [gaps_threshold] * len(recall_df),
     }
 )
-output_df = pd.concat([recall_df, recall_df], axis=1)
+output_df = pd.concat([recall_df, metadata_df], axis=1)
 
 
 # output
