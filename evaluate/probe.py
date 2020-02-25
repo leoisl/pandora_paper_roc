@@ -27,10 +27,11 @@ class ProbeInterval(NamedTuple):
     def is_null(self) -> bool:
         return self.start == -1 and self.end == -1
 
+    interval_regex = re.compile(r"\[(\d+),(\d+)\)")
+
     @staticmethod
     def from_string(string: str) -> "ProbeInterval":
-        regex = re.compile(r"\[(\d+),(\d+)\)")
-        match = regex.search(string)
+        match = ProbeInterval.interval_regex.search(string)
         if not match:
             return ProbeInterval()
 
