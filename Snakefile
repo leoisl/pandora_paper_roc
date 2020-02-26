@@ -19,6 +19,7 @@ samples.rename(columns={"reference": "reference_assembly"}, inplace=True)
 variant_calls = pd.read_csv(config["variant_calls"])
 validate(variant_calls, "pipeline/schemas/variant_calls.schema.yaml")
 variant_calls.rename(columns={"reference": "vcf_reference"}, inplace=True)
+variant_calls["vcf"] += ".~~sample~~names~~fixed.vcf"
 
 
 # ======================================================
