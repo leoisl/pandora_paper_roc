@@ -62,7 +62,7 @@ rule filter_vcf_for_a_single_sample_by_gt_conf_percentile_for_pandora:
     output:
         singlesample_vcf_file_gt_conf_percentile_filtered = "{filename}.vcf.sample_{sample_id}.gt_conf_percentile_{gt_conf_percentile}.vcf"
     wildcard_constraints:
-        filename=".*/pandora_multisample_genotyped"
+        filename=".*/pandora_multisample_genotyped\.vcf\.\~\~sample\~\~names\~\~fixed"
     threads: 1
     resources:
         mem_mb = lambda wildcards, attempt: 4000 * attempt
@@ -81,7 +81,7 @@ rule filter_vcf_for_a_single_sample_by_gt_conf_percentile_for_snippy:
     output:
         singlesample_vcf_file_gt_conf_percentile_filtered = "{filename}.vcf.sample_{sample_id}.gt_conf_percentile_{gt_conf_percentile}.vcf"
     wildcard_constraints:
-        filename=".*/snippy_[^/]+"
+        filename=".*/snippy_[^/]+\.vcf\.\~\~sample\~\~names\~\~fixed"
     threads: 1
     resources:
         mem_mb = lambda wildcards, attempt: 4000 * attempt
