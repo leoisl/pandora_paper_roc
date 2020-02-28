@@ -14,7 +14,9 @@ class Reporter:
             "classification",
         ]
 
-    def generate_report(self, fixed_GT_conf = None) -> pd.DataFrame:
+    def _generate_report(self,
+                         fixed_info_to_add_to_query_probe_header: str = None,
+                         fixed_info_to_add_to_ref_probe_header: str = None) -> pd.DataFrame:
         report_entries = []
         for classifier in self.classifiers:
             classifications = classifier.classify()
@@ -22,10 +24,12 @@ class Reporter:
                 assessment = classification.assessment()
 
                 query_probe_header = str(classification.query_probe.header)
-                query_probe_header = self._add_suffix_to_header_if_not_present(query_probe_header, "GT_CONF", fixed_GT_conf)
+                if fixed_info_to_add_to_query_probe_header is not None:
+                    query_probe_header += fixed_info_to_add_to_query_probe_header
 
                 ref_probe_header = str(classification.ref_probe.header)
-                ref_probe_header = self._add_suffix_to_header_if_not_present(ref_probe_header, "GT_CONF", fixed_GT_conf)
+                if fixed_info_to_add_to_ref_probe_header is not None:
+                    ref_probe_header += fixed_info_to_add_to_ref_probe_header
 
                 report_entries.append(
                     [classifier.name, query_probe_header, ref_probe_header, assessment]
@@ -36,22 +40,13 @@ class Reporter:
     def save_report(self, report: pd.DataFrame, file_handle: TextIO) -> None:
         report.to_csv(file_handle, sep=self.delim, header=True, index=False)
 
-    def _get_header_suffix(self, field, value):
-        header_suffix = ""
-        if value is not None:
-            header_suffix = f"{field}={value};"
-        return header_suffix
 
-    def _add_suffix_to_header_if_not_present(self, header, field, value):
-        header_suffix = self._get_header_suffix(field, value)
-        if field not in header:
-            header += header_suffix
-        return header
+class PrecisionReporter(Reporter):
+    def generate_report(self) -> pd.DataFrame:
+        return self._generate_report()
 
 
 class RecallReporter(Reporter):
-    pass
+    def generate_report(self, ref_gt_conf: int) -> pd.DataFrame:
+        return self._generate_report(fixed_info_to_add_to_ref_probe_header=f"GT_CONF={ref_gt_conf};")
 
-
-class PrecisionReporter(Reporter):
-    pass

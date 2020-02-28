@@ -4,21 +4,26 @@ import pandas as pd
 
 from evaluate.classification import AlignmentAssessment
 from evaluate.classifier import RecallClassifier
-from evaluate.reporter import RecallReporter
+from evaluate.reporter import (
+    Reporter,
+    RecallReporter,
+    PrecisionReporter
+)
 from tests.common import (
     create_classifier_with_two_entries,
     create_correct_primary_sam_record,
     create_incorrect_supplementary_sam_record,
 )
+from unittest.mock import Mock, patch
 
 
-class TestRecallReporter:
+class TestReporter:
     def test_generateReport_noClassifierReturnsEmpty(self):
         sample = "sample"
         classifier = RecallClassifier(name=sample)
         reporter = RecallReporter(classifiers=[classifier])
 
-        actual = reporter.generate_report()
+        actual = reporter._generate_report()
         expected = pd.DataFrame(
             [],
             columns=[
@@ -37,7 +42,7 @@ class TestRecallReporter:
         classifier.name = sample
         reporter = RecallReporter(classifiers=[classifier])
 
-        actual = reporter.generate_report()
+        actual = reporter._generate_report()
         expected_data = []
         for assessment, record in [
             (AlignmentAssessment.PRIMARY_CORRECT, create_correct_primary_sam_record()),
@@ -61,13 +66,14 @@ class TestRecallReporter:
 
         assert actual.equals(expected)
 
-    def test_generateReport_twoClassificationsReturnsDataframeWithTwoEntriesWithFixedGTConf(self):
+    def test_generateReport_twoClassificationsReturnsDataframeWithTwoEntriesWithAdditionalInfoToQueryAndRefHeaders(self):
         classifier = create_classifier_with_two_entries(RecallClassifier)
         sample = "sample"
         classifier.name = sample
         reporter = RecallReporter(classifiers=[classifier])
 
-        actual = reporter.generate_report(fixed_GT_conf=123)
+        actual = reporter._generate_report(fixed_info_to_add_to_query_probe_header="info_query",
+                                           fixed_info_to_add_to_ref_probe_header="info_ref")
         expected_data = []
         for assessment, record in [
             (AlignmentAssessment.PRIMARY_CORRECT, create_correct_primary_sam_record()),
@@ -77,7 +83,7 @@ class TestRecallReporter:
             ),
         ]:
             expected_data.append(
-                [sample, record.query_name+"GT_CONF=123;", record.reference_name, assessment]
+                [sample, record.query_name+"info_query", record.reference_name+"info_ref", assessment]
             )
         expected = pd.DataFrame(
             expected_data,
@@ -95,7 +101,7 @@ class TestRecallReporter:
         delim = "\t"
         reporter = RecallReporter(classifiers=[RecallClassifier()], delim=delim)
         fh = StringIO(newline="")
-        report = reporter.generate_report()
+        report = reporter._generate_report()
         reporter.save_report(report, fh)
 
         fh.seek(0)
@@ -115,7 +121,7 @@ class TestRecallReporter:
         reporter = RecallReporter(classifiers=[classifier], delim=delim)
 
         fh = StringIO(newline="")
-        report = reporter.generate_report()
+        report = reporter._generate_report()
         reporter.save_report(report, fh)
 
         fh.seek(0)
@@ -155,7 +161,7 @@ class TestRecallReporter:
         reporter = RecallReporter(classifiers=[classifier], delim=delim)
 
         fh = StringIO(newline="")
-        report = reporter.generate_report()
+        report = reporter._generate_report()
         reporter.save_report(report, fh)
 
         fh.seek(0)
@@ -197,7 +203,7 @@ class TestRecallReporter:
         reporter = RecallReporter(classifiers=[classifier1, classifier2], delim=delim)
 
         fh = StringIO(newline="")
-        report = reporter.generate_report()
+        report = reporter._generate_report()
         reporter.save_report(report, fh)
 
         fh.seek(0)
@@ -226,18 +232,17 @@ class TestRecallReporter:
 
         assert actual == expected
 
-    def test____add_suffix_to_header_if_not_present___valid_value(self):
-        reporter = RecallReporter(classifiers=None)
 
-        actual = reporter._add_suffix_to_header_if_not_present("", "field_1", "value_1")
-        expected = "field_1=value_1;"
+class TestPrecisionReporter:
+    @patch.object(Reporter, Reporter._generate_report.__name__)
+    def test___generate_report(self, _generate_report_mock):
+        precision_reporter = PrecisionReporter(None)
+        precision_reporter.generate_report()
+        _generate_report_mock.assert_called_once_with()
 
-        assert actual == expected
-
-    def test____add_suffix_to_header_if_not_present___invalid_value(self):
-        reporter = RecallReporter(classifiers=None)
-
-        actual = reporter._add_suffix_to_header_if_not_present("", "field_1", None)
-        expected = ""
-
-        assert actual == expected
+class TestRecallReporter:
+    @patch.object(Reporter, Reporter._generate_report.__name__)
+    def test___generate_report(self, _generate_report_mock):
+        recall_reporter = RecallReporter(None)
+        recall_reporter.generate_report(10)
+        _generate_report_mock.assert_called_once_with(fixed_info_to_add_to_ref_probe_header="GT_CONF=10;")
