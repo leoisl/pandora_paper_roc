@@ -18,19 +18,20 @@ from evaluate.bwa import BWA
 
 # setup
 query = Path(snakemake.input.truth_probeset)
-ref = Path(snakemake.input.mutated_vcf_ref)
-output = Path(snakemake.output.sam)
+refs = [Path(ref) for ref in snakemake.input.mutated_vcf_refs]
+outputs = [Path(sam) for sam in snakemake.output.sams]
 threads = int(snakemake.threads)
 
 
 # API usage
-logging.info(f"Mapping {query} to {ref}")
-BWA.map_query_to_ref(
-    query=query,
-    ref=ref,
-    output=output,
-    threads=threads,
-)
+for ref, output in zip(refs, outputs):
+    logging.info(f"Mapping {query} to {ref}")
+    BWA.map_query_to_ref(
+        query=query,
+        ref=ref,
+        output=output,
+        threads=threads,
+    )
 
 
 logging.info(f"Done")
