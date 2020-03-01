@@ -2,6 +2,8 @@ from pathlib import Path
 import sys
 sys.path.append(str(Path().absolute()))
 import logging
+import subprocess
+
 log_level = "INFO"
 logging.basicConfig(
     filename=str(snakemake.log),
@@ -26,6 +28,8 @@ threads = int(snakemake.threads)
 # API usage
 for ref, output in zip(refs, outputs):
     logging.info(f"Mapping {query} to {ref}")
+    subprocess.check_call(f"bwa index {ref}", shell=True)
+
     BWA.map_query_to_ref(
         query=query,
         ref=ref,

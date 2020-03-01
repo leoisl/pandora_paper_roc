@@ -145,7 +145,6 @@ rule map_recall_truth_probeset_to_mutated_vcf_ref:
     input:
          truth_probeset = output_folder + "/recall/truth_probesets/{sample_id}/{sample_pair}.truth_probeset.fa",
          mutated_vcf_refs = rules.make_mutated_vcf_ref_for_recall.output.mutated_vcf_refs,
-         mutated_vcf_ref_indexes = [mutated_vcf_ref + ".amb" for mutated_vcf_ref in rules.make_mutated_vcf_ref_for_recall.output.mutated_vcf_refs]
     output:
          sams = expand(output_folder + "/recall/map_probes/{{sample_id}}/{{coverage}}/{{tool}}/coverage_filter_{{coverage_threshold}}/strand_bias_filter_{{strand_bias_threshold}}/gaps_filter_{{gaps_threshold}}/gt_conf_percentile_{gt_conf_percentile}/{{sample_pair}}.sam", gt_conf_percentile=gt_conf_percentiles)
     threads: 4
