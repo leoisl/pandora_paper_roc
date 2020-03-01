@@ -155,4 +155,4 @@ include: str(rules_dir / "recall.smk")
 include: str(rules_dir / "precision.smk")
 include: str(rules_dir / "plot.smk")
 
-localrules: bwa_index, fix_snippy_sample_name, make_empty_depth_file
+localrules: fix_snippy_sample_name, make_empty_depth_file
