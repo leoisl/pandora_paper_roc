@@ -134,7 +134,7 @@ rule make_recall_truth_probeset:
         "shallow"
     threads: 1
     resources:
-        mem_mb = lambda wildcards, attempt: 2000 * attempt
+        mem_mb = lambda wildcards, attempt: 4000 * attempt
     log:
         "logs/make_recall_truth_probeset/{sample1}_and_{sample2}.log"
     script:
@@ -166,7 +166,7 @@ rule create_recall_report_for_truth_variants_mappings:
         gt_conf_percentiles = gt_conf_percentiles
     threads: 1
     resources:
-        mem_mb = lambda wildcards, attempt: 2000 * attempt
+        mem_mb = lambda wildcards, attempt: 4000 * attempt
     log:
         "logs/create_recall_report_for_truth_variants_mappings/{sample_id}/{coverage}/{tool}/coverage_filter_{coverage_threshold}/strand_bias_filter_{strand_bias_threshold}/gaps_filter_{gaps_threshold}/{sample_pair}.report.log"
     script:

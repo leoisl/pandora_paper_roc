@@ -6,7 +6,7 @@ rule bwa_index:
     threads: 1
     log: "{fasta}.bwa_index.log"
     resources:
-        mem_mb = lambda wildcards, attempt: 1000 * attempt
+        mem_mb = lambda wildcards, attempt: 4000 * attempt
     shell: "bwa index {input.fasta} > {log} 2>&1"
 
 
