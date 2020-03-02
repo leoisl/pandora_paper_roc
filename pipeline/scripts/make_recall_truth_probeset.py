@@ -92,7 +92,7 @@ logging.info("Converting show-snps output to dataframe")
 snps_df = ShowSnps.to_dataframe(mummer_snps)
 
 logging.info("Creating probes from dataframe")
-query1_truth_probes, query2_truth_probes = snps_df.get_probes()
+query1_truth_probes, query2_truth_probes = snps_df.get_probes(f"{query1_name}_{query2_name}")
 query1_truth_probes_path: Path = Path(snakemake.output.probeset1)
 query2_truth_probes_path: Path = Path(snakemake.output.probeset2)
 

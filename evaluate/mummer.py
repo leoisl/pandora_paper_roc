@@ -183,29 +183,29 @@ class ShowSNPsDataframe(pd.DataFrame):
 
         return self.apply(translate_to_FWD_strand_core, axis=1)
 
-    def get_probes(self) -> Tuple[str, str]:
+    def get_probes(self, id_prefix: str = "ID") -> Tuple[str, str]:
         ref_probes = []
         query_probes = []
         merged_indices = arg_ranges(self.ref_pos.tolist())
 
-        for interval in merged_indices:
-            ref_probe, query_probe = self.probes_for_interval(interval)
+        for interval_index, interval in enumerate(merged_indices):
+            ref_probe, query_probe = self.probes_for_interval(interval, variation_id = f"{id_prefix}_{interval_index}")
             ref_probes.append(str(ref_probe))
             query_probes.append(str(query_probe))
 
         return (
-            "\n".join(probe for probe in ref_probes if probe),
-            "\n".join(probe for probe in query_probes if probe),
+            "\n".join(probe for probe in ref_probes),
+            "\n".join(probe for probe in query_probes),
         )
 
-    def probes_for_interval(self, interval: Tuple[int, int]) -> Tuple[Probe, ...]:
+    def probes_for_interval(self, interval: Tuple[int, int], variation_id: str) -> Tuple[Probe, ...]:
         probes = []
         probe_prefixes = ["ref", "query"]
         consecutive_positions = self.iloc[slice(*interval)]
         first_row = consecutive_positions.iloc[0]
         flank_width = int((len(first_row[f"{probe_prefixes[0]}_context"]) - 1) / 2)
 
-        for prefix in probe_prefixes:
+        for allele, prefix in enumerate(probe_prefixes):
             core_sequence = "".join(consecutive_positions[f"{prefix}_sub"]).replace(
                 ".", ""
             )
@@ -219,6 +219,7 @@ class ShowSNPsDataframe(pd.DataFrame):
                 chrom=first_row[f"{prefix}_chrom"],
                 pos=first_row[f"{prefix}_pos"],
                 interval=ProbeInterval(call_start_idx, call_end_idx),
+                variation_id=f"{variation_id}_allele_{allele}"
             )
             full_sequence = left_flank + core_sequence + right_flank
             probes.append(Probe(header=header, full_sequence=full_sequence))

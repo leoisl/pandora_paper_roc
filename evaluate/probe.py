@@ -47,6 +47,7 @@ class ProbeHeader:
         interval: ProbeInterval = ProbeInterval(),
         svtype: str = "",
         gt_conf: float = 0,
+        variation_id: str = ""
     ):
         self.chrom = chrom
         self.sample = sample
@@ -54,6 +55,7 @@ class ProbeHeader:
         self.interval = interval
         self.svtype = svtype
         self.gt_conf = gt_conf
+        self.variation_id = variation_id
 
     def __eq__(self, other: "ProbeHeader") -> bool:
         return (
@@ -63,6 +65,7 @@ class ProbeHeader:
             and self.interval == other.interval
             and self.svtype == other.svtype
             and self.gt_conf == other.gt_conf
+            and self.variation_id == other.variation_id
         )
 
     def __str__(self) -> str:
@@ -95,9 +98,11 @@ class ProbeHeader:
         interval = ProbeInterval.from_string(
             parse_field_from_header("INTERVAL", string)
         )
+        variation_id = parse_field_from_header("VARIATION_ID", string)
+
 
         return ProbeHeader(
-            sample, chrom, pos, interval, svtype, gt_conf
+            sample, chrom, pos, interval, svtype, gt_conf, variation_id
         )
 
 

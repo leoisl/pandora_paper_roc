@@ -374,27 +374,27 @@ class TestShowSNPsDataframe:
         expected = (
             str(
                 Probe(
-                    ProbeHeader(chrom="ref", pos=39, interval=ProbeInterval(3, 4)),
+                    ProbeHeader(chrom="ref", pos=39, interval=ProbeInterval(3, 4), variation_id="ID_0_allele_0"),
                     full_sequence="GTAGTAG",
                 )
             )
             + "\n"
             + str(
                 Probe(
-                    ProbeHeader(chrom="ref", pos=73, interval=ProbeInterval(3, 4)),
+                    ProbeHeader(chrom="ref", pos=73, interval=ProbeInterval(3, 4), variation_id="ID_1_allele_0"),
                     full_sequence="GGATTGA",
                 )
             ),
             str(
                 Probe(
-                    ProbeHeader(chrom="query", pos=38, interval=ProbeInterval(3, 3)),
+                    ProbeHeader(chrom="query", pos=38, interval=ProbeInterval(3, 3), variation_id="ID_0_allele_1"),
                     full_sequence="GTATAG",
                 )
             )
             + "\n"
             + str(
                 Probe(
-                    ProbeHeader(chrom="query", pos=72, interval=ProbeInterval(3, 4)),
+                    ProbeHeader(chrom="query", pos=72, interval=ProbeInterval(3, 4), variation_id="ID_1_allele_1"),
                     full_sequence="GGAATGA",
                 )
             ),
@@ -419,13 +419,13 @@ class TestShowSNPsDataframe:
         actual = df.get_probes()
         expected_ref = str(
             Probe(
-                ProbeHeader(chrom="ref", pos=2, interval=ProbeInterval(1, 2)),
+                ProbeHeader(chrom="ref", pos=2, interval=ProbeInterval(1, 2), variation_id="ID_0_allele_0"),
                 full_sequence="AGTAG",
             )
         )
         expected_query = str(
             Probe(
-                ProbeHeader(chrom="query", pos=3, interval=ProbeInterval(2, 2)),
+                ProbeHeader(chrom="query", pos=3, interval=ProbeInterval(2, 2), variation_id="ID_0_allele_1"),
                 full_sequence="TATAG",
             )
         )
@@ -450,13 +450,13 @@ class TestShowSNPsDataframe:
         actual = df.get_probes()
         expected_ref = str(
             Probe(
-                ProbeHeader(chrom="ref", pos=12, interval=ProbeInterval(3, 4)),
+                ProbeHeader(chrom="ref", pos=12, interval=ProbeInterval(3, 4), variation_id="ID_0_allele_0"),
                 full_sequence="AAAGTA",
             )
         )
         expected_query = str(
             Probe(
-                ProbeHeader(chrom="query", pos=13, interval=ProbeInterval(3, 3)),
+                ProbeHeader(chrom="query", pos=13, interval=ProbeInterval(3, 3), variation_id="ID_0_allele_1"),
                 full_sequence="ATAT",
             )
         )
@@ -481,13 +481,13 @@ class TestShowSNPsDataframe:
         actual = df.get_probes()
         expected_ref = str(
             Probe(
-                ProbeHeader(chrom="ref", pos=1, interval=ProbeInterval(0, 1)),
+                ProbeHeader(chrom="ref", pos=1, interval=ProbeInterval(0, 1), variation_id="ID_0_allele_0"),
                 full_sequence="GTAG",
             )
         )
         expected_query = str(
             Probe(
-                ProbeHeader(chrom="query", pos=1, interval=ProbeInterval(0, 0)),
+                ProbeHeader(chrom="query", pos=1, interval=ProbeInterval(0, 0), variation_id="ID_0_allele_1"),
                 full_sequence="TAG",
             )
         )
@@ -512,13 +512,13 @@ class TestShowSNPsDataframe:
         actual = df.get_probes()
         expected_ref = str(
             Probe(
-                ProbeHeader(chrom="ref", pos=10, interval=ProbeInterval(3, 4)),
+                ProbeHeader(chrom="ref", pos=10, interval=ProbeInterval(3, 4), variation_id="ID_0_allele_0"),
                 full_sequence="AAAG",
             )
         )
         expected_query = str(
             Probe(
-                ProbeHeader(chrom="query", pos=10, interval=ProbeInterval(3, 3)),
+                ProbeHeader(chrom="query", pos=10, interval=ProbeInterval(3, 3), variation_id="ID_0_allele_1"),
                 full_sequence="AAA",
             )
         )
@@ -547,37 +547,37 @@ class TestShowSNPsDataframe:
         actual = df.get_probes()
         expected_ref = str(
             Probe(
-                ProbeHeader(chrom="ref", pos=39, interval=ProbeInterval(3, 4)),
+                ProbeHeader(chrom="ref", pos=39, interval=ProbeInterval(3, 4), variation_id="ID_0_allele_0"),
                 full_sequence="GTAGTAG",
             )
         )
         expected_ref += "\n" + str(
             Probe(
-                ProbeHeader(chrom="ref", pos=73, interval=ProbeInterval(3, 6)),
+                ProbeHeader(chrom="ref", pos=73, interval=ProbeInterval(3, 6), variation_id="ID_1_allele_0"),
                 full_sequence="GGATTTGAA",
             )
         )
         expected_ref += "\n" + str(
             Probe(
-                ProbeHeader(chrom="ref", pos=79, interval=ProbeInterval(3, 4)),
+                ProbeHeader(chrom="ref", pos=79, interval=ProbeInterval(3, 4), variation_id="ID_2_allele_0"),
                 full_sequence="GGATTGA",
             )
         )
         expected_query = str(
             Probe(
-                ProbeHeader(chrom="query", pos=38, interval=ProbeInterval(3, 3)),
+                ProbeHeader(chrom="query", pos=38, interval=ProbeInterval(3, 3), variation_id="ID_0_allele_1"),
                 full_sequence="GTATAG",
             )
         )
         expected_query += "\n" + str(
             Probe(
-                ProbeHeader(chrom="query", pos=72, interval=ProbeInterval(3, 3)),
+                ProbeHeader(chrom="query", pos=72, interval=ProbeInterval(3, 3), variation_id="ID_1_allele_1"),
                 full_sequence="GGATGA",
             )
         )
         expected_query += "\n" + str(
             Probe(
-                ProbeHeader(chrom="query", pos=78, interval=ProbeInterval(3, 4)),
+                ProbeHeader(chrom="query", pos=78, interval=ProbeInterval(3, 4), variation_id="ID_2_allele_1"),
                 full_sequence="GGAATGA",
             )
         )
@@ -604,37 +604,37 @@ class TestShowSNPsDataframe:
         actual = df.get_probes()
         expected_ref = str(
             Probe(
-                ProbeHeader(chrom="ref", pos=39, interval=ProbeInterval(3, 4)),
+                ProbeHeader(chrom="ref", pos=39, interval=ProbeInterval(3, 4), variation_id="ID_0_allele_0"),
                 full_sequence="GTAGTAG",
             )
         )
         expected_ref += "\n" + str(
             Probe(
-                ProbeHeader(chrom="ref", pos=72, interval=ProbeInterval(3, 3)),
+                ProbeHeader(chrom="ref", pos=72, interval=ProbeInterval(3, 3), variation_id="ID_1_allele_0"),
                 full_sequence="GGATGA",
             )
         )
         expected_ref += "\n" + str(
             Probe(
-                ProbeHeader(chrom="ref", pos=79, interval=ProbeInterval(3, 4)),
+                ProbeHeader(chrom="ref", pos=79, interval=ProbeInterval(3, 4), variation_id="ID_2_allele_0"),
                 full_sequence="GGATTGA",
             )
         )
         expected_query = str(
             Probe(
-                ProbeHeader(chrom="query", pos=38, interval=ProbeInterval(3, 3)),
+                ProbeHeader(chrom="query", pos=38, interval=ProbeInterval(3, 3), variation_id="ID_0_allele_1"),
                 full_sequence="GTATAG",
             )
         )
         expected_query += "\n" + str(
             Probe(
-                ProbeHeader(chrom="query", pos=73, interval=ProbeInterval(3, 6)),
+                ProbeHeader(chrom="query", pos=73, interval=ProbeInterval(3, 6), variation_id="ID_1_allele_1"),
                 full_sequence="GGATTTGAA",
             )
         )
         expected_query += "\n" + str(
             Probe(
-                ProbeHeader(chrom="query", pos=78, interval=ProbeInterval(3, 4)),
+                ProbeHeader(chrom="query", pos=78, interval=ProbeInterval(3, 4), variation_id="ID_2_allele_1"),
                 full_sequence="GGAATGA",
             )
         )
@@ -661,37 +661,37 @@ class TestShowSNPsDataframe:
         actual = df.get_probes()
         expected_ref = str(
             Probe(
-                ProbeHeader(chrom="ref", pos=39, interval=ProbeInterval(3, 4)),
+                ProbeHeader(chrom="ref", pos=39, interval=ProbeInterval(3, 4), variation_id="ID_0_allele_0"),
                 full_sequence="GTAGTAG",
             )
         )
         expected_ref += "\n" + str(
             Probe(
-                ProbeHeader(chrom="ref", pos=72, interval=ProbeInterval(3, 6)),
+                ProbeHeader(chrom="ref", pos=72, interval=ProbeInterval(3, 6), variation_id="ID_1_allele_0"),
                 full_sequence="GGAAGCAAA",
             )
         )
         expected_ref += "\n" + str(
             Probe(
-                ProbeHeader(chrom="ref", pos=79, interval=ProbeInterval(3, 4)),
+                ProbeHeader(chrom="ref", pos=79, interval=ProbeInterval(3, 4), variation_id="ID_2_allele_0"),
                 full_sequence="GGATTGA",
             )
         )
         expected_query = str(
             Probe(
-                ProbeHeader(chrom="query", pos=38, interval=ProbeInterval(3, 3)),
+                ProbeHeader(chrom="query", pos=38, interval=ProbeInterval(3, 3), variation_id="ID_0_allele_1"),
                 full_sequence="GTATAG",
             )
         )
         expected_query += "\n" + str(
             Probe(
-                ProbeHeader(chrom="query", pos=73, interval=ProbeInterval(3, 6)),
+                ProbeHeader(chrom="query", pos=73, interval=ProbeInterval(3, 6), variation_id="ID_1_allele_1"),
                 full_sequence="GGATTTGAA",
             )
         )
         expected_query += "\n" + str(
             Probe(
-                ProbeHeader(chrom="query", pos=78, interval=ProbeInterval(3, 4)),
+                ProbeHeader(chrom="query", pos=78, interval=ProbeInterval(3, 4), variation_id="ID_2_allele_1"),
                 full_sequence="GGAATGA",
             )
         )
