@@ -60,16 +60,6 @@ files = []
 # Precision files
 all_precision_files=[]
 
-for index, row in data.iterrows():
-    sample_id, coverage, tool = row["sample_id"], row["coverage"], row["tool"]
-    files_with_filters = expand(f"{output_folder}/precision/variant_calls_probesets/{sample_id}/{coverage}/{tool}/coverage_filter_{{coverage_threshold}}/strand_bias_filter_{{strand_bias_threshold}}/gaps_filter_{{gaps_threshold}}/variant_calls_probeset.fa", coverage_threshold = get_coverage_filters(tool), strand_bias_threshold = get_strand_bias_filters(tool), gaps_threshold = get_gaps_filters(tool))
-    all_precision_files.extend(files_with_filters)
-
-for index, row in data.iterrows():
-    sample_id, coverage, tool = row["sample_id"], row["coverage"], row["tool"]
-    files_with_filters = expand(f"{output_folder}/precision/variant_calls_probesets_mapped_to_refs/{sample_id}/{coverage}/{tool}/coverage_filter_{{coverage_threshold}}/strand_bias_filter_{{strand_bias_threshold}}/gaps_filter_{{gaps_threshold}}/variant_calls_probeset_mapped.sam", coverage_threshold = get_coverage_filters(tool), strand_bias_threshold = get_strand_bias_filters(tool), gaps_threshold = get_gaps_filters(tool))
-    all_precision_files.extend(files_with_filters)
-
 cov_tool_and_filters_to_precision_report_files = defaultdict(list)
 all_nb_of_records_removed_with_mapq_sam_records_filter_files_for_precision = []
 for index, row in data.iterrows():
@@ -78,11 +68,9 @@ for index, row in data.iterrows():
         for strand_bias_threshold in get_strand_bias_filters(tool):
             for gaps_threshold in get_gaps_filters(tool):
                 report_file = f"{output_folder}/precision/reports_from_probe_mappings/{sample_id}/{coverage}/{tool}/coverage_filter_{coverage_threshold}/strand_bias_filter_{strand_bias_threshold}/gaps_filter_{gaps_threshold}/variant_calls_probeset_report.tsv"
-                all_precision_files.append(report_file)
                 cov_tool_and_filters_to_precision_report_files[(coverage, tool, coverage_threshold, strand_bias_threshold, gaps_threshold)].append(report_file)
 
                 nb_of_records_removed_with_mapq_sam_records_filter_file = f"{output_folder}/precision/reports_from_probe_mappings/{sample_id}/{coverage}/{tool}/coverage_filter_{coverage_threshold}/strand_bias_filter_{strand_bias_threshold}/gaps_filter_{gaps_threshold}/nb_of_records_removed_with_mapq_sam_records_filter.csv"
-                all_precision_files.append(nb_of_records_removed_with_mapq_sam_records_filter_file)
                 all_nb_of_records_removed_with_mapq_sam_records_filter_files_for_precision.append(nb_of_records_removed_with_mapq_sam_records_filter_file)
 
 for coverage, tool, coverage_threshold, strand_bias_threshold, gaps_threshold in cov_tool_and_filters_to_precision_report_files:
@@ -95,20 +83,11 @@ files.extend(all_precision_files)
 # Recall files
 all_recall_files=[]
 
-for sample1, sample2 in sample_pairs:
-    all_recall_files.extend(
-        [
-            f"{output_folder}/recall/truth_probesets/{sample1}/{sample1}_and_{sample2}.truth_probeset.fa",
-            f"{output_folder}/recall/truth_probesets/{sample2}/{sample1}_and_{sample2}.truth_probeset.fa",
-        ]
-    )
-
 for index, row in data.iterrows():
     sample_id, coverage, tool = row["sample_id"], row["coverage"], row["tool"]
     for sample1, sample2 in [pair for pair in sample_pairs if sample_id in pair]:
         filename_prefix = f"{sample1}_and_{sample2}"
         files_with_filters = expand(f"{output_folder}/recall/map_probes/{sample_id}/{coverage}/{tool}/coverage_filter_{{coverage_threshold}}/strand_bias_filter_{{strand_bias_threshold}}/gaps_filter_{{gaps_threshold}}/gt_conf_percentile_{{gt_conf_percentile}}/{filename_prefix}.sam", coverage_threshold = get_coverage_filters(tool), strand_bias_threshold = get_strand_bias_filters(tool), gaps_threshold = get_gaps_filters(tool), gt_conf_percentile=gt_conf_percentiles)
-        all_recall_files.extend(files_with_filters)
 
 cov_tool_and_filters_to_recall_report_files = defaultdict(list)
 for index, row in data.iterrows():
@@ -118,7 +97,6 @@ for index, row in data.iterrows():
         for coverage_threshold, strand_bias_threshold, gaps_threshold, gt_conf_percentile in \
             itertools.product(get_coverage_filters(tool), get_strand_bias_filters(tool), get_gaps_filters(tool), gt_conf_percentiles):
             report_file = f"{output_folder}/recall/reports/{sample_id}/{coverage}/{tool}/coverage_filter_{coverage_threshold}/strand_bias_filter_{strand_bias_threshold}/gaps_filter_{gaps_threshold}/gt_conf_percentile_{gt_conf_percentile}/{filename_prefix}.report.tsv"
-            all_recall_files.append(report_file)
             cov_tool_and_filters_to_recall_report_files[(coverage, tool, str(coverage_threshold), str(strand_bias_threshold), str(gaps_threshold))].append(report_file)
 
 
