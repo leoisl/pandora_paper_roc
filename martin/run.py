@@ -19,6 +19,7 @@ from evaluate.calculator import PrecisionCalculator
 from evaluate.report import PrecisionReport
 import argparse
 import subprocess
+from evaluate.gt_only_on_alt_filter import GT_Only_on_Alt_filter
 
 def get_args():
     parser = argparse.ArgumentParser(description='Generate precision report given a vcf, a vcf ref and a truth ref.')
@@ -53,10 +54,11 @@ def main():
     elif caller=="Clockwork":
         VCF_creator_method = VCFFactory.create_Clockwork_VCF_from_VariantRecord_and_Sample
     else:
-        VCF_creator_method = VCFFactory.create_Snippy_VCF_from_VariantRecord_and_Sample()
+        VCF_creator_method = VCFFactory.create_Snippy_VCF_from_VariantRecord_and_Sample
 
     logging.info(f"Reading VCF")
     vcf_filters = VCF_Filters()
+    vcf_filters.append(GT_Only_on_Alt_filter())
     with pysam.VariantFile(vcf) as pysam_variant_file:
         filtered_vcf_file = FilteredVCFFile(pysam_variant_file=pysam_variant_file, filters=vcf_filters, VCF_creator_method=VCF_creator_method)
 
