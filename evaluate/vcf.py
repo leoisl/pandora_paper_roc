@@ -191,6 +191,39 @@ class SnippyVCF(VCF):
     ####################################################################################################################
 
 
+class ClockworkVCF(VCF):
+    def __eq__(self, other):
+        return self.__dict__ == other.__dict__
+
+    ####################################################################################################################
+    # Overriding methods
+    @property
+    def genotype(self) -> int:
+        data_from_sample = self.variant.samples[self.sample]
+        all_gts = data_from_sample.get("GT")
+        return all_gts[0]
+
+    @property
+    def has_genotype_bug(self) -> bool:
+        return False
+
+    @property
+    def genotype_confidence(self) -> float:
+        data_from_sample = self.variant.samples[self.sample]
+        return float(data_from_sample.get("GT_CONF"))
+
+    @property
+    def svtype(self) -> str:
+        return "NA"
+
+    @property
+    def coverage(self) -> int:
+        return 10
+
+    ####################################################################################################################
+
+
+
 class VCFFactory:
     @staticmethod
     def create_Pandora_VCF_from_VariantRecord_and_Sample(variant: pysam.VariantRecord = None, sample: str = None) -> PandoraVCF:
@@ -200,4 +233,9 @@ class VCFFactory:
     @staticmethod
     def create_Snippy_VCF_from_VariantRecord_and_Sample(variant: pysam.VariantRecord = None, sample: str = None) -> SnippyVCF:
         vcf = SnippyVCF(variant, sample)
+        return vcf
+
+    @staticmethod
+    def create_Clockwork_VCF_from_VariantRecord_and_Sample(variant: pysam.VariantRecord = None, sample: str = None) -> ClockworkVCF:
+        vcf = ClockworkVCF(variant, sample)
         return vcf

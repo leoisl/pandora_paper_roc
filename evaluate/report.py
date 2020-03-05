@@ -33,12 +33,13 @@ class Report:
     def get_GT_conf_fast(header: str):
         if header=="":
             return 0.0
-
-        string_with_GT_conf = header[header.index("GT_CONF=") + 8:]
-        string_with_GT_conf = string_with_GT_conf[:string_with_GT_conf.index(";")]
-        gt_conf = float(string_with_GT_conf)
-        return gt_conf
-
+        try:
+            string_with_GT_conf = header[header.index("GT_CONF=") + 8:]
+            string_with_GT_conf = string_with_GT_conf[:string_with_GT_conf.index(";")]
+            gt_conf = float(string_with_GT_conf)
+            return gt_conf
+        except ValueError:
+            return 0.0
     def _create_gt_conf_column_from(self, probe_header: str) -> None:
         self.report["gt_conf"] = self.report[probe_header].apply(
             lambda column_name: Report.get_GT_conf_fast(column_name)
