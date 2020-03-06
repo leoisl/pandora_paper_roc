@@ -176,3 +176,5 @@ snippy_debug/refs/
 snippy_debug_2/hps/
 
 sample_data/
+
+interactive_plotting/ROC_data\.tsv
