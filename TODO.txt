@@ -1,0 +1,18 @@
+what proportion of SNPs are in the core, and not core?
+
+what proportion of regions are core, not core and unique?
+	-do the same plots without unique regions between two samples
+
+
+
+bug applying vcf
+
+what proportion of variable sites are we spotting (frequency 1, 2, 3 4)?
+
+
+no deduplication - just give weights to the probe
+	-maybe use pangenome snps (variable sites)
+	-use pairwise differences (no deduplication at all)
+	-weighted probes
+
+check if the two alleles of a site is detected
