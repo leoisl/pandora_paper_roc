@@ -30,7 +30,7 @@ data: pd.DataFrame = pd.merge(variant_calls, samples, on="sample_id")
 data = data.set_index(["sample_id", "coverage", "tool"], drop=False)
 samples = samples.set_index(["sample_id"], drop=False)
 sample_pairs = [(sample1, sample2) for sample1, sample2 in itertools.combinations(sorted(samples["sample_id"]), r=2)]
-gt_conf_percentiles = list(range(0, 101))
+gt_conf_percentiles = list(range(0, 11))
 
 
 # ======================================================

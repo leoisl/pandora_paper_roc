@@ -23,9 +23,7 @@ precision_report_files_for_all_samples = (
     snakemake.input.precision_report_files_for_all_samples
 )
 output = Path(snakemake.output.precision_file_for_all_samples)
-
-number_of_points_in_ROC_curve = int(snakemake.params.number_of_points_in_ROC_curve)
-
+gt_conf_percentiles = snakemake.params.gt_conf_percentiles
 tool = snakemake.wildcards.tool
 coverage = snakemake.wildcards.coverage
 coverage_threshold = snakemake.wildcards.coverage_threshold
@@ -41,7 +39,7 @@ logging.info(f"Creating calculator")
 precision_calculator = PrecisionCalculator(precision_report)
 
 logging.info(f"Calculating precision")
-precision_df = precision_calculator.get_precision_report(number_of_points_in_ROC_curve)
+precision_df = precision_calculator.get_precision_report(gt_conf_percentiles)
 
 metadata_df = pd.DataFrame(
     data={

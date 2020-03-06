@@ -53,7 +53,7 @@ rule calculate_precision:
     output:
          precision_file_for_all_samples = output_folder + "/precision/precision_files/{coverage}/{tool}/coverage_filter_{coverage_threshold}/strand_bias_filter_{strand_bias_threshold}/gaps_filter_{gaps_threshold}/precision.tsv"
     params:
-         number_of_points_in_ROC_curve = 100 # from 0 to 100
+         gt_conf_percentiles = gt_conf_percentiles
     threads: 1
     resources:
         mem_mb = lambda wildcards, attempt: 8000 * attempt

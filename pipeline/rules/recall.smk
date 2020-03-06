@@ -119,7 +119,7 @@ rule make_mutated_vcf_ref_for_recall:
     run:
         for gt_conf_percentile, input_file, output_file in zip(gt_conf_percentiles, input.singlesample_vcf_files_gt_conf_percentile_filtered, output.mutated_vcf_refs):
             run_command(f"python vcf_consensus_builder/cli.py -v {input_file} -r {input.vcf_ref} -d {input.empty_depth_file} "
-                        f"-o {output_file} --low-coverage 0 --no-coverage 0")
+                        f"-o {output_file} --low-coverage 0 --no-coverage 0 -V")
 
 rule make_recall_truth_probeset:
     input:
@@ -177,9 +177,10 @@ rule calculate_recall:
     input:
          recall_report_files_for_all_samples_and_all_gt_conf_percentile = lambda wildcards: cov_tool_and_filters_to_recall_report_files[(wildcards.coverage, wildcards.tool, wildcards.coverage_threshold, wildcards.strand_bias_threshold, wildcards.gaps_threshold)]
     output:
-         recall_file_for_all_samples_and_all_gt_conf_percentile = output_folder + "/recall/recall_files/{coverage}/{tool}/coverage_filter_{coverage_threshold}/strand_bias_filter_{strand_bias_threshold}/gaps_filter_{gaps_threshold}/recall.tsv"
+         recall_file_for_all_samples_and_all_gt_conf_percentile = output_folder + "/recall/recall_files/{coverage}/{tool}/coverage_filter_{coverage_threshold}/strand_bias_filter_{strand_bias_threshold}/gaps_filter_{gaps_threshold}/recall.tsv",
+         recall_final_report = output_folder + "/recall/recall_files/{coverage}/{tool}/coverage_filter_{coverage_threshold}/strand_bias_filter_{strand_bias_threshold}/gaps_filter_{gaps_threshold}/recall_final_report.tsv"
     params:
-         number_of_points_in_ROC_curve = 100 # from 0 to 100
+         gt_conf_percentiles = gt_conf_percentiles
     threads: 1
     resources:
         mem_mb = lambda wildcards, attempt: 16000 * attempt

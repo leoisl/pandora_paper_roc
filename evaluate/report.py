@@ -49,6 +49,9 @@ class Report:
             lambda column_name: column_name in ["primary_correct", "secondary_correct", "supplementary_correct"]
         )
 
+    def save_report(self, file_handle):
+        self.report.to_csv(file_handle, header=True, index=False)
+
 
 class PrecisionReport(Report):
     def __init__(self, dfs: Iterable[pd.DataFrame]):
