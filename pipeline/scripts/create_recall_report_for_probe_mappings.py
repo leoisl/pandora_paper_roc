@@ -24,7 +24,7 @@ mask_filepath = snakemake.input.mask
 sams_filepath = snakemake.input.sams
 sample_id = snakemake.wildcards.sample_id
 variant_call_recall_reports = snakemake.output.reports
-gt_conf_percentiles = [int(gt_conf_percentile) for gt_conf_percentile in snakemake.params.gt_conf_percentiles]
+gt_conf_percentiles = snakemake.params.gt_conf_percentiles
 
 
 # API usage

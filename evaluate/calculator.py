@@ -46,8 +46,6 @@ class PrecisionCalculator(Calculator):
         super().__init__(report)
 
     def get_precision_report(self, all_gts) -> pd.DataFrame:
-        # all_gts = self._get_all_genotype_points(number_of_datapoints)
-
         gts = []
         precisions = []
         error_rates = []
@@ -89,8 +87,6 @@ class RecallCalculator(Calculator):
         super().__init__(report)
 
     def get_recall_report(self, all_gts) -> pd.DataFrame:
-        # all_gts = self._get_all_genotype_points(number_of_datapoints)
-
         gts = []
         recalls = []
         nb_of_truth_probes_found = []
