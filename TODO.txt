@@ -1,5 +1,6 @@
 1. recall per sample
 2. switch to https://github.com/mbhall88/pandora_simulations/blob/master/scripts/apply_vcf.py
+3. remove plasmids
 
 what proportion of SNPs are in the core, and not core?
 

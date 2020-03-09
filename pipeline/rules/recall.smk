@@ -1,4 +1,5 @@
 import subprocess
+from pipeline.scripts.utils import get_sample_pairs_containing_given_sample
 
 def run_command(command):
     subprocess.check_call(command, shell=True)
@@ -188,3 +189,17 @@ rule calculate_recall:
         "logs/calculate_recall/{coverage}/{tool}/coverage_filter_{coverage_threshold}/strand_bias_filter_{strand_bias_threshold}/gaps_filter_{gaps_threshold}/recall.log"
     script:
         "../scripts/calculate_recall.py"
+
+
+rule calculate_recall_per_sample_no_gt_conf_filter:
+    input:
+         all_recall_reports_for_one_sample_with_no_gt_conf_filter = lambda wildcards: expand(output_folder + "/recall/reports/{{sample_id}}/{{coverage}}/{{tool}}/coverage_filter_{{coverage_threshold}}/strand_bias_filter_{{strand_bias_threshold}}/gaps_filter_{{gaps_threshold}}/gt_conf_percentile_0/{sample_pairs}.report.tsv", sample_pairs = get_sample_pairs_containing_given_sample(sample_pairs, wildcards.sample_id))
+    output:
+         recall_file_for_one_sample_with_no_gt_conf_filter = output_folder + "/recall/recall_files_per_sample/{sample_id}/{coverage}/{tool}/coverage_filter_{coverage_threshold}/strand_bias_filter_{strand_bias_threshold}/gaps_filter_{gaps_threshold}/recall.tsv"
+    threads: 1
+    resources:
+        mem_mb = lambda wildcards, attempt: 4000 * attempt
+    log:
+        "logs/calculate_recall_per_sample_no_gt_conf_filter/{sample_id}/{coverage}/{tool}/coverage_filter_{coverage_threshold}/strand_bias_filter_{strand_bias_threshold}/gaps_filter_{gaps_threshold}/recall.log"
+    script:
+        "../scripts/calculate_recall_per_sample_no_gt_conf_filter.py"

@@ -39,3 +39,17 @@ rule concat_all_nb_of_records_removed_with_mapq_sam_records_filter_files_for_pre
         "logs/concat_all_nb_of_records_removed_with_mapq_sam_records_filter_files_for_precision/nb_of_records_removed_with_mapq_sam_records_filter_for_precision.log"
     script:
         "../scripts/concat_all_nb_of_records_removed_with_mapq_sam_records_filter_files.py"
+
+
+rule concat_all_recall_per_sample_no_gt_conf_filter:
+    input:
+         all_recall_per_sample_no_gt_conf_filter = all_recall_per_sample_no_gt_conf_filter
+    output:
+         recall_per_sample = output_folder + "/plot_data/recall_per_sample.tsv"
+    threads: 1
+    resources:
+        mem_mb = lambda wildcards, attempt: 4000 * attempt
+    log:
+        "logs/concat_all_recall_per_sample_no_gt_conf_filter/recall_per_sample.log"
+    script:
+        "../scripts/concat_all_recall_per_sample_no_gt_conf_filter.py"

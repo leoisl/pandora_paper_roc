@@ -3,6 +3,7 @@ import itertools
 from snakemake.utils import min_version, validate
 import pandas as pd
 from collections import defaultdict
+from pipeline.scripts.utils import get_sample_pairs_containing_given_sample
 
 min_version("5.1.0")
 
@@ -86,20 +87,20 @@ all_recall_files=[]
 
 for index, row in data.iterrows():
     sample_id, coverage, tool = row["sample_id"], row["coverage"], row["tool"]
-    for sample1, sample2 in [pair for pair in sample_pairs if sample_id in pair]:
-        filename_prefix = f"{sample1}_and_{sample2}"
+    for filename_prefix in get_sample_pairs_containing_given_sample(sample_pairs, sample_id):
         files_with_filters = expand(f"{output_folder}/recall/map_probes/{sample_id}/{coverage}/{tool}/coverage_filter_{{coverage_threshold}}/strand_bias_filter_{{strand_bias_threshold}}/gaps_filter_{{gaps_threshold}}/gt_conf_percentile_{{gt_conf_percentile}}/{filename_prefix}.sam", coverage_threshold = get_coverage_filters(tool), strand_bias_threshold = get_strand_bias_filters(tool), gaps_threshold = get_gaps_filters(tool), gt_conf_percentile=gt_conf_percentiles)
 
 cov_tool_and_filters_to_recall_report_files = defaultdict(list)
+all_recall_per_sample_no_gt_conf_filter = set()
 for index, row in data.iterrows():
     sample_id, coverage, tool = row["sample_id"], row["coverage"], row["tool"]
-    for sample1, sample2 in [pair for pair in sample_pairs if sample_id in pair]:
-        filename_prefix = f"{sample1}_and_{sample2}"
+    for filename_prefix in get_sample_pairs_containing_given_sample(sample_pairs, sample_id):
         for coverage_threshold, strand_bias_threshold, gaps_threshold, gt_conf_percentile in \
             itertools.product(get_coverage_filters(tool), get_strand_bias_filters(tool), get_gaps_filters(tool), gt_conf_percentiles):
             report_file = f"{output_folder}/recall/reports/{sample_id}/{coverage}/{tool}/coverage_filter_{coverage_threshold}/strand_bias_filter_{strand_bias_threshold}/gaps_filter_{gaps_threshold}/gt_conf_percentile_{gt_conf_percentile}/{filename_prefix}.report.tsv"
             cov_tool_and_filters_to_recall_report_files[(coverage, tool, str(coverage_threshold), str(strand_bias_threshold), str(gaps_threshold))].append(report_file)
-
+            all_recall_per_sample_no_gt_conf_filter.add(f"{output_folder}/recall/recall_files_per_sample/{sample_id}/{coverage}/{tool}/coverage_filter_{coverage_threshold}/strand_bias_filter_{strand_bias_threshold}/gaps_filter_{gaps_threshold}/recall.tsv")
+all_recall_per_sample_no_gt_conf_filter = list(all_recall_per_sample_no_gt_conf_filter)
 
 for coverage, tool, coverage_threshold, strand_bias_threshold, gaps_threshold in cov_tool_and_filters_to_recall_report_files:
     all_recall_files.append(f"{output_folder}/recall/recall_files/{coverage}/{tool}/coverage_filter_{coverage_threshold}/strand_bias_filter_{strand_bias_threshold}/gaps_filter_{gaps_threshold}/recall.tsv")
@@ -114,11 +115,12 @@ for coverage, tool, coverage_threshold, strand_bias_threshold, gaps_threshold in
     all_plot_data_intermediate_files.append(f"{output_folder}/plot_data/{coverage}/{tool}/coverage_filter_{coverage_threshold}/strand_bias_filter_{strand_bias_threshold}/gaps_filter_{gaps_threshold}/ROC_data.tsv")
 final_plot_data_file = f"{output_folder}/plot_data/ROC_data.tsv"
 final_all_nb_of_records_removed_with_mapq_sam_records_filter_file = f"{output_folder}/plot_data/nb_of_records_removed_with_mapq_sam_records_filter_for_precision.csv"
+recall_per_sample_file = f"{output_folder}/plot_data/recall_per_sample.tsv"
 
 files.extend(all_plot_data_intermediate_files)
 files.append(final_plot_data_file)
 files.append(final_all_nb_of_records_removed_with_mapq_sam_records_filter_file)
-
+files.append(recall_per_sample_file)
 
 
 
