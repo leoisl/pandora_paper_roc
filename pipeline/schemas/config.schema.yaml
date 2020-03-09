@@ -35,7 +35,9 @@ properties:
         description:            VCF records having a gaps fractions larger than this value will be filtered out from the analysis. One plot is produced for each value.
         items:
             type:               number
-
+    max_gt_conf_percentile:
+        type:                   number
+        description:            GT confidence percentiles will be calculated from 0 until this value (exclusive).
 
 required:
   - samples
@@ -45,3 +47,4 @@ required:
   - coverage_filters
   - strand_bias_filters
   - gaps_filters
+  - max_gt_conf_percentile
