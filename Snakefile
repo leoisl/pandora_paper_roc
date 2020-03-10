@@ -92,6 +92,7 @@ for index, row in data.iterrows():
 
 cov_tool_and_filters_to_recall_report_files = defaultdict(list)
 all_recall_per_sample_no_gt_conf_filter = set()
+all_recall_per_sample_pair_no_gt_conf_filter = set()
 for index, row in data.iterrows():
     sample_id, coverage, tool = row["sample_id"], row["coverage"], row["tool"]
     for filename_prefix in get_sample_pairs_containing_given_sample(sample_pairs, sample_id):
@@ -100,7 +101,10 @@ for index, row in data.iterrows():
             report_file = f"{output_folder}/recall/reports/{sample_id}/{coverage}/{tool}/coverage_filter_{coverage_threshold}/strand_bias_filter_{strand_bias_threshold}/gaps_filter_{gaps_threshold}/gt_conf_percentile_{gt_conf_percentile}/{filename_prefix}.report.tsv"
             cov_tool_and_filters_to_recall_report_files[(coverage, tool, str(coverage_threshold), str(strand_bias_threshold), str(gaps_threshold))].append(report_file)
             all_recall_per_sample_no_gt_conf_filter.add(f"{output_folder}/recall/recall_files_per_sample/{sample_id}/{coverage}/{tool}/coverage_filter_{coverage_threshold}/strand_bias_filter_{strand_bias_threshold}/gaps_filter_{gaps_threshold}/recall.tsv")
+            all_recall_per_sample_pair_no_gt_conf_filter.add(f"{output_folder}/recall/recall_files_per_sample_pair/{sample_id}/{coverage}/{tool}/coverage_filter_{coverage_threshold}/strand_bias_filter_{strand_bias_threshold}/gaps_filter_{gaps_threshold}/{filename_prefix}.recall.tsv")
 all_recall_per_sample_no_gt_conf_filter = list(all_recall_per_sample_no_gt_conf_filter)
+all_recall_per_sample_pair_no_gt_conf_filter = list(all_recall_per_sample_pair_no_gt_conf_filter)
+
 
 for coverage, tool, coverage_threshold, strand_bias_threshold, gaps_threshold in cov_tool_and_filters_to_recall_report_files:
     all_recall_files.append(f"{output_folder}/recall/recall_files/{coverage}/{tool}/coverage_filter_{coverage_threshold}/strand_bias_filter_{strand_bias_threshold}/gaps_filter_{gaps_threshold}/recall.tsv")
@@ -116,11 +120,13 @@ for coverage, tool, coverage_threshold, strand_bias_threshold, gaps_threshold in
 final_plot_data_file = f"{output_folder}/plot_data/ROC_data.tsv"
 final_all_nb_of_records_removed_with_mapq_sam_records_filter_file = f"{output_folder}/plot_data/nb_of_records_removed_with_mapq_sam_records_filter_for_precision.csv"
 recall_per_sample_file = f"{output_folder}/plot_data/recall_per_sample.tsv"
+recall_per_sample_pair_file = f"{output_folder}/plot_data/recall_per_sample_pair.tsv"
 
 files.extend(all_plot_data_intermediate_files)
 files.append(final_plot_data_file)
 files.append(final_all_nb_of_records_removed_with_mapq_sam_records_filter_file)
 files.append(recall_per_sample_file)
+files.append(recall_per_sample_pair_file)
 
 
 

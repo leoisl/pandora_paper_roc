@@ -14,7 +14,7 @@ logging.basicConfig(
 
 
 from io import StringIO
-from evaluate.mummer import ShowSnps, Nucmer, DeltaFilter, NucmerError
+from evaluate.mummer import ShowSnps, Nucmer, DeltaFilter, NucmerError, GetReportFromDeltaFile
 from evaluate.utils import strip_extensions
 
 
@@ -58,6 +58,14 @@ def generate_mummer_snps(
 
     return StringIO(showsnps_content)
 
+def get_dnadiff_report(
+        prefix: Path = Path("out")
+) -> str:
+    deltafile = Path(str(prefix) + ".delta")
+    get_report_from_delta_file = GetReportFromDeltaFile(deltafile)
+    report_as_str = get_report_from_delta_file.get_report()
+    return report_as_str
+
 
 def write_truth_probeset_to_temp_file(
     truth_probes: str, query: Path, temp_folder: Path
@@ -88,6 +96,11 @@ mummer_snps: StringIO = generate_mummer_snps(
     reference=query1, query=query2, prefix=prefix, flank_width=flank_width
 )
 
+logging.info("Generating dnadiff report")
+dna_diff_report_as_str = get_dnadiff_report(prefix)
+ref_aligned_bases_percentage, query_aligned_bases_percentage = \
+    GetReportFromDeltaFile.get_ref_and_query_aligned_bases_percentage(dna_diff_report_as_str)
+
 logging.info("Converting show-snps output to dataframe")
 snps_df = ShowSnps.to_dataframe(mummer_snps)
 
@@ -95,9 +108,13 @@ logging.info("Creating probes from dataframe")
 query1_truth_probes, query2_truth_probes = snps_df.get_probes()
 query1_truth_probes_path: Path = Path(snakemake.output.probeset1)
 query2_truth_probes_path: Path = Path(snakemake.output.probeset2)
+aligned_bases_percentage_sample_1 = Path(snakemake.output.aligned_bases_percentage_sample_1)
+aligned_bases_percentage_sample_2 = Path(snakemake.output.aligned_bases_percentage_sample_2)
 
 logging.info("Writing output files")
 query1_truth_probes_path.write_text(query1_truth_probes)
 query2_truth_probes_path.write_text(query2_truth_probes)
+aligned_bases_percentage_sample_1.write_text(str(ref_aligned_bases_percentage))
+aligned_bases_percentage_sample_2.write_text(str(query_aligned_bases_percentage))
 
 logging.info(f"Done")
