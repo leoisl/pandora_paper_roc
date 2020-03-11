@@ -16,6 +16,7 @@ validate(config, "pipeline/schemas/config.schema.yaml")
 samples = pd.read_csv(config["samples"])
 validate(samples, "pipeline/schemas/samples.schema.yaml")
 samples.rename(columns={"reference": "reference_assembly"}, inplace=True)
+samples["reference_assembly"] += ".chrom_only"
 
 variant_calls = pd.read_csv(config["variant_calls"])
 validate(variant_calls, "pipeline/schemas/variant_calls.schema.yaml")
