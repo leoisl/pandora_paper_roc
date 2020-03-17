@@ -2,6 +2,7 @@ Done:
     -recall per sample
     -vcf apply bug fixed
     -plasmids removed from analysis
+    -VCF calls genotyping towards REF are disregarded
 
 what proportion of SNPs are in the core, and not core?
 
