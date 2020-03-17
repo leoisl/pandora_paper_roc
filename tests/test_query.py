@@ -300,7 +300,7 @@ class TestQuery:
         sample = "sample"
         flank_width = 3
         query = Query(None, None, None, flank_width=flank_width)
-        variant = retrieve_entry_from_test_vcf(2)
+        variant = retrieve_entry_from_test_vcf(1)
         vcf = VCFFactory.create_Pandora_VCF_from_VariantRecord_and_Sample(variant, sample)
         interval = query.calculate_probe_boundaries_for_entry(vcf)
 
@@ -309,7 +309,7 @@ class TestQuery:
             chrom="GC00000001_155",
             sample="sample",
             pos=1,
-            interval=ProbeInterval(0, 12),
+            interval=ProbeInterval(0, 30),
             svtype="COMPLEX",
             gt_conf=262.757,
         )

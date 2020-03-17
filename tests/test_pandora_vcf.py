@@ -1,4 +1,4 @@
-from evaluate.vcf import PandoraVCF, BuggedVCFError, NullVCFError, VCFFactory
+from evaluate.vcf import PandoraVCF, BuggedVCFError, NullVCFError, VCFFactory, GenotypingTowardsRef
 from .common import retrieve_entry_from_test_vcf
 from unittest.mock import patch, PropertyMock, Mock, MagicMock
 import pytest
@@ -24,6 +24,14 @@ class Test_PandoraVCF:
 
     @patch.object(PandoraVCF, "is_null_call", new_callable=PropertyMock, return_value=False)
     @patch.object(PandoraVCF, "has_genotype_bug", new_callable=PropertyMock, return_value=False)
+    @patch.object(PandoraVCF, "genotype", new_callable=PropertyMock, return_value=0)
+    def test___from_VariantRecord_and_Sample___valid_PandoraVCF_but_genotypes_towards_ref___raises_GenotypingTowardsRef(self, *mocks):
+        with pytest.raises(GenotypingTowardsRef):
+            VCFFactory.create_Pandora_VCF_from_VariantRecord_and_Sample(1, 2)
+
+    @patch.object(PandoraVCF, "is_null_call", new_callable=PropertyMock, return_value=False)
+    @patch.object(PandoraVCF, "has_genotype_bug", new_callable=PropertyMock, return_value=False)
+    @patch.object(PandoraVCF, "genotype", new_callable=PropertyMock, return_value=1)
     def test___from_VariantRecord_and_Sample___valid_PandoraVCF(self, *mocks):
         variant_mock = Mock()
         sample_mock = Mock()
@@ -230,7 +238,7 @@ class Test_PandoraVCF:
         vcf = build_PandoraVCF_bypassing_check(entry, sample)
 
         actual = vcf._likelihoods
-        expected = [-63.3221, -326.079, -432.546]
+        expected = [-326.079, -63.3221, -432.546]
 
         assert actual == expected
 

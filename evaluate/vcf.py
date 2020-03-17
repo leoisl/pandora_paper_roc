@@ -8,6 +8,8 @@ class BuggedVCFError(Exception):
 class NullVCFError(Exception):
     pass
 
+class GenotypingTowardsRef(Exception):
+    pass
 
 class VCF(ABC):
     def __init__(self, variant: pysam.VariantRecord = None, sample: str = None):
@@ -20,6 +22,9 @@ class VCF(ABC):
 
             if self.has_genotype_bug:
                 raise BuggedVCFError()
+
+            if self.genotype == 0:
+                raise GenotypingTowardsRef()
 
     @property
     def is_null_call(self) -> bool:
