@@ -34,7 +34,7 @@ rule fix_snippy_vcf_for_pipeline:
         mem_mb = lambda wildcards, attempt: 4000 * attempt
     log:
         "logs/fix_snippy_vcf_for_pipeline{directory}/snippy_{sample}_AND_{ref}.vcf.log"
-    shell:
+    script:
         "../scripts/fix_snippy_vcf.py"
 
 
