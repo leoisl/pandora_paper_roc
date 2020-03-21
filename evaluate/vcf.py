@@ -2,9 +2,6 @@ import pysam
 from typing import Iterable, List
 from abc import ABC, abstractmethod
 
-class BuggedVCFError(Exception):
-    pass
-
 class NullVCFError(Exception):
     pass
 
@@ -18,9 +15,6 @@ class VCF(ABC):
             if self.is_null_call:
                 raise NullVCFError()
 
-            if self.has_genotype_bug:
-                raise BuggedVCFError()
-
     @property
     def is_null_call(self) -> bool:
         return self.genotype is None
@@ -30,11 +24,6 @@ class VCF(ABC):
     def genotype(self) -> int:
         pass
 
-
-    @property
-    @abstractmethod
-    def has_genotype_bug(self) -> bool:
-        pass
 
     @property
     @abstractmethod
@@ -103,11 +92,6 @@ class PandoraVCF(VCF):
         assert len(all_gts) == 1
         return all_gts[0]
 
-    @property
-    def has_genotype_bug(self) -> bool:
-        genotype = self.genotype
-        genotype_called_wrongly = genotype not in self._highest_likelihood_indexes
-        return genotype_called_wrongly
 
     @property
     def genotype_confidence(self) -> float:
@@ -171,10 +155,6 @@ class SnippyVCF(VCF):
         assert all_gts == (1, 1)
         return 1
 
-    @property
-    def has_genotype_bug(self) -> bool:
-        genotype = self.genotype # just to do the assert
-        return False
 
     @property
     def genotype_confidence(self) -> float:

@@ -1,6 +1,6 @@
 from unittest.mock import patch, Mock, PropertyMock
 from evaluate.vcf_file import VCFFile
-from evaluate.vcf import NullVCFError, BuggedVCFError, VCFFactory
+from evaluate.vcf import NullVCFError, VCFFactory
 import pytest
 
 
@@ -134,15 +134,6 @@ class Test_VCFFile:
 
         expected = {"sample_1": {"chrom_2": [vcf_record_2_mock]}}
         assert actual == expected
-
-    @patch.object(VCFFactory, VCFFactory.create_Pandora_VCF_from_VariantRecord_and_Sample.__name__,
-                  side_effect=BuggedVCFError())
-    @pytest.mark.xfail(strict=True)
-    def test___constructor___two_records_in_one_sample_and_two_genes___first_is_bugged___expects_death(self, from_VariantRecord_and_Sample_Mock,
-                                                                     pysam_variant_record_mock_that_maps_to_chrom_1_and_one_sample,
-                                                                     pysam_variant_record_mock_that_maps_to_chrom_2_and_one_sample):
-        vcf_file = VCFFile([pysam_variant_record_mock_that_maps_to_chrom_1_and_one_sample,
-                            pysam_variant_record_mock_that_maps_to_chrom_2_and_one_sample], VCFFactory.create_Pandora_VCF_from_VariantRecord_and_Sample)
 
 
     def test___constructor___several_records_in_several_samples_and_several_genes(self):
