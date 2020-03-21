@@ -13,10 +13,9 @@ def correct_sample_names(line: str, suffix: str) -> str:
 def turn_gt_conf_in_sample_to_log(word: str) -> str:
     word_split = word.split(":")
     gt_conf = float(word_split[-1])
-    if gt_conf <= 1.0:
-        log_gt_conf = 0.0
-    else:
-        log_gt_conf = math.log2(gt_conf)
+    assert gt_conf >= 0.0, f"Error: gt_conf is negative: {gt_conf}"
+    gt_conf += 1.0  # avoids calculating log of values between 0.0 and 1.0 (which can get exponentially small)
+    log_gt_conf = math.log2(gt_conf)
     sample_info_with_gt_conf_as_log = ":".join(word_split[:-1] + [str(log_gt_conf)])
     return sample_info_with_gt_conf_as_log
 

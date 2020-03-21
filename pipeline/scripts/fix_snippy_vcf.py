@@ -15,10 +15,9 @@ def correct_sample_names(line: str, sample: str) -> str:
 
 def turn_gt_conf_in_sample_to_log(qual: str) -> str:
     gt_conf = float(qual)
-    if gt_conf <= 1.0:
-        log_gt_conf = 0.0
-    else:
-        log_gt_conf = math.log2(gt_conf)
+    assert gt_conf >= 0.0, f"Error: gt_conf is negative: {gt_conf}"
+    gt_conf += 1.0  # avoids calculating log of values between 0.0 and 1.0 (which can get exponentially small)
+    log_gt_conf = math.log2(gt_conf)
     return str(log_gt_conf)
 
 
