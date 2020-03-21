@@ -68,7 +68,7 @@ rule filter_vcf_for_a_single_sample_by_gt_conf_percentile_for_pandora:
     output:
         singlesample_vcf_files_gt_conf_percentile_filtered = expand("{{filename}}.vcf.sample_{{sample_id}}.gt_conf_percentile_{gt_conf_percentile}.vcf", gt_conf_percentile=gt_conf_percentiles)
     wildcard_constraints:
-        filename=".*/pandora_multisample_genotyped\.vcf\.\~\~vcf\~\~fixed\~\~"
+        filename=".*/pandora_multisample_genotyped_*\.vcf\.\~\~vcf\~\~fixed\~\~"
     threads: 1
     resources:
         mem_mb = lambda wildcards, attempt: 20000 * attempt
