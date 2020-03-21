@@ -38,6 +38,9 @@ properties:
     max_gt_conf_percentile:
         type:                   number
         description:            GT confidence percentiles will be calculated from 0 until this value (exclusive).
+    step_gt_conf_percentile:
+        type:                   number
+        description:            GT confidence percentiles will be have this step.
 
 required:
   - samples

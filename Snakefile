@@ -24,6 +24,7 @@ variant_calls.rename(columns={"reference": "vcf_reference"}, inplace=True)
 variant_calls["vcf"] += ".~~vcf~~fixed~~.vcf"
 
 max_gt_conf_percentile = int(config['max_gt_conf_percentile'])
+step_gt_conf_percentile = int(config['step_gt_conf_percentile'])
 
 # ======================================================
 # Global variables
@@ -33,7 +34,7 @@ data: pd.DataFrame = pd.merge(variant_calls, samples, on="sample_id")
 data = data.set_index(["sample_id", "coverage", "tool"], drop=False)
 samples = samples.set_index(["sample_id"], drop=False)
 sample_pairs = [(sample1, sample2) for sample1, sample2 in itertools.combinations(sorted(samples["sample_id"]), r=2)]
-gt_conf_percentiles = list(range(0, max_gt_conf_percentile))
+gt_conf_percentiles = list(range(0, max_gt_conf_percentile, step_gt_conf_percentile))
 
 
 # ======================================================
