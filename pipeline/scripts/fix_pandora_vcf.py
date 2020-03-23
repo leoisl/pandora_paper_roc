@@ -16,6 +16,11 @@ class FixPandoraVCF(FixVCF):
         corrected_header = "\t".join(corrected_words)
         return corrected_header
 
+    @staticmethod
+    def _null_is_called(sample_info_split: List[str]) -> bool:
+        called_gt = sample_info_split[0]
+        called_null = called_gt == "."
+        return called_null
 
     def get_gt_confs(self, record: str) -> List[float]:
         record_split = record.split("\t")
@@ -25,6 +30,10 @@ class FixPandoraVCF(FixVCF):
             if is_sample_info_field:
                 sample_info = word
                 sample_info_split = sample_info.split(":")
+
+                if FixPandoraVCF._null_is_called(sample_info_split):
+                    continue
+
                 gt_conf = float(sample_info_split[-1])
                 all_gt_confs.append(gt_conf)
         return all_gt_confs
@@ -39,7 +48,10 @@ class FixPandoraVCF(FixVCF):
                 sample_info = word
                 sample_info_split = sample_info.split(":")
                 sample_info_split_corrected = copy.deepcopy(sample_info_split)
-                sample_info_split_corrected[-1] = str(gt_confs.pop(0))
+
+                if not FixPandoraVCF._null_is_called(sample_info_split_corrected):
+                    sample_info_split_corrected[-1] = str(gt_confs.pop(0))
+
                 word = ":".join(sample_info_split_corrected)
             record_split_corrected.append(word)
         record_corrected = "\t".join(record_split_corrected)
