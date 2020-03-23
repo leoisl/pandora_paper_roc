@@ -16,53 +16,6 @@ from evaluate.report import (
 from numpy.testing import assert_allclose
 from tests.common import create_recall_report_row, create_precision_report_row
 
-class TestCalculator:
-    @patch.object(Report, Report.get_minimum_gt_conf.__name__, return_value = 2.5)
-    @patch.object(Report, Report.get_maximum_gt_conf.__name__, return_value = 33.3)
-    def test____get_all_genotype_points___no_datapoints(self, *patches):
-        report_mock = Report([pd.DataFrame()])
-        calculator = Calculator(report_mock)
-        actual = calculator._get_all_genotype_points(0)
-        expected = []
-        assert_allclose(actual, expected)
-
-    @patch.object(Report, Report.get_minimum_gt_conf.__name__, return_value = 2.5)
-    @patch.object(Report, Report.get_maximum_gt_conf.__name__, return_value = 33.3)
-    def test____get_all_genotype_points___one_datapoint(self, *patches):
-        report_mock = Report([pd.DataFrame()])
-        calculator = Calculator(report_mock)
-        actual = calculator._get_all_genotype_points(1)
-        expected = [2.5]
-        assert_allclose(actual, expected)
-
-    @patch.object(Report, Report.get_minimum_gt_conf.__name__, return_value = 2.5)
-    @patch.object(Report, Report.get_maximum_gt_conf.__name__, return_value = 33.3)
-    def test____get_all_genotype_points___two_datapoints(self, *patches):
-        report_mock = Report([pd.DataFrame()])
-        calculator = Calculator(report_mock)
-        actual = calculator._get_all_genotype_points(2)
-        expected = [2.5, 33.3]
-        assert_allclose(actual, expected)
-
-    @patch.object(Report, Report.get_minimum_gt_conf.__name__, return_value = 2.5)
-    @patch.object(Report, Report.get_maximum_gt_conf.__name__, return_value = 33.3)
-    def test____get_all_genotype_points___three_datapoints(self, *patches):
-        report_mock = Report([pd.DataFrame()])
-        calculator = Calculator(report_mock)
-        actual = calculator._get_all_genotype_points(3)
-        expected = [2.5, 17.9 ,33.3]
-        assert_allclose(actual, expected)
-
-    @patch.object(Report, Report.get_minimum_gt_conf.__name__, return_value = 2.5)
-    @patch.object(Report, Report.get_maximum_gt_conf.__name__, return_value = 33.3)
-    def test____get_all_genotype_points___five_datapoints(self, *patches):
-        report_mock = Report([pd.DataFrame()])
-        calculator = Calculator(report_mock)
-        actual = calculator._get_all_genotype_points(5)
-        expected = [2.5, 10.2, 17.9, 25.6, 33.3]
-        assert_allclose(actual, expected)
-
-
 class TestPrecisionCalculator:
     def test_calculatePrecision_NoReportsRaisesEmptyReportError(self):
         columns = ["sample", "query_probe_header", "ref_probe_header", "classification"]

@@ -29,16 +29,9 @@ class RecallInfo(CalculatorInfo):
         self.recall = self.ratio
 
 
-
 class Calculator:
     def __init__(self, report: Report):
         self.report = report
-
-    def _get_all_genotype_points(self, number_of_datapoints):
-        min_gt = self.report.get_minimum_gt_conf()
-        max_gt = self.report.get_maximum_gt_conf()
-        all_gts = np.linspace(min_gt, max_gt, number_of_datapoints)
-        return all_gts
 
 
 class PrecisionCalculator(Calculator):
