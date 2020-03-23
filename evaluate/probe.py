@@ -67,7 +67,7 @@ class ProbeHeader:
 
     def __str__(self) -> str:
         contents = DELIM.join(
-            f"{k.upper()}={str(v)}" for k, v in vars(self).items() if v
+            f"{k.upper()}={str(v)}" for k, v in vars(self).items()
         )
 
         if not contents:
