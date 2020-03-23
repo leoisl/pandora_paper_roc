@@ -146,7 +146,7 @@ class TestProbeHeader:
         header = ProbeHeader()
 
         actual = str(header)
-        expected = ">GT_CONF=0.0;"
+        expected = ""
 
         assert actual == expected
 
@@ -154,7 +154,7 @@ class TestProbeHeader:
         header = ProbeHeader(svtype="SNP")
 
         actual = str(header)
-        expected = ">SVTYPE=SNP;GT_CONF=0.0;"
+        expected = ">SVTYPE=SNP;"
 
         assert actual == expected
 
@@ -181,7 +181,7 @@ class TestProbe:
         probe = Probe()
 
         actual = str(probe)
-        expected = ">GT_CONF=0.0;\n"
+        expected = ""
 
         assert actual == expected
 
@@ -189,7 +189,7 @@ class TestProbe:
         probe = Probe(ProbeHeader(chrom="3"))
 
         actual = str(probe)
-        expected = ">CHROM=3;GT_CONF=0.0;\n"
+        expected = ">CHROM=3;\n"
 
         assert actual == expected
 
@@ -197,7 +197,7 @@ class TestProbe:
         probe = Probe(ProbeHeader(pos=4, chrom="3"), full_sequence="foo")
 
         actual = str(probe)
-        expected = ">CHROM=3;POS=4;GT_CONF=0.0;\nfoo"
+        expected = ">CHROM=3;POS=4;\nfoo"
 
         assert actual == expected
 
