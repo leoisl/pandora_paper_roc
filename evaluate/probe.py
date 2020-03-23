@@ -66,9 +66,11 @@ class ProbeHeader:
         )
 
     def __str__(self) -> str:
-        contents = DELIM.join(
-            f"{k.upper()}={str(v)}" for k, v in vars(self).items()
-        )
+        list_of_key_values_to_add = [f"{k.upper()}={str(v)}" for k, v in vars(self).items() if k != "gt_conf" and v]
+        # forcibly add gt conf
+        list_of_key_values_to_add.append(f"GT_CONF={round(self.gt_conf, 1):.1f}")
+
+        contents = DELIM.join(list_of_key_values_to_add)
 
         if not contents:
             return ""
