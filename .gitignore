@@ -181,3 +181,5 @@ interactive_plotting/ROC_data\.tsv
 tests/test_cases/sample_snippy_to_be_fixed\.corrected\.vcf
 
 tests/test_cases/pandora_multisample_genotyped_global\.test\.vcf\.corrected\.vcf
+
+interactive_plotting/ROC_data.tsv
