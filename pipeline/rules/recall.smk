@@ -152,7 +152,7 @@ rule map_recall_truth_probeset_to_mutated_vcf_ref:
          sams = expand(output_folder + "/recall/map_probes/{{sample_id}}/{{coverage}}/{{tool}}/coverage_filter_{{coverage_threshold}}/strand_bias_filter_{{strand_bias_threshold}}/gaps_filter_{{gaps_threshold}}/gt_conf_percentile_{gt_conf_percentile}/{{sample_pair}}.sam", gt_conf_percentile=gt_conf_percentiles)
     threads: 4
     resources:
-        mem_mb = lambda wildcards, attempt: 20000 * attempt
+        mem_mb = 20000
     log:
         "logs/map_recall_truth_probeset_to_mutated_vcf_ref/{sample_id}/{coverage}/{tool}/coverage_filter_{coverage_threshold}/strand_bias_filter_{strand_bias_threshold}/gaps_filter_{gaps_threshold}/{sample_pair}.log"
     script:
