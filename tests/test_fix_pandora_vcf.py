@@ -1,9 +1,10 @@
-from pipeline.scripts.fix_pandora_vcf import process_pandora_vcf
+from pipeline.scripts.fix_pandora_vcf import FixPandoraVCF
 import filecmp
 
 class TestFixPandoraVCF:
     def test_big_bang_fix_pandora_vcf(self):
-        process_pandora_vcf("tests/test_cases/pandora_multisample_genotyped_global.test.vcf",
+        fixer = FixPandoraVCF()
+        fixer.process_pandora_vcf("tests/test_cases/pandora_multisample_genotyped_global.test.vcf",
                             "tests/test_cases/pandora_multisample_genotyped_global.test.vcf.corrected.vcf",
                             "illumina", "100x", "random")
         files_are_equal = \
