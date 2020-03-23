@@ -1,0 +1,69 @@
+DEBUG
+
+recall flank 150 (pandora has too many partially_mapped - 278k):
+
+best snippy truth probes classification
+$ cat reports/*/all/snippy_NZ_CP016497.1/coverage_filter_0/strand_bias_filter_Not_App/gaps_filter_Not_App/gt_conf_percentile_0/*.tsv | awk '{print $4}' | sort | uniq -c 
+     12 classification
+  27876 partially_mapped
+1003391 primary_correct
+  25487 primary_incorrect
+    181 supplementary_correct
+     33 supplementary_incorrect
+  29097 unmapped
+
+best 100x/pandora_nanopore_with_denovo truth probes classification
+$ cat reports/*/100x/pandora_nanopore_with_denovo/coverage_filter_0/strand_bias_filter_0.0/gaps_filter_1.0/gt_conf_percentile_0/*.tsv | awk '{print $4}' | sort | uniq -c 
+     12 classification
+ 278879 partially_mapped
+ 962946 primary_correct
+  51641 primary_incorrect
+   6722 supplementary_correct
+    845 supplementary_incorrect
+  15302 unmapped
+
+
+
+recall flank 50 (partially mapped for pandora reduced to 40k, but still less recall than snippy):
+
+$ cat reports/*/all/snippy_NZ_CP016497.1/coverage_filter_0/strand_bias_filter_Not_App/gaps_filter_Not_App/gt_conf_percentile_0/*.tsv | awk '{print $4}' | sort | uniq -c
+     12 classification
+  11036 partially_mapped
+1003039 primary_correct
+  16003 primary_incorrect
+     86 supplementary_correct
+     14 supplementary_incorrect
+  44524 unmapped
+
+(base) noah-login-02:/hps/nobackup/research/zi/leandro/pandora1_paper/analysis_output_new_recall_pandora_nanopore_100x_best_snippy_precision_flank_150_recall_flank_50/recall
+$ cat reports/*/100x/pandora_nanopore_with_denovo/coverage_filter_0/strand_bias_filter_0.0/gaps_filter_1.0/gt_conf_percentile_0/*.tsv | awk '{print $4}' | sort | uniq -c 
+     12 classification
+  40204 partially_mapped
+ 970669 primary_correct
+  50289 primary_incorrect
+   1924 supplementary_correct
+    160 supplementary_incorrect
+  33683 unmapped
+
+
+
+
+recall flank 25 (partially mapped became unmapped for pandora - snippy has less primary incorrect and less unmapped):
+$ cat reports/*/all/snippy_NZ_CP016497.1/coverage_filter_0/strand_bias_filter_Not_App/gaps_filter_Not_App/gt_conf_percentile_0/*.tsv | awk '{print $4}' | sort | uniq -c
+     12 classification
+     32 partially_mapped
+1001610 primary_correct
+   7367 primary_incorrect
+      4 supplementary_correct
+  64330 unmapped
+
+
+
+pandora:
+$ cat reports/*/100x/pandora_nanopore_with_denovo/coverage_filter_0/strand_bias_filter_0.0/gaps_filter_1.0/gt_conf_percentile_0/*.tsv | awk '{print $4}' | sort | uniq -c
+     12 classification
+     59 partially_mapped
+ 948340 primary_correct
+  32035 primary_incorrect
+     39 supplementary_correct
+  92905 unmapped

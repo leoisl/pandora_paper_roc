@@ -7,6 +7,7 @@ from typing import List, TextIO, Tuple
 import pandas as pd
 from .probe import Probe, ProbeHeader, ProbeInterval
 from .utils import arg_ranges
+import re
 
 
 class NucmerError(Exception):
@@ -20,6 +21,8 @@ class DeltaFilterError(Exception):
 class ShowSnpsError(Exception):
     pass
 
+class GetReportFromDeltaFileError(Exception):
+    pass
 
 class Nucmer:
     def __init__(
@@ -54,6 +57,34 @@ class Nucmer:
         return subprocess.run(
             nucmer_command, stderr=subprocess.PIPE, stdout=subprocess.PIPE
         )
+
+
+class GetReportFromDeltaFile:
+    def __init__(self, deltafile: Path):
+        if not deltafile.is_file():
+            raise GetReportFromDeltaFileError(f"deltafile {str(deltafile)} does not exist.")
+        self.deltafile = str(deltafile)
+
+    def generate_command(self) -> List[str]:
+        command = ["dnadiff", "-d", self.deltafile, "-p", f"{self.deltafile}.dnadiff_prefix"]
+        return command
+
+    def get_report(self) -> str:
+        """The output file can be found in the stdout of the returned
+        CompletedProcess."""
+        command = self.generate_command()
+        subprocess.check_call(command)
+        report_file = Path(f"{self.deltafile}.dnadiff_prefix.report")
+        return report_file.read_text()
+
+    @staticmethod
+    def get_ref_and_query_aligned_bases_percentage(report) -> Tuple[float, float]:
+        matches = re.search(r'AlignedBases\s+\d+\((\d*\.\d*)%\)\s+\d+\((\d*\.\d*)%\)', report)
+        ref_aligned_bases_percentage = float(matches[1])
+        query_aligned_bases_percentage = float(matches[2])
+        return ref_aligned_bases_percentage, query_aligned_bases_percentage
+
+
 
 
 class DeltaFilter:

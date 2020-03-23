@@ -1,6 +1,6 @@
 import pysam
 from typing import List, Dict
-from .vcf import VCF, BuggedVCFError, NullVCFError, VCFFactory
+from .vcf import VCF, NullVCFError, VCFFactory
 from collections import defaultdict
 
 
@@ -15,8 +15,6 @@ class VCFFile:
                     self._sample_to_gene_to_VCFs[sample][gene].append(vcf)
                 except NullVCFError:
                     pass
-                except BuggedVCFError:
-                    assert False, f"We found a bugged VCF: {variant_record}"
 
     @property
     def sample_to_gene_to_VCFs(self) -> Dict[str, Dict[str, List[VCF]]]:

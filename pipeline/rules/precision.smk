@@ -8,7 +8,7 @@ rule make_variant_calls_probeset_for_precision:
           flank_length = config["variant_calls_flank_length_for_precision"]
     threads: 1
     resources:
-        mem_mb = lambda wildcards, attempt: 1000 * attempt
+        mem_mb = lambda wildcards, attempt: 4000 * attempt
     log:
         "logs/make_variant_calls_probeset_for_precision/{sample_id}/{coverage}/{tool}/coverage_filter_{coverage_threshold}/strand_bias_filter_{strand_bias_threshold}/gaps_filter_{gaps_threshold}/variant_calls_probeset.log"
     script:
@@ -40,7 +40,7 @@ rule create_precision_report_from_probe_mappings:
         nb_of_records_removed_with_mapq_sam_records_filter_filepath = output_folder + "/precision/reports_from_probe_mappings/{sample_id}/{coverage}/{tool}/coverage_filter_{coverage_threshold}/strand_bias_filter_{strand_bias_threshold}/gaps_filter_{gaps_threshold}/nb_of_records_removed_with_mapq_sam_records_filter.csv"
     threads: 1
     resources:
-        mem_mb = lambda wildcards, attempt: 1000 * attempt
+        mem_mb = lambda wildcards, attempt: 4000 * attempt
     log:
         "logs/create_precision_report_from_probe_mappings/{sample_id}/{coverage}/{tool}/coverage_filter_{coverage_threshold}/strand_bias_filter_{strand_bias_threshold}/gaps_filter_{gaps_threshold}/variant_calls_probeset_report.log"
     script:
@@ -53,10 +53,10 @@ rule calculate_precision:
     output:
          precision_file_for_all_samples = output_folder + "/precision/precision_files/{coverage}/{tool}/coverage_filter_{coverage_threshold}/strand_bias_filter_{strand_bias_threshold}/gaps_filter_{gaps_threshold}/precision.tsv"
     params:
-         number_of_points_in_ROC_curve = number_of_points_in_ROC_curve
+         gt_conf_percentiles = gt_conf_percentiles
     threads: 1
     resources:
-        mem_mb = lambda wildcards, attempt: 4000 * attempt
+        mem_mb = lambda wildcards, attempt: 8000 * attempt
     log:
         "logs/calculate_precision/{coverage}/{tool}/coverage_filter_{coverage_threshold}/strand_bias_filter_{strand_bias_threshold}/gaps_filter_{gaps_threshold}/precision.log"
     script:

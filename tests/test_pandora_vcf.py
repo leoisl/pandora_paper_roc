@@ -1,4 +1,4 @@
-from evaluate.vcf import PandoraVCF, BuggedVCFError, NullVCFError, VCFFactory
+from evaluate.vcf import PandoraVCF, NullVCFError, VCFFactory
 from .common import retrieve_entry_from_test_vcf
 from unittest.mock import patch, PropertyMock, Mock, MagicMock
 import pytest
@@ -16,14 +16,8 @@ class Test_PandoraVCF:
         with pytest.raises(NullVCFError):
             VCFFactory.create_Pandora_VCF_from_VariantRecord_and_Sample(1, 2)
 
-    @patch.object(PandoraVCF, "is_null_call", new_callable=PropertyMock, return_value=False)
-    @patch.object(PandoraVCF, "has_genotype_bug", new_callable=PropertyMock, return_value=True)
-    def test___from_VariantRecord_and_Sample___non_null_PandoraVCF_but_has_genotype_bug_raises_BuggedVCFError(self, *mocks):
-        with pytest.raises(BuggedVCFError):
-            VCFFactory.create_Pandora_VCF_from_VariantRecord_and_Sample(1, 2)
 
     @patch.object(PandoraVCF, "is_null_call", new_callable=PropertyMock, return_value=False)
-    @patch.object(PandoraVCF, "has_genotype_bug", new_callable=PropertyMock, return_value=False)
     def test___from_VariantRecord_and_Sample___valid_PandoraVCF(self, *mocks):
         variant_mock = Mock()
         sample_mock = Mock()
@@ -91,39 +85,6 @@ class Test_PandoraVCF:
 
         assert actual == expected
 
-    @patch.object(
-        PandoraVCF,
-        "_highest_likelihood_indexes",
-        new_callable=PropertyMock,
-        return_value=[0, 2],
-    )
-    @patch.object(PandoraVCF, "genotype", new_callable=PropertyMock, return_value=1)
-    def test___has_genotype_bug___with_wrongly_called_genotype___returns_true(
-        self, *mocks
-    ):
-        vcf = PandoraVCF()
-
-        actual = vcf.has_genotype_bug
-        expected = True
-
-        assert actual == expected
-
-    @patch.object(
-        PandoraVCF,
-        "_highest_likelihood_indexes",
-        new_callable=PropertyMock,
-        return_value=[1],
-    )
-    @patch.object(PandoraVCF, "genotype", new_callable=PropertyMock, return_value=1)
-    def test___has_genotype_bug___correctly_called_genotype___returns_false(
-        self, *mocks
-    ):
-        vcf = PandoraVCF()
-
-        actual = vcf.has_genotype_bug
-        expected = False
-
-        assert actual == expected
 
     def test___genotype_confidence(self):
         sample_name = "sample"

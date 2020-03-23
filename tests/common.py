@@ -1,11 +1,12 @@
 import tempfile
-from pathlib import Path
 from typing import Type
 import pysam
-
-from evaluate.classifier import Classifier, RecallClassifier
+from evaluate.classifier import Classifier
 from evaluate.probe import ProbeHeader, ProbeInterval
-
+import tempfile
+from pathlib import Path
+from evaluate.classification import AlignmentAssessment
+import pandas as pd
 
 def create_classifier_with_two_entries(cls: Type) -> Type[Classifier]:
     flag = 0
@@ -267,3 +268,41 @@ def retrieve_entry_from_test_query_vcf(idx: int) -> pysam.VariantRecord:
             if i == idx:
                 return record
     raise IndexError("You asked for an index that is beyond the number in the test VCF")
+
+
+def create_tmp_file(contents: str) -> Path:
+    with tempfile.NamedTemporaryFile(mode="r+", delete=False) as tmp:
+        tmp.write(contents)
+        tmp.truncate()
+
+    return Path(tmp.name)
+
+
+def create_recall_report_row(
+    truth_probe_header:str, classification: AlignmentAssessment, gt_conf: float = 0, sample: str = "sample1", with_gt_conf=False
+) -> pd.Series:
+    vcf_probe_header = ProbeHeader(gt_conf=gt_conf)
+    data = {
+        "sample": sample,
+        "query_probe_header": str(truth_probe_header),
+        "ref_probe_header": str(vcf_probe_header),
+        "classification": classification.value,
+    }
+    if with_gt_conf:
+        data["gt_conf"] = gt_conf
+
+    return pd.Series(data=data)
+
+
+def create_precision_report_row(
+    classification: float, gt_conf: float = 0, sample: str = "sample1"
+) -> pd.Series:
+    ref_probe_header = ProbeHeader()
+    pandora_probe_header = ProbeHeader(gt_conf=gt_conf)
+    data = {
+        "sample": sample,
+        "query_probe_header": str(pandora_probe_header),
+        "ref_probe_header": str(ref_probe_header),
+        "classification": classification,
+    }
+    return pd.Series(data=data)

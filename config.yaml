@@ -6,7 +6,7 @@ gaps_filters:                             [1.0]
 samples:                                  metadata/samples.csv
 variant_calls:                            metadata/variant_calls.csv
 variant_calls_flank_length_for_precision: 150
-variant_calls_flank_length_for_recall:    25
-truth_probes_flank_length_for_recall:     21
+truth_probes_flank_length_for_recall:     100
 
-number_of_points_in_ROC_curve:            1000
+max_gt_conf_percentile:                   51
+step_gt_conf_percentile:                  5

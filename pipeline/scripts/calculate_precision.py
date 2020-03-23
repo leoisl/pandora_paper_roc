@@ -14,8 +14,8 @@ logging.basicConfig(
 
 
 from evaluate.calculator import PrecisionCalculator, EmptyReportError
+from evaluate.report import PrecisionReport
 import pandas as pd
-import numpy as np
 
 
 # setup
@@ -23,9 +23,7 @@ precision_report_files_for_all_samples = (
     snakemake.input.precision_report_files_for_all_samples
 )
 output = Path(snakemake.output.precision_file_for_all_samples)
-
-number_of_points_in_ROC_curve = float(snakemake.params.number_of_points_in_ROC_curve)
-
+gt_conf_percentiles = snakemake.params.gt_conf_percentiles
 tool = snakemake.wildcards.tool
 coverage = snakemake.wildcards.coverage
 coverage_threshold = snakemake.wildcards.coverage_threshold
@@ -34,61 +32,29 @@ gaps_threshold = snakemake.wildcards.gaps_threshold
 
 
 # API usage
+logging.info(f"Loading report")
+precision_report = PrecisionReport.from_files(precision_report_files_for_all_samples)
+
 logging.info(f"Creating calculator")
-precision_calculator = PrecisionCalculator.from_files(
-    precision_report_files_for_all_samples
-)
+precision_calculator = PrecisionCalculator(precision_report)
 
+logging.info(f"Calculating precision")
+precision_df = precision_calculator.get_precision_report(gt_conf_percentiles)
 
-min_gt = precision_calculator.get_minimum_gt_conf()
-max_gt = precision_calculator.get_maximum_gt_conf()
-step_gt = (max_gt - min_gt) / number_of_points_in_ROC_curve
-logging.info(
-    f"Calculating precision with min_gt = {min_gt}, step_gt = {step_gt}, and max_gt = {max_gt}"
-)
-
-gts = []
-precisions = []
-error_rates = []
-nb_of_correct_calls = []
-nb_of_total_calls = []
-all_gts = list(np.arange(min_gt, max_gt, step_gt))
-if len(all_gts) == number_of_points_in_ROC_curve:
-    all_gts.append(max_gt)
-assert(len(all_gts) == number_of_points_in_ROC_curve + 1)
-
-for gt in all_gts:
-    try:
-        precision_info = precision_calculator.calculate_precision(gt)
-        gts.append(gt)
-        precisions.append(precision_info.precision)
-        error_rates.append(1 - precision_info.precision)
-        nb_of_correct_calls.append(precision_info.true_positives)
-        nb_of_total_calls.append(precision_info.total)
-    except EmptyReportError:
-        pass
-
-
-precision_df = pd.DataFrame(
+metadata_df = pd.DataFrame(
     data={
-        "tool": [tool] * len(gts),
-        "coverage": [coverage] * len(gts),
-        "coverage_threshold": [coverage_threshold] * len(gts),
-        "strand_bias_threshold": [strand_bias_threshold] * len(gts),
-        "gaps_threshold": [gaps_threshold] * len(gts),
-        "GT": gts,
-        "step_GT": list(range(len(gts))),
-        "precision": precisions,
-        "error_rate": error_rates,
-        "nb_of_correct_calls": nb_of_correct_calls,
-        "nb_of_total_calls": nb_of_total_calls
+        "tool": [tool] * len(precision_df),
+        "coverage": [coverage] * len(precision_df),
+        "coverage_threshold": [coverage_threshold] * len(precision_df),
+        "strand_bias_threshold": [strand_bias_threshold] * len(precision_df),
+        "gaps_threshold": [gaps_threshold] * len(precision_df),
     }
 )
+output_df = pd.concat([precision_df, metadata_df], axis=1)
 
 
 # output
 logging.info(f"Outputting precision file")
-precision_df.to_csv(output, sep="\t")
-
+output_df.to_csv(output, sep="\t")
 
 logging.info(f"Done")

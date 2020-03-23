@@ -1,24 +1,13 @@
-from typing import Iterable, Type, List
-
+from .report import Report, PrecisionReport, RecallReport
+from collections import Counter
+from enum import Enum
+from .classification import AlignmentAssessment
+import numpy as np
 import pandas as pd
-
-from .classification import *
-
-from pathlib import Path
-
-from collections import defaultdict
-
-class StatisticalClassification(Enum):
-    FALSE_NEGATIVE = "fn"
-    FALSE_POSITIVE = "fp"
-    TRUE_POSITIVE = "tp"
-    TRUE_NEGATIVE = "tn"
 
 
 class EmptyReportError(Exception):
     pass
-
-
 class CalculatorInfo:
     def __init__(self, true_positives: float, total: float):
         self.true_positives = float(true_positives)
@@ -30,128 +19,119 @@ class CalculatorInfo:
             raise EmptyReportError(
                 "There are not classifications to compute recall/precision on."
             )
-
-
-class Calculator:
-    def get_confident_classifications(
-        self, conf_threshold: float
-    ) -> List[str or float]:
-        confident_classifications = self.report.query(
-            "gt_conf >= @conf_threshold"
-        ).classification.to_list()
-        return confident_classifications
-
-    def create_gt_conf_column_from(self, probe_header: str) -> None:
-        self.report["gt_conf"] = self.report[probe_header].apply(
-            lambda column_name: ProbeHeader.from_string(column_name).gt_conf
-        )
-
-    def get_maximum_gt_conf(self) -> float:
-        return self.report["gt_conf"].max()
-
-    def get_minimum_gt_conf(self) -> float:
-        return self.report["gt_conf"].min()
-
-    def __init__(self, reports: Iterable[pd.DataFrame]):
-        self.report = pd.concat(reports)
-
-    @classmethod
-    def from_files(cls, paths: List[Path]) -> Type["Calculator"]:
-        reports = [pd.read_csv(path, sep="\t", keep_default_na=False) for path in paths]
-        return cls(reports)
-
-    def __eq__(self, other: "Calculator"):
-        return self.report.equals(other.report)
-
-
+class PrecisionInfo(CalculatorInfo):
+    def __init__(self, true_positives: float, number_of_calls: float):
+        super().__init__(true_positives, number_of_calls)
+        self.precision = self.ratio
 class RecallInfo(CalculatorInfo):
     def __init__(self, true_positives: float, number_of_truth_probes: float):
         super().__init__(true_positives, number_of_truth_probes)
         self.recall = self.ratio
 
 
-class RecallCalculator(Calculator):
-    def __init__(self, reports: Iterable[pd.DataFrame]):
-        super().__init__(reports)
-        self.create_gt_conf_column_from("ref_probe_header")
-        self.report = self.get_df_with_best_mapping_for_all_truth_probes()
-        self.number_of_truth_probes = len(self.report)
+class Calculator:
+    def __init__(self, report: Report):
+        self.report = report
 
-    @staticmethod
-    def _get_all_truth_probes(df):
-        return df.query_probe_header.unique()
-
-    @staticmethod
-    def _get_truth_probe_to_all_mappings_series(df):
-        truth_probe_to_all_mappings_series = defaultdict(list)
-        for index, series in df.iterrows():
-            truth_probe_to_all_mappings_series[series.query_probe_header].append(series)
-        return truth_probe_to_all_mappings_series
-
-    @staticmethod
-    def _get_truth_probe_to_all_mappings_dfs(df):
-        truth_probe_to_all_mappings_series = RecallCalculator._get_truth_probe_to_all_mappings_series(df)
-        truth_probe_to_all_mappings_dfs = {}
-        for truth_probe, series_list in truth_probe_to_all_mappings_series.items():
-            truth_probe_to_all_mappings_dfs[truth_probe] = pd.DataFrame (
-                columns=df.columns,
-                data = series_list
-            ).sort_values(by=["gt_conf"], ascending=False) # this sort is necessary to select the highest gt_conf later easier
-        return truth_probe_to_all_mappings_dfs
-
-    @staticmethod
-    def _get_best_mapping_for_truth_probe(truth_probe_to_all_mappings_dfs, truth_probe):
-        all_mappings_for_the_truth_probe = truth_probe_to_all_mappings_dfs[truth_probe]
-
-        # the truth probe has to be found in the df
-        assert len(all_mappings_for_the_truth_probe) > 0
-
-        correct_classification_query_str = f"classification == @AlignmentAssessment.PRIMARY_CORRECT.value or " \
-            f"classification == @AlignmentAssessment.SECONDARY_CORRECT.value or " \
-            f"classification == @AlignmentAssessment.SUPPLEMENTARY_CORRECT.value"
-        mappings_with_correct_classifications = all_mappings_for_the_truth_probe.query(correct_classification_query_str)
-        if len(mappings_with_correct_classifications) > 0:
-            # selects the highest gt_conf correct mapping, which is a TP
-            mapping_to_return = mappings_with_correct_classifications.iloc[0]
-            mapping_to_return["classification"] = StatisticalClassification.TRUE_POSITIVE
-        else:
-            # selects the highest gt_conf incorrect mapping, which is a FN
-            mapping_to_return = all_mappings_for_the_truth_probe.iloc[0]
-            mapping_to_return["classification"] = StatisticalClassification.FALSE_NEGATIVE
-
-        return mapping_to_return
-
-    def _get_best_mapping_for_all_truth_probes(self):
-        all_truth_probes = self._get_all_truth_probes(self.report)
-        truth_probe_to_all_mappings_dfs = self._get_truth_probe_to_all_mappings_dfs(self.report)
-        truth_probe_to_best_mapping = {}
-        for truth_probe in all_truth_probes:
-            truth_probe_to_best_mapping[truth_probe] = self._get_best_mapping_for_truth_probe(truth_probe_to_all_mappings_dfs, truth_probe)
-        return truth_probe_to_best_mapping
-
-    def get_df_with_best_mapping_for_all_truth_probes(self):
-        truth_probe_to_best_mapping = self._get_best_mapping_for_all_truth_probes()
-        return pd.DataFrame(columns=self.report.columns, data=truth_probe_to_best_mapping.values())
-
-    def calculate_recall(self, conf_threshold: float = 0) -> RecallInfo:
-        confident_classifications = self.get_confident_classifications(conf_threshold)
-        counter = Counter(confident_classifications)
-        true_positives = counter[StatisticalClassification.TRUE_POSITIVE]
-        return RecallInfo(true_positives, self.number_of_truth_probes)
-
-
-class PrecisionInfo(CalculatorInfo):
-    def __init__(self, true_positives: float, number_of_calls: float):
-        super().__init__(true_positives, number_of_calls)
-        self.precision = self.ratio
 
 class PrecisionCalculator(Calculator):
-    def __init__(self, reports: Iterable[pd.DataFrame]):
-        super().__init__(reports)
-        self.create_gt_conf_column_from("query_probe_header")
+    def __init__(self, report: PrecisionReport):
+        super().__init__(report)
 
-    def calculate_precision(self, conf_threshold: float = 0.0) -> PrecisionInfo:
-        confident_classifications = self.get_confident_classifications(conf_threshold)
+    def get_precision_report(self, all_gts) -> pd.DataFrame:
+        gts = []
+        precisions = []
+        error_rates = []
+        nb_of_correct_calls = []
+        nb_of_total_calls = []
+        for gt in all_gts:
+            try:
+                precision_info = self._calculate_precision_for_a_given_confidence(gt)
+                gts.append(gt)
+                precisions.append(precision_info.precision)
+                error_rates.append(1 - precision_info.precision)
+                nb_of_correct_calls.append(precision_info.true_positives)
+                nb_of_total_calls.append(precision_info.total)
+            except EmptyReportError:
+                pass
+
+        precision_df = pd.DataFrame(
+            data={
+                "GT": gts,
+                "step_GT": list(range(len(gts))),
+                "precision": precisions,
+                "error_rate": error_rates,
+                "nb_of_correct_calls": nb_of_correct_calls,
+                "nb_of_total_calls": nb_of_total_calls
+            }
+        )
+
+        return precision_df
+
+    def _calculate_precision_for_a_given_confidence(self, conf_threshold: float = 0.0) -> PrecisionInfo:
+        confident_classifications = self.report.get_confident_classifications(conf_threshold)
         true_positives = sum(confident_classifications)
         number_of_calls = len(confident_classifications)
         return PrecisionInfo(true_positives, number_of_calls)
+
+
+class RecallCalculator(Calculator):
+    def __init__(self, report: RecallReport):
+        super().__init__(report)
+
+    def get_recall_report(self, all_gts) -> pd.DataFrame:
+        gts = []
+        recalls = []
+        nb_of_truth_probes_found = []
+        nb_of_truth_probes_in_total = []
+        for gt in all_gts:
+            try:
+                recall_info = self._calculate_recall_for_a_given_confidence(gt)
+                gts.append(gt)
+                recalls.append(recall_info.recall)
+                nb_of_truth_probes_found.append(recall_info.true_positives)
+                nb_of_truth_probes_in_total.append(recall_info.total)
+            except EmptyReportError:
+                pass
+
+        recall_df = pd.DataFrame(
+            data={
+                "GT": gts,
+                "step_GT": list(range(len(gts))),
+                "recall": recalls,
+                "nb_of_truth_probes_found": nb_of_truth_probes_found,
+                "nb_of_truth_probes_in_total": nb_of_truth_probes_in_total
+            }
+        )
+
+        return recall_df
+
+    def _calculate_recall_for_a_given_confidence(self, conf_threshold: float = 0) -> RecallInfo:
+        confident_classifications = self.report.get_confident_classifications(conf_threshold)
+        counter = Counter(
+            [
+                RecallCalculator._statistical_classification(classification)
+                for classification in confident_classifications
+            ]
+        )
+        true_positives = counter[RecallCalculator.StatisticalClassification.TRUE_POSITIVE]
+        return RecallInfo(true_positives, self.report.get_number_of_truth_probes())
+
+    class StatisticalClassification(Enum):
+        FALSE_NEGATIVE = "fn"
+        FALSE_POSITIVE = "fp"
+        TRUE_POSITIVE = "tp"
+        TRUE_NEGATIVE = "tn"
+
+    @staticmethod
+    def _statistical_classification(classification: str) -> StatisticalClassification:
+        return {
+            AlignmentAssessment.UNMAPPED: RecallCalculator.StatisticalClassification.FALSE_NEGATIVE,
+            AlignmentAssessment.PARTIALLY_MAPPED: RecallCalculator.StatisticalClassification.FALSE_NEGATIVE,
+            AlignmentAssessment.PRIMARY_CORRECT: RecallCalculator.StatisticalClassification.TRUE_POSITIVE,
+            AlignmentAssessment.PRIMARY_INCORRECT: RecallCalculator.StatisticalClassification.FALSE_POSITIVE,
+            AlignmentAssessment.SECONDARY_CORRECT: RecallCalculator.StatisticalClassification.TRUE_POSITIVE,
+            AlignmentAssessment.SECONDARY_INCORRECT: RecallCalculator.StatisticalClassification.FALSE_POSITIVE,
+            AlignmentAssessment.SUPPLEMENTARY_CORRECT: RecallCalculator.StatisticalClassification.TRUE_POSITIVE,
+            AlignmentAssessment.SUPPLEMENTARY_INCORRECT: RecallCalculator.StatisticalClassification.FALSE_POSITIVE,
+        }[AlignmentAssessment(classification)]

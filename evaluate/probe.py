@@ -27,10 +27,11 @@ class ProbeInterval(NamedTuple):
     def is_null(self) -> bool:
         return self.start == -1 and self.end == -1
 
+    interval_regex = re.compile(r"\[(\d+),(\d+)\)")
+
     @staticmethod
     def from_string(string: str) -> "ProbeInterval":
-        regex = re.compile(r"\[(\d+),(\d+)\)")
-        match = regex.search(string)
+        match = ProbeInterval.interval_regex.search(string)
         if not match:
             return ProbeInterval()
 
@@ -45,7 +46,7 @@ class ProbeHeader:
         pos: int = 0,
         interval: ProbeInterval = ProbeInterval(),
         svtype: str = "",
-        gt_conf: float = 0,
+        gt_conf: float = None,
     ):
         self.chrom = chrom
         self.sample = sample
@@ -65,9 +66,12 @@ class ProbeHeader:
         )
 
     def __str__(self) -> str:
-        contents = DELIM.join(
-            f"{k.upper()}={str(v)}" for k, v in vars(self).items() if v
-        )
+        list_of_key_values_to_add = [f"{k.upper()}={str(v)}" for k, v in vars(self).items() if k != "gt_conf" and v]
+        # forcibly add gt conf
+        if self.gt_conf is not None:
+            list_of_key_values_to_add.append(f"GT_CONF={round(self.gt_conf, 1):.1f}")
+
+        contents = DELIM.join(list_of_key_values_to_add)
 
         if not contents:
             return ""
@@ -77,22 +81,22 @@ class ProbeHeader:
     @staticmethod
     def from_string(string: str) -> "ProbeHeader":
         def parse_field_from_header(
-            field: str, header: str, return_type: Type = str, delim: str = DELIM
+            field: str, header: str, return_type: Type, value_to_return_if_not_found, delim: str = DELIM,
         ):
             regex = re.compile(f"{field}=(.+?){delim}")
             match = regex.search(header)
             if match:
                 return return_type(match.group(1))
             else:
-                return return_type()
+                return value_to_return_if_not_found
 
-        chrom = parse_field_from_header("CHROM", string)
-        sample = parse_field_from_header("SAMPLE", string)
-        pos = parse_field_from_header("POS", string, return_type=int)
-        svtype = parse_field_from_header("SVTYPE", string)
-        gt_conf = parse_field_from_header("GT_CONF", string, return_type=float)
+        chrom = parse_field_from_header("CHROM", string, str, "")
+        sample = parse_field_from_header("SAMPLE", string, str, "")
+        pos = parse_field_from_header("POS", string, int, 0)
+        svtype = parse_field_from_header("SVTYPE", string, str, "")
+        gt_conf = parse_field_from_header("GT_CONF", string, float, None)
         interval = ProbeInterval.from_string(
-            parse_field_from_header("INTERVAL", string)
+            parse_field_from_header("INTERVAL", string, str, "")
         )
 
         return ProbeHeader(

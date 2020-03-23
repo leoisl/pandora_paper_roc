@@ -722,3 +722,100 @@ class TestShowSNPsDataframe:
         expected = ShowSNPsDataframe({"ref_pos": [0, 88], "query_pos": [7, 9]})
 
         assert actual.equals(expected)
+
+
+class TestGetReportFromDeltaFile:
+    def test_get_ref_and_query_aligned_bases_percentage(self):
+        report = """
+/home/leandro/git/pandora1_paper/snippy_debug/refs/063_STEC.ref_chrom.fa /home/leandro/git/pandora1_paper/snippy_debug/refs/CFT073.ref_chrom.fa
+NUCMER
+
+                               [REF]                [QRY]
+[Sequences]
+TotalSeqs                          1                    1
+AlignedSeqs               1(100.00%)           1(100.00%)
+UnalignedSeqs               0(0.00%)             0(0.00%)
+
+[Bases]
+TotalBases                   4905296              5155066
+AlignedBases         4236038(86.36%)      4202046(81.51%)
+UnalignedBases        669258(13.64%)       953020(18.49%)
+
+[Alignments]
+1-to-1                           228                  228
+TotalLength                  4163094              4163231
+AvgLength                   18259.18             18259.79
+AvgIdentity                    98.94                98.94
+
+M-to-M                           343                  343
+TotalLength                  4310592              4310855
+AvgLength                   12567.32             12568.09
+AvgIdentity                    98.83                98.83
+
+[Feature Estimates]
+Breakpoints                      684                  685
+Relocations                       61                   51
+Translocations                     0                    0
+Inversions                        34                   26
+
+Insertions                       252                  240
+InsertionSum                  757221              1014066
+InsertionAvg                 3004.85              4225.27
+
+TandemIns                          2                    1
+TandemInsSum                     171                   95
+TandemInsAvg                   85.50                95.00
+
+[SNPs]
+TotalSNPs                      40615                40615
+GC                       1048(2.58%)          1034(2.55%)
+GT                       1570(3.87%)          1552(3.82%)
+GA                      7361(18.12%)         7508(18.49%)
+AC                       1545(3.80%)          1537(3.78%)
+AG                      7508(18.49%)         7361(18.12%)
+AT                       1365(3.36%)          1338(3.29%)
+TC                      7295(17.96%)         7462(18.37%)
+TA                       1338(3.29%)          1365(3.36%)
+TG                       1552(3.82%)          1570(3.87%)
+CA                       1537(3.78%)          1545(3.80%)
+CG                       1034(2.55%)          1048(2.58%)
+CT                      7462(18.37%)         7295(17.96%)
+
+TotalGSNPs                     15112                15112
+CG                        254(1.68%)           295(1.95%)
+CA                        559(3.70%)           575(3.80%)
+CT                      2800(18.53%)         2775(18.36%)
+AG                      2924(19.35%)         2814(18.62%)
+AT                        459(3.04%)           468(3.10%)
+AC                        575(3.80%)           559(3.70%)
+GA                      2814(18.62%)         2924(19.35%)
+GT                        607(4.02%)           582(3.85%)
+GC                        295(1.95%)           254(1.68%)
+TC                      2775(18.36%)         2800(18.53%)
+TG                        582(3.85%)           607(4.02%)
+TA                        468(3.10%)           459(3.04%)
+
+TotalIndels                     2157                 2157
+G.                       256(11.87%)          265(12.29%)
+A.                       273(12.66%)          320(14.84%)
+T.                       243(11.27%)          280(12.98%)
+C.                       246(11.40%)          274(12.70%)
+.A                       320(14.84%)          273(12.66%)
+.G                       265(12.29%)          256(11.87%)
+.T                       280(12.98%)          243(11.27%)
+.C                       274(12.70%)          246(11.40%)
+
+TotalGIndels                     172                  172
+C.                        21(12.21%)            17(9.88%)
+A.                        26(15.12%)           34(19.77%)
+G.                        25(14.53%)             6(3.49%)
+T.                        23(13.37%)           20(11.63%)
+.C                         17(9.88%)           21(12.21%)
+.T                        20(11.63%)           23(13.37%)
+.A                        34(19.77%)           26(15.12%)
+.G                          6(3.49%)           25(14.53%)
+
+"""
+        actual = GetReportFromDeltaFile.get_ref_and_query_aligned_bases_percentage(report)
+        expected = (86.36, 81.51)
+        assert actual==expected
