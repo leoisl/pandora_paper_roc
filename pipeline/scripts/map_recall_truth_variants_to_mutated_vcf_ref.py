@@ -3,6 +3,8 @@ import sys
 sys.path.append(str(Path().absolute()))
 import logging
 import subprocess
+import time
+
 
 log_level = "INFO"
 logging.basicConfig(
@@ -29,6 +31,7 @@ threads = int(snakemake.threads)
 for ref, output in zip(refs, outputs):
     logging.info(f"Mapping {query} to {ref}")
     subprocess.check_call(f"bwa index {ref}", shell=True)
+    time.sleep(10.0)  # sleeps 10 seconds due to cluster file latency
 
     BWA.map_query_to_ref(
         query=query,
