@@ -6,6 +6,7 @@ modes = ["nodenovo", "withdenovo"]
 genotyping_modes = ["local", "global"]
 base_path = "/hps/nobackup/research/zi/projects/pandora_analysis_pipeline/analysis_26_way"
 
+print("sample_id,tool,coverage,reference,vcf")
 for sample, coverage, technology, mode, genotyping_mode in product(samples, coverages, technologies, modes, genotyping_modes):
     print(",".join([sample,
                     f"pandora_{technology}_{mode}_{genotyping_mode}_genotyping",
