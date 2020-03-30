@@ -1,0 +1,52 @@
+from snakemake.utils import min_version
+import pandas as pd
+from pathlib import Path
+min_version("5.1.0")
+
+# ======================================================
+# Config files
+# ======================================================
+configfile: "config.yaml"
+
+samples = pd.read_csv(config["samples"])
+
+mask_files = []
+for sample_name, sample_path in zip(samples["sample_name"], samples["sample_path"]):
+    sample_path = Path(sample_path)
+    mask_files.append(f"{sample_path / (sample_name+'.mask.bed')}")
+
+
+rule all:
+    input: mask_files
+
+
+rule mask:
+    input:
+        ref = "{sample_path}/{sample_name}.ref.fa",
+        illumina = "{sample_path}/{sample_name}.illumina.fastq.gz"
+    output:
+        mask = "{sample_path}/{sample_name}.mask.bed"
+    params:
+        prefix = "{sample_path}/{sample_name}"
+    threads: 1
+    resources:
+        mem_mb = lambda wildcards, attempt: 8000 * attempt
+    log:
+        "logs/{sample_path}/{sample_name}.mask.log"
+    shell:
+        "scripts/make_low_qual_genome_mask.sh {input.ref} {input.illumina} {params.prefix}"
+
+
+rule concatenate_illumina:
+    input:
+        illumina_1 = "{sample_path}/{sample_name}.illumina_1.fastq.gz",
+        illumina_2 = "{sample_path}/{sample_name}.illumina_2.fastq.gz"
+    output:
+        illumina = rules.mask.input.illumina
+    threads: 1
+    resources:
+        mem_mb = lambda wildcards, attempt: 1000 * attempt
+    log:
+        "logs/{sample_path}/{sample_name}.concatenate_illumina.log"
+    shell:
+        "zcat {input.illumina_1} {input.illumina_2} | gzip > {output.illumina}"
