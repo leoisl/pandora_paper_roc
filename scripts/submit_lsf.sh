@@ -4,9 +4,7 @@ LOG_DIR=logs/
 MEMORY=16000
 PROFILE="lsf"
 
-source $HOME/miniconda3/etc/profile.d/conda.sh
-conda activate basic_bioinfo
-pipenv shell
+echo "Have you remembered doing conda activate basic_bioinfo and pipenv shell?"
 
 mkdir -p $LOG_DIR
 
