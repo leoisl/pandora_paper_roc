@@ -30,9 +30,11 @@ threads = int(snakemake.threads)
 # API usage
 for ref, output in zip(refs, outputs):
     logging.info(f"Mapping {query} to {ref}")
+    logging.info(f"bwa index {ref}")
     subprocess.check_call(f"bwa index {ref}", shell=True)
     time.sleep(10.0)  # sleeps 10 seconds due to cluster file latency
 
+    logging.info(f"bwa mem {ref} {query}")
     BWA.map_query_to_ref(
         query=query,
         ref=ref,

@@ -20,11 +20,10 @@ class BWA:
         )
         completed_process.check_returncode()
 
-    def align(self, query: str) -> Tuple[str, str]:
+    def align(self, query: Path) -> Tuple[str, str]:
         options = self.get_options()
         bwa_mem = subprocess.run(
-            ["bwa", "mem", *options, str(self.reference), "-"],
-            input=query.encode(),
+            ["bwa", "mem", *options, str(self.reference), str(query)],
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
         )
@@ -68,7 +67,7 @@ class BWA:
     ) -> Tuple[pysam.VariantHeader, List[pysam.AlignedSegment]]:
         bwa = BWA(threads)
         bwa.reference = str(ref)
-        stdout, stderr = bwa.align(query.read_text())
+        stdout, stderr = bwa.align(query)
 
         # write sam to file if output path given
         if output.name:
