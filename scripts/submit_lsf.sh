@@ -4,6 +4,9 @@ LOG_DIR=logs/
 MEMORY=16000
 PROFILE="lsf"
 
+conda activate basic_bioinfo
+pipenv shell
+
 mkdir -p $LOG_DIR
 
 bsub -R "select[mem>$MEMORY] rusage[mem=$MEMORY] span[hosts=1]" \
