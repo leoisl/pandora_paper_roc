@@ -42,6 +42,7 @@ def run_bwa_mem(query, ref):
         except subprocess.CalledProcessError as error:
             last_error = error
             logging.info("CalledProcessError captured, retrying...")
+            time.sleep(180.0) # wait 3 minutes before retrying
 
     if not success:
         raise last_error
