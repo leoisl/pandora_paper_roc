@@ -121,6 +121,7 @@ rule make_mutated_vcf_ref_for_recall:
         for gt_conf_percentile, input_file, output_file in zip(gt_conf_percentiles, input.singlesample_vcf_files_gt_conf_percentile_filtered, output.mutated_vcf_refs):
             run_command(f"python vcf_consensus_builder/cli.py -v {input_file} -r {input.vcf_ref} -d {input.empty_depth_file} "
                         f"-o {output_file} --low-coverage 0 --no-coverage 0 -V")
+            run_command(f"bwa index {output_file}")
 
 rule make_recall_truth_probeset:
     input:
