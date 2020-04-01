@@ -20,11 +20,12 @@ from evaluate.bwa import BWA
 def run_bwa_mem(query, ref):
     nb_tries = 10
     success = False
+    last_error = None
     for _ in range(nb_tries):
         try:
             logging.info(f"Mapping {query} to {ref}")
             logging.info(f"bwa index {ref}")
-            subprocess.check_call(f"bwa index {ref}", shell=True)
+            subprocess.check_call(["bwa", "index", ref])
             time.sleep(60.0)  # sleeps 60 seconds due to cluster file latency
 
             logging.info(f"bwa mem {ref} {query}")
@@ -42,8 +43,8 @@ def run_bwa_mem(query, ref):
             last_error = error
             logging.info("CalledProcessError captured, retrying...")
 
-        if not success:
-            raise last_error
+    if not success:
+        raise last_error
 
 
 # setup
