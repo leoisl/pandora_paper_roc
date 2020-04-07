@@ -1,18 +1,19 @@
 #!/usr/bin/env bash
-set -e
+set -eu
 
-if [ $# -ne 3 ]
+if [ $# -ne 4 ]
 then
-    echo "usage: $0 assembly.fa reads.fq outprefix
+    echo "usage: $0 assembly.fa reads_1.fq reads_2.fq outprefix
 Makes a BED file of bad regions, by mapping reads and running bam_to_low_qual_mask.pl.
 BWA and samtools faidx indexes the assembly fasta if needed"
     exit
 fi
 
 assembly="$1"
-reads="$2"
-outprefix="$3"
-bam="$outprefix".bam
+reads_1="$2"
+reads_2="$3"
+outprefix="$4"
+bam="$outprefix".mask.bam
 bed="$outprefix".mask.bed
 
 if [ ! -f "${assembly}.fai" ]; then
@@ -23,7 +24,7 @@ if [ ! -f "${assembly}.bwt" ]; then
     bwa index "$assembly"
 fi
 
-bwa mem -x intractg "$assembly" "$reads" | samtools sort -o "$bam"
+bwa mem -x intractg "$assembly" "$reads_1" "$reads_2" | samtools sort -o "$bam"
 ./scripts/bam_to_low_qual_mask.pl "$bam" "$bed"
 
 #belongs to martin
