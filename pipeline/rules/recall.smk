@@ -71,7 +71,7 @@ rule filter_vcf_for_a_single_sample_by_gt_conf_percentile_for_pandora:
         filename=".*/pandora_multisample_genotyped_.*\.vcf\.\~\~vcf\~\~fixed\~\~"
     threads: 1
     resources:
-        mem_mb = lambda wildcards, attempt: 20000 * attempt
+        mem_mb = lambda wildcards, attempt: 8000 * attempt
     log:
         "logs/filter_vcf_for_a_single_sample_by_gt_conf_percentile_for_pandora{filename}_sample_{sample_id}.log"
     run:
@@ -93,7 +93,7 @@ rule filter_vcf_for_a_single_sample_by_gt_conf_percentile_for_snippy:
         filename=".*/snippy_[^/]+\.vcf\.\~\~vcf\~\~fixed\~\~"
     threads: 1
     resources:
-        mem_mb = lambda wildcards, attempt: 20000 * attempt
+        mem_mb = lambda wildcards, attempt: 8000 * attempt
     log:
         "logs/filter_vcf_for_a_single_sample_by_gt_conf_percentile_for_snippy{filename}_sample_{sample_id}.log"
     run:
@@ -115,7 +115,7 @@ rule make_mutated_vcf_ref_for_recall:
           indexes = expand(output_folder + "/recall/mutated_refs/{{sample_id}}/{{coverage}}/{{tool}}/coverage_filter_{{coverage_threshold}}/strand_bias_filter_{{strand_bias_threshold}}/gaps_filter_{{gaps_threshold}}/gt_conf_percentile_{gt_conf_percentile}/mutated_ref.fa.amb", gt_conf_percentile=gt_conf_percentiles)
     threads: 1
     resources:
-        mem_mb = lambda wildcards, attempt: 20000 * attempt
+        mem_mb = lambda wildcards, attempt: 8000 * attempt
     log:
         "logs/make_mutated_vcf_ref_for_recall/{sample_id}/{coverage}/{tool}/coverage_filter_{coverage_threshold}/strand_bias_filter_{strand_bias_threshold}/gaps_filter_{gaps_threshold}/mutated_ref.log"
     run:
@@ -154,7 +154,7 @@ rule map_recall_truth_probeset_to_mutated_vcf_ref:
          sams = expand(output_folder + "/recall/map_probes/{{sample_id}}/{{coverage}}/{{tool}}/coverage_filter_{{coverage_threshold}}/strand_bias_filter_{{strand_bias_threshold}}/gaps_filter_{{gaps_threshold}}/gt_conf_percentile_{gt_conf_percentile}/{{sample_pair}}.sam", gt_conf_percentile=gt_conf_percentiles)
     threads: 4
     resources:
-        mem_mb = 20000
+        mem_mb = 8000
     log:
         "logs/map_recall_truth_probeset_to_mutated_vcf_ref/{sample_id}/{coverage}/{tool}/coverage_filter_{coverage_threshold}/strand_bias_filter_{strand_bias_threshold}/gaps_filter_{gaps_threshold}/{sample_pair}.log"
     script:
@@ -171,7 +171,7 @@ rule create_recall_report_for_truth_variants_mappings:
         gt_conf_percentiles = gt_conf_percentiles
     threads: 1
     resources:
-        mem_mb = lambda wildcards, attempt: 20000 * attempt
+        mem_mb = lambda wildcards, attempt: 8000 * attempt
     log:
         "logs/create_recall_report_for_truth_variants_mappings/{sample_id}/{coverage}/{tool}/coverage_filter_{coverage_threshold}/strand_bias_filter_{strand_bias_threshold}/gaps_filter_{gaps_threshold}/{sample_pair}.report.log"
     script:
