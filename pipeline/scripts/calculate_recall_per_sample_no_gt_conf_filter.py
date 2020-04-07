@@ -34,7 +34,8 @@ recall_file_for_one_sample_with_no_gt_conf_filter = Path(snakemake.output.recall
 
 # API usage
 logging.info(f"Loading report")
-recall_report = RecallReport.from_files(all_recall_reports_for_one_sample_with_no_gt_conf_filter)
+recall_report = RecallReport.from_files(all_recall_reports_for_one_sample_with_no_gt_conf_filter,
+                                        concatenate_dfs_one_by_one_keeping_only_best_mappings=True)
 
 logging.info(f"Creating calculator")
 recall_calculator = RecallCalculator(recall_report)
