@@ -177,12 +177,28 @@ rule create_recall_report_for_truth_variants_mappings:
         "../scripts/create_recall_report_for_probe_mappings.py"
 
 
+rule create_recall_report_per_sample_for_calculator:
+    input:
+         recall_report_files_for_one_sample_and_all_gt_conf_percentiles = lambda wildcards: sample_cov_tool_and_filters_to_recall_report_files[(wildcards.sample, wildcards.coverage, wildcards.tool, wildcards.coverage_threshold, wildcards.strand_bias_threshold, wildcards.gaps_threshold)]
+    output:
+         recall_report_per_sample_for_calculator = output_folder + "/recall/recall_report_per_sample_for_calculator/{sample}/{coverage}/{tool}/coverage_filter_{coverage_threshold}/strand_bias_filter_{strand_bias_threshold}/gaps_filter_{gaps_threshold}/recall_report_per_sample_for_calculator.tsv"
+    params:
+         gt_conf_percentiles = gt_conf_percentiles
+    threads: 1
+    resources:
+        mem_mb = lambda wildcards, attempt: 16000 * attempt
+    log:
+        "logs/create_recall_report_per_sample_for_calculator/{sample}/{coverage}/{tool}/coverage_filter_{coverage_threshold}/strand_bias_filter_{strand_bias_threshold}/gaps_filter_{gaps_threshold}/create_recall_report_per_sample_for_calculator.log"
+    script:
+        "../scripts/create_recall_report_per_sample_for_calculator.py"
+
+
+
 rule calculate_recall:
     input:
-         recall_report_files_for_all_samples_and_all_gt_conf_percentile = lambda wildcards: cov_tool_and_filters_to_recall_report_files[(wildcards.coverage, wildcards.tool, wildcards.coverage_threshold, wildcards.strand_bias_threshold, wildcards.gaps_threshold)]
+         recall_report_per_sample_for_calculator = expand(rules.create_recall_report_per_sample_for_calculator.output.recall_report_per_sample_for_calculator, sample=samples["sample_id"])
     output:
          recall_file_for_all_samples_and_all_gt_conf_percentile = output_folder + "/recall/recall_files/{coverage}/{tool}/coverage_filter_{coverage_threshold}/strand_bias_filter_{strand_bias_threshold}/gaps_filter_{gaps_threshold}/recall.tsv",
-         recall_final_report = output_folder + "/recall/recall_files/{coverage}/{tool}/coverage_filter_{coverage_threshold}/strand_bias_filter_{strand_bias_threshold}/gaps_filter_{gaps_threshold}/recall_final_report.tsv"
     params:
          gt_conf_percentiles = gt_conf_percentiles
     threads: 1

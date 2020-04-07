@@ -60,9 +60,18 @@ class PrecisionReport(Report):
 
 
 class RecallReport(Report):
-    def __init__(self, dfs: Iterable[pd.DataFrame]):
-        self._concatenate_dfs_one_by_one_keeping_only_best_mappings(dfs)
-        self._create_gt_conf_column_from("ref_probe_header")
+    def __init__(self, dfs: Iterable[pd.DataFrame], concatenate_dfs_one_by_one_keeping_only_best_mappings: bool):
+        if concatenate_dfs_one_by_one_keeping_only_best_mappings:
+            self._concatenate_dfs_one_by_one_keeping_only_best_mappings(dfs)
+            self._create_gt_conf_column_from("ref_probe_header")
+        else:
+            #  normal concatenation
+            super().__init__(dfs)
+
+    @classmethod
+    def from_files(cls, paths: List[Path], concatenate_dfs_one_by_one_keeping_only_best_mappings: bool) -> "RecallReport":
+        reports = (pd.read_csv(path, sep="\t", keep_default_na=False) for path in paths)
+        return cls(reports, concatenate_dfs_one_by_one_keeping_only_best_mappings)
 
     def get_number_of_truth_probes(self):
         return len(self.report)
