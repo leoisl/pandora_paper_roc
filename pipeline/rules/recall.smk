@@ -197,7 +197,7 @@ rule create_recall_report_per_sample_for_calculator:
 
 rule calculate_recall:
     input:
-         recall_report_per_sample_for_calculator = expand(rules.create_recall_report_per_sample_for_calculator.output.recall_report_per_sample_for_calculator, sample=samples["sample_id"])
+         recall_report_per_sample_for_calculator = expand(output_folder + "/recall/recall_report_per_sample_for_calculator/{sample}/{{coverage}}/{{tool}}/coverage_filter_{{coverage_threshold}}/strand_bias_filter_{{strand_bias_threshold}}/gaps_filter_{{gaps_threshold}}/recall_report_per_sample_for_calculator.tsv", sample=samples["sample_id"])
     output:
          recall_file_for_all_samples_and_all_gt_conf_percentile = output_folder + "/recall/recall_files/{coverage}/{tool}/coverage_filter_{coverage_threshold}/strand_bias_filter_{strand_bias_threshold}/gaps_filter_{gaps_threshold}/recall.tsv",
     params:
