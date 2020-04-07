@@ -50,7 +50,7 @@ class Report:
         )
 
     def save_report(self, file_handle):
-        self.report.to_csv(file_handle, header=True, index=False)
+        self.report.to_csv(file_handle, sep="\t", header=True, index=False)
 
 
 class PrecisionReport(Report):
