@@ -5,7 +5,7 @@ import logging
 
 class Report:
     def __init__(self, dfs: Iterable[pd.DataFrame]):
-        self.report = pd.concat(dfs)
+        self.report = pd.concat(dfs, ignore_index=True)
 
     def get_confident_classifications(
         self, conf_threshold: float
@@ -60,7 +60,8 @@ class PrecisionReport(Report):
 
 
 class RecallReport(Report):
-    def __init__(self, dfs: Iterable[pd.DataFrame], concatenate_dfs_one_by_one_keeping_only_best_mappings: bool):
+    def __init__(self, dfs: Iterable[pd.DataFrame],
+                 concatenate_dfs_one_by_one_keeping_only_best_mappings: bool = True):
         if concatenate_dfs_one_by_one_keeping_only_best_mappings:
             self._concatenate_dfs_one_by_one_keeping_only_best_mappings(dfs)
             self._create_gt_conf_column_from("ref_probe_header")
@@ -69,7 +70,7 @@ class RecallReport(Report):
             super().__init__(dfs)
 
     @classmethod
-    def from_files(cls, paths: List[Path], concatenate_dfs_one_by_one_keeping_only_best_mappings: bool) -> "RecallReport":
+    def from_files(cls, paths: List[Path], concatenate_dfs_one_by_one_keeping_only_best_mappings: bool = True) -> "RecallReport":
         reports = (pd.read_csv(path, sep="\t", keep_default_na=False) for path in paths)
         return cls(reports, concatenate_dfs_one_by_one_keeping_only_best_mappings)
 
