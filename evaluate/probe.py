@@ -44,7 +44,7 @@ class ProbeHeader:
         sample: str = "",
         chrom: str = "",
         pos: int = 0,
-        ref: str = "",
+        ref_length: int = 0,
         interval: ProbeInterval = ProbeInterval(),
         svtype: str = "",
         gt_conf: float = None,
@@ -53,7 +53,7 @@ class ProbeHeader:
         self.chrom = chrom
         self.sample = sample
         self.pos = pos
-        self.ref = ref
+        self.ref_length = ref_length
         self.interval = interval
         self.svtype = svtype
         self.gt_conf = gt_conf
@@ -61,14 +61,14 @@ class ProbeHeader:
 
     def __eq__(self, other: "ProbeHeader") -> bool:
         return (
-            self.chrom == other.chrom
-            and self.sample == other.sample
-            and self.pos == other.pos
-            and self.ref == other.ref
-            and self.interval == other.interval
-            and self.svtype == other.svtype
-            and self.gt_conf == other.gt_conf
-            and self.coverage == other.coverage
+                self.chrom == other.chrom
+                and self.sample == other.sample
+                and self.pos == other.pos
+                and self.ref_length == other.ref_length
+                and self.interval == other.interval
+                and self.svtype == other.svtype
+                and self.gt_conf == other.gt_conf
+                and self.coverage == other.coverage
         )
 
     def __str__(self) -> str:
@@ -99,7 +99,7 @@ class ProbeHeader:
         chrom = parse_field_from_header("CHROM", string, str, "")
         sample = parse_field_from_header("SAMPLE", string, str, "")
         pos = parse_field_from_header("POS", string, int, 0)
-        ref = parse_field_from_header("REF", string, str, "")
+        ref_length = parse_field_from_header("REF_LENGTH", string, int, 0)
         svtype = parse_field_from_header("SVTYPE", string, str, "")
         gt_conf = parse_field_from_header("GT_CONF", string, float, None)
         interval = ProbeInterval.from_string(
@@ -108,7 +108,7 @@ class ProbeHeader:
         coverage = parse_field_from_header("COVERAGE", string, float, None)
 
         return ProbeHeader(
-            sample, chrom, pos, ref, interval, svtype, gt_conf, coverage
+            sample, chrom, pos, ref_length, interval, svtype, gt_conf, coverage
         )
 
 
