@@ -28,6 +28,8 @@ def main():
     coverage = args.coverage
     script_dir = Path(os.path.dirname(os.path.realpath(__file__))).absolute()
     dry_run = args.dry_run
+    output_dir = output_dir / f"illumina/{coverage}x/random"
+    output_dir.mkdir(parents=True, exist_ok=True)
 
     for sample_id, sample_path in zip(samples["sample_id"], samples["sample_path"]):
         print(f"Processing {sample_id}...")
