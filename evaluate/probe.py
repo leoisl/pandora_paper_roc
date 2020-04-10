@@ -44,25 +44,31 @@ class ProbeHeader:
         sample: str = "",
         chrom: str = "",
         pos: int = 0,
+        ref: str = "",
         interval: ProbeInterval = ProbeInterval(),
         svtype: str = "",
         gt_conf: float = None,
+        coverage: float = None
     ):
         self.chrom = chrom
         self.sample = sample
         self.pos = pos
+        self.ref = ref
         self.interval = interval
         self.svtype = svtype
         self.gt_conf = gt_conf
+        self.coverage = coverage
 
     def __eq__(self, other: "ProbeHeader") -> bool:
         return (
             self.chrom == other.chrom
             and self.sample == other.sample
             and self.pos == other.pos
+            and self.ref == other.ref
             and self.interval == other.interval
             and self.svtype == other.svtype
             and self.gt_conf == other.gt_conf
+            and self.coverage == other.coverage
         )
 
     def __str__(self) -> str:
@@ -93,14 +99,16 @@ class ProbeHeader:
         chrom = parse_field_from_header("CHROM", string, str, "")
         sample = parse_field_from_header("SAMPLE", string, str, "")
         pos = parse_field_from_header("POS", string, int, 0)
+        ref = parse_field_from_header("REF", string, str, "")
         svtype = parse_field_from_header("SVTYPE", string, str, "")
         gt_conf = parse_field_from_header("GT_CONF", string, float, None)
         interval = ProbeInterval.from_string(
             parse_field_from_header("INTERVAL", string, str, "")
         )
+        coverage = parse_field_from_header("COVERAGE", string, float, None)
 
         return ProbeHeader(
-            sample, chrom, pos, interval, svtype, gt_conf
+            sample, chrom, pos, ref, interval, svtype, gt_conf, coverage
         )
 
 

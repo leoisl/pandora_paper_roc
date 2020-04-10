@@ -58,6 +58,10 @@ class VCF(ABC):
         return int(self.variant.pos)
 
     @property
+    def ref(self) -> str:
+        return self.variant.ref
+
+    @property
     def start(self) -> int:
         return int(self.variant.start)
 
