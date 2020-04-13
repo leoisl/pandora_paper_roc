@@ -7,8 +7,6 @@ PROFILE="lsf"
 LOG_DIR=logs/
 JOB_NAME="snakemake_master_process."$(date --iso-8601='minutes')
 
-echo "Have you remembered doing conda activate basic_bioinfo and pipenv shell?"
-
 mkdir -p $LOG_DIR
 
 bsub -R "select[mem>$MEMORY] rusage[mem=$MEMORY] span[hosts=1]" \
