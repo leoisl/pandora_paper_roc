@@ -74,7 +74,7 @@ illumina = Channel.fromFilePairs("${reads_directory}/${params.sample_id}.${param
 snippy_input = illumina.combine(reference_assemblies_snippy).view()
 
 process snippy_genotype_pe_illumina {
-    memory { 24.GB * task.attempt } 
+    memory { 24.GB }
     errorStrategy {task.attempt < 3 ? 'retry' : 'ignore'}
     maxRetries 3
     container {
