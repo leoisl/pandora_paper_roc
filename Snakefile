@@ -85,14 +85,14 @@ files.extend(all_precision_files)
 
 
 # Recall files
-all_recall_files=[]
+all_recall_files=set()
 
 for index, row in data.iterrows():
     sample_id, coverage, tool = row["sample_id"], row["coverage"], row["tool"]
     for filename_prefix in get_sample_pairs_containing_given_sample(sample_pairs, sample_id):
         files_with_filters = expand(f"{output_folder}/recall/map_probes/{sample_id}/{coverage}/{tool}/coverage_filter_{{coverage_threshold}}/strand_bias_filter_{{strand_bias_threshold}}/gaps_filter_{{gaps_threshold}}/gt_conf_percentile_{{gt_conf_percentile}}/{filename_prefix}.sam", coverage_threshold = get_coverage_filters(tool), strand_bias_threshold = get_strand_bias_filters(tool), gaps_threshold = get_gaps_filters(tool), gt_conf_percentile=gt_conf_percentiles)
 
-cov_tool_and_filters_to_recall_report_files = defaultdict(list)
+sample_cov_tool_and_filters_to_recall_report_files = defaultdict(list)
 all_recall_per_sample_no_gt_conf_filter = set()
 all_recall_per_sample_pair_no_gt_conf_filter = set()
 for index, row in data.iterrows():
@@ -101,30 +101,30 @@ for index, row in data.iterrows():
         for coverage_threshold, strand_bias_threshold, gaps_threshold, gt_conf_percentile in \
             itertools.product(get_coverage_filters(tool), get_strand_bias_filters(tool), get_gaps_filters(tool), gt_conf_percentiles):
             report_file = f"{output_folder}/recall/reports/{sample_id}/{coverage}/{tool}/coverage_filter_{coverage_threshold}/strand_bias_filter_{strand_bias_threshold}/gaps_filter_{gaps_threshold}/gt_conf_percentile_{gt_conf_percentile}/{filename_prefix}.report.tsv"
-            cov_tool_and_filters_to_recall_report_files[(coverage, tool, str(coverage_threshold), str(strand_bias_threshold), str(gaps_threshold))].append(report_file)
+            sample_cov_tool_and_filters_to_recall_report_files[(sample_id, coverage, tool, str(coverage_threshold), str(strand_bias_threshold), str(gaps_threshold))].append(report_file)
             all_recall_per_sample_no_gt_conf_filter.add(f"{output_folder}/recall/recall_files_per_sample/{sample_id}/{coverage}/{tool}/coverage_filter_{coverage_threshold}/strand_bias_filter_{strand_bias_threshold}/gaps_filter_{gaps_threshold}/recall.tsv")
             all_recall_per_sample_pair_no_gt_conf_filter.add(f"{output_folder}/recall/recall_files_per_sample_pair/{sample_id}/{coverage}/{tool}/coverage_filter_{coverage_threshold}/strand_bias_filter_{strand_bias_threshold}/gaps_filter_{gaps_threshold}/{filename_prefix}.recall.tsv")
 all_recall_per_sample_no_gt_conf_filter = list(all_recall_per_sample_no_gt_conf_filter)
 all_recall_per_sample_pair_no_gt_conf_filter = list(all_recall_per_sample_pair_no_gt_conf_filter)
 
 
-for coverage, tool, coverage_threshold, strand_bias_threshold, gaps_threshold in cov_tool_and_filters_to_recall_report_files:
-    all_recall_files.append(f"{output_folder}/recall/recall_files/{coverage}/{tool}/coverage_filter_{coverage_threshold}/strand_bias_filter_{strand_bias_threshold}/gaps_filter_{gaps_threshold}/recall.tsv")
+for sample, coverage, tool, coverage_threshold, strand_bias_threshold, gaps_threshold in sample_cov_tool_and_filters_to_recall_report_files:
+    all_recall_files.add(f"{output_folder}/recall/recall_files/{coverage}/{tool}/coverage_filter_{coverage_threshold}/strand_bias_filter_{strand_bias_threshold}/gaps_filter_{gaps_threshold}/recall.tsv")
 
-files.extend(all_recall_files)
+files.extend(list(all_recall_files))
 
 
 
 # Plot files
-all_plot_data_intermediate_files = []
-for coverage, tool, coverage_threshold, strand_bias_threshold, gaps_threshold in cov_tool_and_filters_to_recall_report_files:
-    all_plot_data_intermediate_files.append(f"{output_folder}/plot_data/{coverage}/{tool}/coverage_filter_{coverage_threshold}/strand_bias_filter_{strand_bias_threshold}/gaps_filter_{gaps_threshold}/ROC_data.tsv")
+all_plot_data_intermediate_files = set()
+for sample, coverage, tool, coverage_threshold, strand_bias_threshold, gaps_threshold in sample_cov_tool_and_filters_to_recall_report_files:
+    all_plot_data_intermediate_files.add(f"{output_folder}/plot_data/{coverage}/{tool}/coverage_filter_{coverage_threshold}/strand_bias_filter_{strand_bias_threshold}/gaps_filter_{gaps_threshold}/ROC_data.tsv")
 final_plot_data_file = f"{output_folder}/plot_data/ROC_data.tsv"
 final_all_nb_of_records_removed_with_mapq_sam_records_filter_file = f"{output_folder}/plot_data/nb_of_records_removed_with_mapq_sam_records_filter_for_precision.csv"
 recall_per_sample_file = f"{output_folder}/plot_data/recall_per_sample.tsv"
 recall_per_sample_pair_file = f"{output_folder}/plot_data/recall_per_sample_pair.tsv"
 
-files.extend(all_plot_data_intermediate_files)
+files.extend(list(all_plot_data_intermediate_files))
 files.append(final_plot_data_file)
 files.append(final_all_nb_of_records_removed_with_mapq_sam_records_filter_file)
 files.append(recall_per_sample_file)
@@ -144,4 +144,8 @@ include: str(rules_dir / "recall.smk")
 include: str(rules_dir / "precision.smk")
 include: str(rules_dir / "plot.smk")
 
-localrules: make_empty_depth_file
+localrules: make_empty_depth_file, remove_plasmids_from_truth_sample, bwa_index,
+    concat_all_nb_of_records_removed_with_mapq_sam_records_filter_files_for_precision,
+    concat_all_recall_per_sample_no_gt_conf_filter, merge_precision_and_recall_dfs,
+    concat_all_plot_data, filter_vcf_for_a_single_sample_by_gt_conf_percentile_for_pandora,
+    filter_vcf_for_a_single_sample_by_gt_conf_percentile_for_snippy

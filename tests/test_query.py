@@ -120,9 +120,11 @@ class TestQuery:
                         chrom="gene1",
                         sample="sample",
                         pos=4,
+                        ref_length=1,
                         interval=ProbeInterval(3, 4),
                         svtype="COMPLEX",
                         gt_conf=262.757,
+                        coverage=13,
                     ),
                     full_sequence="xxxFxxx",
                 )
@@ -150,9 +152,11 @@ class TestQuery:
                         chrom="gene1",
                         sample="sample",
                         pos=4,
+                        ref_length=2,
                         interval=ProbeInterval(3, 6),
                         svtype="COMPLEX",
                         gt_conf=262.757,
+                        coverage=13,
                     ),
                     full_sequence="xxxFOOxxxxx",
                 )
@@ -164,9 +168,11 @@ class TestQuery:
                         chrom="gene1",
                         sample="sample",
                         pos=8,
+                        ref_length=2,
                         interval=ProbeInterval(5, 8),
                         svtype="COMPLEX",
                         gt_conf=262.757,
+                        coverage=13,
                     ),
                     full_sequence="xxxxxFOOxxxxx",
                 )
@@ -194,9 +200,11 @@ class TestQuery:
                         chrom="gene1",
                         sample="sample",
                         pos=4,
+                        ref_length=2,
                         interval=ProbeInterval(3, 6),
                         svtype="COMPLEX",
                         gt_conf=262.757,
+                        coverage=13,
                     ),
                     full_sequence="xxxFOOxxxxx",
                 )
@@ -208,9 +216,11 @@ class TestQuery:
                         chrom="gene1",
                         sample="sample",
                         pos=8,
+                        ref_length=2,
                         interval=ProbeInterval(5, 8),
                         svtype="COMPLEX",
                         gt_conf=262.757,
+                        coverage=13,
                     ),
                     full_sequence="xxxxxFOOxxx",
                 )
@@ -238,9 +248,11 @@ class TestQuery:
                         chrom="gene1",
                         sample="sample",
                         pos=4,
+                        ref_length=2,
                         interval=ProbeInterval(3, 6),
                         svtype="COMPLEX",
                         gt_conf=262.757,
+                        coverage=13,
                     ),
                     full_sequence="xxxFOOxxxxx",
                 )
@@ -252,9 +264,11 @@ class TestQuery:
                         chrom="gene2",
                         sample="sample",
                         pos=2,
+                        ref_length=2,
                         interval=ProbeInterval(1, 4),
                         svtype="COMPLEX",
                         gt_conf=262.757,
+                        coverage=13,
                     ),
                     full_sequence="xFOOx",
                 )
@@ -284,9 +298,11 @@ class TestQuery:
                         chrom="gene1",
                         sample="sample",
                         pos=4,
+                        ref_length=1,
                         interval=ProbeInterval(3, 4),
                         svtype="COMPLEX",
                         gt_conf=20.0,
+                        coverage=13,
                     ),
                     full_sequence="xxxFxxxxx",
                 )
@@ -309,9 +325,11 @@ class TestQuery:
             chrom="GC00000001_155",
             sample="sample",
             pos=1,
-            interval=ProbeInterval(0, 12),
+            ref_length=4,
+            interval=ProbeInterval(0, 30),
             svtype="COMPLEX",
             gt_conf=262.757,
+            coverage=54
         )
 
         assert actual == expected

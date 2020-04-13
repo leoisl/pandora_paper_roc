@@ -100,7 +100,7 @@ class Test_PandoraVCF:
 
 
     def test___called_variant_sequence___genotype_is_zero___returns_ref(self):
-        entry = retrieve_entry_from_test_vcf(2)
+        entry = retrieve_entry_from_test_vcf(3)
         sample = "sample"
         vcf = build_PandoraVCF_bypassing_check(entry, sample)
 
@@ -127,7 +127,7 @@ class Test_PandoraVCF:
         vcf = build_PandoraVCF_bypassing_check(entry, sample)
 
         actual = vcf.called_variant_length
-        expected = 12
+        expected = 30
 
         assert actual == expected
 

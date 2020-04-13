@@ -265,6 +265,48 @@ CFT073	>CHROM=1;POS=1281;INTERVAL=[70,80);		unmapped
         assert_frame_equal(actual, expected, check_dtype=False)
 
 
+
+    def test_simple_concatenation_with_several_dfs(self):
+        df_1 = pd.DataFrame(
+            data=[
+                create_recall_report_row("truth_probe_1", AlignmentAssessment.UNMAPPED, gt_conf=100, with_gt_conf=True),
+                create_recall_report_row("truth_probe_1", AlignmentAssessment.PARTIALLY_MAPPED, gt_conf=100, with_gt_conf=True),
+            ],
+        )
+        df_2 = pd.DataFrame(
+            data=[
+                create_recall_report_row("truth_probe_1", AlignmentAssessment.PRIMARY_INCORRECT, gt_conf=100,
+                                         with_gt_conf=True),
+                create_recall_report_row("truth_probe_1", AlignmentAssessment.SECONDARY_INCORRECT, gt_conf=100,
+                                         with_gt_conf=True),
+            ],
+        )
+        df_3 = pd.DataFrame(
+            data=[
+                create_recall_report_row("truth_probe_1", AlignmentAssessment.SUPPLEMENTARY_INCORRECT, gt_conf=100,
+                                         with_gt_conf=True),
+                create_recall_report_row("truth_probe_1", AlignmentAssessment.PRIMARY_CORRECT, gt_conf=100,
+                                         with_gt_conf=True),
+            ],
+        )
+
+        report = RecallReport([df_1, df_2, df_3], concatenate_dfs_one_by_one_keeping_only_best_mappings=False)
+        actual = report.report
+        expected = pd.DataFrame(data=[
+            create_recall_report_row("truth_probe_1", AlignmentAssessment.UNMAPPED, gt_conf=100, with_gt_conf=True),
+            create_recall_report_row("truth_probe_1", AlignmentAssessment.PARTIALLY_MAPPED, gt_conf=100,
+                                     with_gt_conf=True),
+            create_recall_report_row("truth_probe_1", AlignmentAssessment.PRIMARY_INCORRECT, gt_conf=100,
+                                     with_gt_conf=True),
+            create_recall_report_row("truth_probe_1", AlignmentAssessment.SECONDARY_INCORRECT, gt_conf=100,
+                                     with_gt_conf=True),
+            create_recall_report_row("truth_probe_1", AlignmentAssessment.SUPPLEMENTARY_INCORRECT, gt_conf=100,
+                                     with_gt_conf=True),
+            create_recall_report_row("truth_probe_1", AlignmentAssessment.PRIMARY_CORRECT, gt_conf=100,
+                                     with_gt_conf=True),
+        ])
+        assert_frame_equal(actual, expected, check_dtype=False)
+
 class TestPrecisionReporter:
     def test_init_gtconfIsExtractedCorrectly(self):
         columns = ["sample", "query_probe_header", "ref_probe_header", "classification"]

@@ -23,7 +23,8 @@ rule all:
 rule mask:
     input:
         ref = "{sample_path}/{sample_name}.ref.fa",
-        illumina = "{sample_path}/{sample_name}.illumina.fastq.gz"
+        illumina_1 = "{sample_path}/{sample_name}.illumina_1.fastq.gz",
+        illumina_2 = "{sample_path}/{sample_name}.illumina_2.fastq.gz"
     output:
         mask = "{sample_path}/{sample_name}.mask.bed"
     params:
@@ -34,19 +35,4 @@ rule mask:
     log:
         "logs/{sample_path}/{sample_name}.mask.log"
     shell:
-        "scripts/make_low_qual_genome_mask.sh {input.ref} {input.illumina} {params.prefix}"
-
-
-rule concatenate_illumina:
-    input:
-        illumina_1 = "{sample_path}/{sample_name}.illumina_1.fastq.gz",
-        illumina_2 = "{sample_path}/{sample_name}.illumina_2.fastq.gz"
-    output:
-        illumina = rules.mask.input.illumina
-    threads: 1
-    resources:
-        mem_mb = lambda wildcards, attempt: 1000 * attempt
-    log:
-        "logs/{sample_path}/{sample_name}.concatenate_illumina.log"
-    shell:
-        "zcat {input.illumina_1} {input.illumina_2} | gzip > {output.illumina}"
+        "scripts/make_low_qual_genome_mask.sh {input.ref} {input.illumina_1} {input.illumina_2} {params.prefix}"

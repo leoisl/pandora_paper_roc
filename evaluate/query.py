@@ -102,9 +102,11 @@ class Query:
             chrom=vcf.chrom,
             sample=sample,
             pos=vcf.pos,
+            ref_length=vcf.ref_length,
             interval=call_interval,
             svtype=vcf.svtype,
             gt_conf=vcf.genotype_confidence,
+            coverage=vcf.coverage
         )
 
 
