@@ -37,16 +37,3 @@ rule fix_snippy_vcf_for_pipeline:
     script:
         "../scripts/fix_snippy_vcf.py"
 
-
-rule remove_plasmids_from_truth_sample:
-    input:
-         truth_sample = "{truth_sample}"
-    output:
-         truth_sample_with_chrom_only = "{truth_sample}.chrom_only"
-    threads: 1
-    resources:
-        mem_mb = lambda wildcards, attempt: 4000 * attempt
-    log:
-        "logs/remove_plasmids_from_truth_sample{truth_sample}.log"
-    script:
-        "../scripts/remove_plasmids_from_truth_sample.py"
