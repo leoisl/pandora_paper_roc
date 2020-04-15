@@ -143,7 +143,7 @@ include: str(rules_dir / "recall.smk")
 include: str(rules_dir / "precision.smk")
 include: str(rules_dir / "plot.smk")
 
-localrules: make_empty_depth_file, remove_plasmids_from_truth_sample, bwa_index,
+localrules: make_empty_depth_file, bwa_index,
     concat_all_nb_of_records_removed_with_mapq_sam_records_filter_files_for_precision,
     concat_all_recall_per_sample_no_gt_conf_filter, merge_precision_and_recall_dfs,
     concat_all_plot_data, filter_vcf_for_a_single_sample_by_gt_conf_percentile_for_pandora,
