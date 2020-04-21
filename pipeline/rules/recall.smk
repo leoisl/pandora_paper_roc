@@ -124,19 +124,49 @@ rule make_mutated_vcf_ref_for_recall:
                         f"-o {output_file} --low-coverage 0 --no-coverage 0 -V")
             run_command(f"bwa index {output_file}")
 
-rule make_recall_truth_probeset:
+
+rule make_pairwise_snps_df:
     input:
         truth1 = lambda wildcards: samples.xs(wildcards.sample1)["reference_assembly"],
         truth2 = lambda wildcards: samples.xs(wildcards.sample2)["reference_assembly"],
     output:
-        probeset1 = output_folder + "/recall/truth_probesets/{sample1}/{sample1}_and_{sample2}.truth_probeset.fa",
-        probeset2 = output_folder + "/recall/truth_probesets/{sample2}/{sample1}_and_{sample2}.truth_probeset.fa",
+        snps_df = output_folder + "/recall/snps_dfs/{sample1}/{sample1}_and_{sample2}.snps_df.pickle",
+        snps_df_text = output_folder + "/recall/snps_dfs/{sample1}/{sample1}_and_{sample2}.snps_df.csv",
         aligned_bases_percentage_sample_1 = output_folder + "/recall/dnadiff_reports/{sample1}/{sample1}_and_{sample2}.aligned_bases_percentage",
         aligned_bases_percentage_sample_2 = output_folder + "/recall/dnadiff_reports/{sample2}/{sample1}_and_{sample2}.aligned_bases_percentage"
     params:
          flank_length = config["truth_probes_flank_length_for_recall"]
     shadow:
         "shallow"
+    threads: 1
+    resources:
+        mem_mb = lambda wildcards, attempt: 4000 * attempt
+    log:
+        "logs/make_pairwise_snps_df/{sample1}_and_{sample2}.log"
+    script:
+        "../scripts/make_pairwise_snps_df.py"
+
+
+rule deduplicate_pairwise_snps:
+    input:
+        snps_dfs = expand(output_folder + "/recall/snps_dfs/{sample_pair_as_str}.snps_df.pickle", sample_pair_as_str=sample_pairs_as_str)
+    output:
+        deduplicated_snps_dfs = expand(output_folder + "/recall/deduplicated_snps_dfs/{sample_pair_as_str}.snps_df.pickle", sample_pair_as_str=sample_pairs_as_str)
+    threads: 1
+    resources:
+        mem_mb = lambda wildcards, attempt: 16000 * attempt
+    log:
+        "logs/deduplicate_pairwise_snps.log"
+    script:
+        "../scripts/deduplicate_pairwise_snps.py"
+
+
+rule make_recall_truth_probeset:
+    input:
+        deduplicated_snps_df = output_folder + "/recall/snps_dfs/{sample1}/{sample1}_and_{sample2}.snps_df.pickle",
+    output:
+        probeset1 = output_folder + "/recall/truth_probesets/{sample1}/{sample1}_and_{sample2}.truth_probeset.fa",
+        probeset2 = output_folder + "/recall/truth_probesets/{sample2}/{sample1}_and_{sample2}.truth_probeset.fa",
     threads: 1
     resources:
         mem_mb = lambda wildcards, attempt: 4000 * attempt
