@@ -9,6 +9,23 @@ import itertools
 from collections import defaultdict
 
 
+class DeduplicatePairwiseSNPsUtils:
+    @staticmethod
+    def _get_ref_and_query_from_ShowSNPsDataframe_filepath(ShowSNPsDataframe_filepath: str) -> Tuple[str, str]:
+        ShowSNPsDataframe_filepath = Path(ShowSNPsDataframe_filepath)
+        ShowSNPsDataframe_filename = ShowSNPsDataframe_filepath.name
+        matches = re.match(r"(.*)_and_(.*).snps_df.pickle", ShowSNPsDataframe_filename)
+        ref = matches.group(1)
+        query = matches.group(2)
+        return ref, query
+
+    # Note: not tested (trivial method)
+    @staticmethod
+    def _load_pickled_ShowSNPsDataframe(df_filepath: str) -> ShowSNPsDataframe:
+        with open(df_filepath, "rb") as df_fh:
+            return pickle.load(df_fh)
+
+
 class NotASNP(Exception):
     pass
 
@@ -55,6 +72,20 @@ class Allele:
         else:
             raise TypeError()
 
+    # Note: tested through DeduplicationGraph._add_variants_from_ShowSNPsDataframe_core()
+    @staticmethod
+    def get_alleles_from_ShowSNPsDataframe(ref: str, query: str, snps_df: ShowSNPsDataframe) -> Generator[Tuple["Allele", "Allele"], None, None]:
+        for ref_chrom, ref_pos, ref_sub, query_chrom, query_pos, query_sub in \
+            zip(snps_df["ref_chrom"], snps_df["ref_pos"], snps_df["ref_sub"],
+                snps_df["query_chrom"], snps_df["query_pos"], snps_df["query_sub"]):
+            is_snp = len(ref_sub)==1 and len(query_sub)==1
+            if not is_snp:
+                continue  # we just deal with SNPs as of now
+
+            ref_allele = Allele(ref, ref_chrom, ref_pos, ref_sub)
+            query_allele = Allele(query, query_chrom, query_pos, query_sub)
+            yield ref_allele, query_allele
+
 
 class PairwiseVariation:
     def __init__(self, allele_1: Allele, allele_2: Allele):
@@ -80,6 +111,13 @@ class PairwiseVariation:
         return self.allele_1 == other.allele_1 or self.allele_1 == other.allele_2 or \
                self.allele_2 == other.allele_1 or self.allele_2 == other.allele_2
 
+    # Note: tested through DeduplicationGraph._add_variants_from_ShowSNPsDataframe_core()
+    @staticmethod
+    def get_PairwiseVariation_from_ShowSNPsDataframe(ref: str, query: str, snps_df: ShowSNPsDataframe) -> Generator[
+        "PairwiseVariation", None, None]:
+        for ref_allele, query_allele in Allele.get_alleles_from_ShowSNPsDataframe(ref, query, snps_df):
+            yield PairwiseVariation(ref_allele, query_allele)
+
 
 class PangenomeVariation:
     # Note: trivial method, not tested
@@ -96,6 +134,7 @@ class PangenomeVariation:
         else:
             return False
 
+
     def is_consistent(self) -> bool:
         genomes_to_chrom_and_pos = defaultdict(set)
         for allele in self.alleles:
@@ -107,35 +146,57 @@ class PangenomeVariation:
         return all_genomes_have_consistent_alleles
 
 
+# Note: trivial class, not tested
 class PangenomeVariations:
-    # Note: trivial method, not tested
     def __init__(self):
         self._pangenome_variations = []
     @property
     def pangenome_variations(self) -> List[PangenomeVariation]:
         return self._pangenome_variations
 
-    # Note: trivial method, not tested
     def append(self, pangenome_variation: PangenomeVariation):
         self.pangenome_variations.append(pangenome_variation)
 
-    # Note: trivial method, not tested
     def __eq__(self, other: object):
         if isinstance(other, PangenomeVariations):
             return self.pangenome_variations==other.pangenome_variations
         else:
             return False
 
-    def get_consistent(self) -> "PangenomeVariations":
-        """
-        For the definition of consistent Pangenome Variations, see https://github.com/iqbal-lab/pandora1_paper/issues/144#issue-603283664
-        :return: Consistent Pangenome Variations
-        """
-        consistent_pangenome_variations = PangenomeVariations()
-        for pangenome_variation in self.pangenome_variations:
+
+class ConsistentPangenomeVariations(PangenomeVariations):
+    """
+    For the definition of consistent Pangenome Variations, see https://github.com/iqbal-lab/pandora1_paper/issues/144#issue-603283664
+    """
+    def __init__(self, pangenome_variations: PangenomeVariations):
+        super().__init__()
+        for pangenome_variation in pangenome_variations.pangenome_variations:
             if pangenome_variation.is_consistent():
-                consistent_pangenome_variations.append(pangenome_variation)
-        return consistent_pangenome_variations
+                self.append(pangenome_variation)
+
+        self._alleles_in_consistent_pangenome_variations = set()
+        for consistent_pangenome_variations in self.pangenome_variations:
+            self._alleles_in_consistent_pangenome_variations.update(consistent_pangenome_variations.alleles)
+
+    @property
+    def alleles_in_consistent_pangenome_variations(self) -> Set[Allele]:
+        return self._alleles_in_consistent_pangenome_variations
+
+
+    def __contains__(self, item: object) -> bool:
+        if isinstance(item, PairwiseVariation):
+            return item.allele_1 in self.alleles_in_consistent_pangenome_variations and \
+                   item.allele_2 in self.alleles_in_consistent_pangenome_variations
+        else:
+            raise TypeError()
+
+    def get_boolean_presence_vector_given_ShowSNPsDataframe_core(self, ref: str, query: str, snps_df: ShowSNPsDataframe) -> List[bool]:
+        presence = [False]*len(snps_df)
+        for index, pairwise_variation in enumerate(PairwiseVariation.get_PairwiseVariation_from_ShowSNPsDataframe(ref, query, snps_df)):
+            presence[index] = pairwise_variation in self
+        return presence
+
+
 
 
 class DeduplicationGraph:
@@ -151,47 +212,20 @@ class DeduplicationGraph:
     def edges(self):
         return self.graph.edges
 
-
-    @staticmethod
-    def _get_ref_and_query_from_ShowSNPsDataframe_filepath(ShowSNPsDataframe_filepath: str) -> Tuple[str, str]:
-        ShowSNPsDataframe_filepath = Path(ShowSNPsDataframe_filepath)
-        ShowSNPsDataframe_filename = ShowSNPsDataframe_filepath.name
-        matches = re.match(r"(.*)_and_(.*).snps_df.pickle", ShowSNPsDataframe_filename)
-        ref = matches.group(1)
-        query = matches.group(2)
-        return ref, query
-
-
-    # Note: not tested (trivial method)
-    @staticmethod
-    def _load_pickled_ShowSNPsDataframe(df_filepath: str) -> ShowSNPsDataframe:
-        with open(df_filepath, "rb") as df_fh:
-            return pickle.load(df_fh)
-
-
     # Note: not tested (trivial method)
     def _add_pairwise_variation(self, pairwise_variation: PairwiseVariation) -> None:
         self._graph.add_node(pairwise_variation)
 
 
     def _add_variants_from_ShowSNPsDataframe_core(self, ref: str, query: str, snps_df: ShowSNPsDataframe) -> None:
-        for ref_chrom, ref_pos, ref_sub, query_chrom, query_pos, query_sub in \
-            zip(snps_df["ref_chrom"], snps_df["ref_pos"], snps_df["ref_sub"],
-                snps_df["query_chrom"], snps_df["query_pos"], snps_df["query_sub"]):
-            is_snp = len(ref_sub)==1 and len(query_sub)==1
-            if not is_snp:
-                continue  # we just deal with SNPs as of now
-
-            ref_allele = Allele(ref, ref_chrom, ref_pos, ref_sub)
-            query_allele = Allele(query, query_chrom, query_pos, query_sub)
-            pairwise_variation = PairwiseVariation(ref_allele, query_allele)
+        for pairwise_variation in PairwiseVariation.get_PairwiseVariation_from_ShowSNPsDataframe(ref, query, snps_df):
             self._add_pairwise_variation(pairwise_variation)
 
 
     # Note: not tested (trivial method)
     def add_variants_from_ShowSNPsDataframe_filepath(self, ShowSNPsDataframe_filepath: str) -> None:
-        ref, query = DeduplicationGraph._get_ref_and_query_from_ShowSNPsDataframe_filepath(ShowSNPsDataframe_filepath)
-        snps_df = DeduplicationGraph._load_pickled_ShowSNPsDataframe(ShowSNPsDataframe_filepath)
+        ref, query = DeduplicatePairwiseSNPsUtils._get_ref_and_query_from_ShowSNPsDataframe_filepath(ShowSNPsDataframe_filepath)
+        snps_df = DeduplicatePairwiseSNPsUtils._load_pickled_ShowSNPsDataframe(ShowSNPsDataframe_filepath)
         self._add_variants_from_ShowSNPsDataframe_core(ref, query, snps_df)
 
 

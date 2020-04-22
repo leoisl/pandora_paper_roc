@@ -1,9 +1,34 @@
-from evaluate.deduplicate_pairwise_snps import NotASNP, Allele, PairwiseVariation, DeduplicationGraph, PangenomeVariation, PangenomeVariations
+from evaluate.deduplicate_pairwise_snps import DeduplicatePairwiseSNPsUtils, NotASNP, Allele, PairwiseVariation, \
+    DeduplicationGraph, PangenomeVariation, PangenomeVariations, ConsistentPangenomeVariations
 import pandas as pd
 from io import StringIO
 from unittest.mock import patch, PropertyMock, Mock
 from unittest import TestCase
 from collections import defaultdict
+
+
+class TestDeduplicatePairwiseSNPsUtils(TestCase):
+    def test___get_ref_and_query_from_ShowSNPsDataframe_filepath___absolute_path(self):
+        filepath = "/home/leandro/git/pandora1_paper/analysis_output/recall/snps_dfs/CFT073/CFT073_and_H131800734.snps_df.pickle"
+        ref, query = DeduplicatePairwiseSNPsUtils._get_ref_and_query_from_ShowSNPsDataframe_filepath(filepath)
+        assert ref == "CFT073" and query=="H131800734"
+
+    def test___get_ref_and_query_from_ShowSNPsDataframe_filepath___relative_path(self):
+        filepath = "analysis_output/recall/snps_dfs/CFT073/CFT073_and_H131800734.snps_df.pickle"
+        ref, query = DeduplicatePairwiseSNPsUtils._get_ref_and_query_from_ShowSNPsDataframe_filepath(filepath)
+        assert ref == "CFT073" and query=="H131800734"
+
+    def test___get_ref_and_query_from_ShowSNPsDataframe_filepath___local_path(self):
+        filepath = "CFT073_and_H131800734.snps_df.pickle"
+        ref, query = DeduplicatePairwiseSNPsUtils._get_ref_and_query_from_ShowSNPsDataframe_filepath(filepath)
+        assert ref == "CFT073" and query=="H131800734"
+
+    def test___get_ref_and_query_from_ShowSNPsDataframe_filepath___local_path___trivial_names(self):
+        filepath = "A_and_B.snps_df.pickle"
+        ref, query = DeduplicatePairwiseSNPsUtils._get_ref_and_query_from_ShowSNPsDataframe_filepath(filepath)
+        assert ref == "A" and query=="B"
+
+
 
 class TestAllele(TestCase):
     def test_constructor_isSNP_constructorOK(self):
@@ -208,28 +233,79 @@ class TestPangenomeVariation(TestCase):
         self.assertFalse(pangenome_variation.is_consistent())
 
 
-class TestPangenomeVariations(TestCase):
-    def test___get_consistent(self):
+class TestConsistentPangenomeVariations(TestCase):
+    def setUp(self) -> None:
+        self.dummy_consistent_pangenome_variations = ConsistentPangenomeVariations(PangenomeVariations())
+
+    def test___constructor(self):
         # setup
-        consistent_pangenome_variation = Mock()
-        consistent_pangenome_variation.is_consistent.return_value = True
-        inconsistent_pangenome_variation = Mock()
-        inconsistent_pangenome_variation.is_consistent.return_value = False
+        consistent_pangenome_variations = []
+        set_of_consistent_alleles = set()
+        for i in range(3):
+            consistent_pangenome_variation = Mock()
+            consistent_pangenome_variation.is_consistent.return_value = True
+            consistent_pangenome_variation.alleles = [f"consistent_pangenome_variation_{i}.alleles"]
+            set_of_consistent_alleles.update(consistent_pangenome_variation.alleles)
+            consistent_pangenome_variations.append(consistent_pangenome_variation)
+
+        inconsistent_pangenome_variations = []
+        for _ in range(3):
+            inconsistent_pangenome_variation = Mock()
+            inconsistent_pangenome_variation.is_consistent.return_value = False
+            inconsistent_pangenome_variations.append(inconsistent_pangenome_variation)
+
         list_of_pangenome_variations = [
-            consistent_pangenome_variation,
-            consistent_pangenome_variation,
-            inconsistent_pangenome_variation,
-            inconsistent_pangenome_variation,
-            consistent_pangenome_variation,
-            inconsistent_pangenome_variation
+            consistent_pangenome_variations[0],
+            consistent_pangenome_variations[1],
+            inconsistent_pangenome_variations[0],
+            inconsistent_pangenome_variations[1],
+            consistent_pangenome_variations[2],
+            inconsistent_pangenome_variations[2]
         ]
         pangenome_variations = PangenomeVariations()
         pangenome_variations._pangenome_variations = list_of_pangenome_variations
-        consistent_pangenome_variations_actual = pangenome_variations.get_consistent()
-        consistent_pangenome_variations_expected = PangenomeVariations()
-        consistent_pangenome_variations_expected._pangenome_variations = [consistent_pangenome_variation] * 3
-        self.assertEqual(consistent_pangenome_variations_actual, consistent_pangenome_variations_expected)
+        actual_consistent_pangenome_variations = ConsistentPangenomeVariations(pangenome_variations)
 
+        self.assertListEqual(actual_consistent_pangenome_variations.pangenome_variations, consistent_pangenome_variations)
+        self.assertSetEqual(actual_consistent_pangenome_variations.alleles_in_consistent_pangenome_variations,
+                            set_of_consistent_alleles)
+
+    def test_____contains_____not_PairwiseVariation___raises_TypeError(self):
+        with self.assertRaises(TypeError):
+            "str" in self.dummy_consistent_pangenome_variations
+
+    @patch.object(ConsistentPangenomeVariations, "alleles_in_consistent_pangenome_variations", new_callable=PropertyMock,
+                  return_value=range(10))
+    def test_____contains_____both_alleles_in_alleles_in_consistent_pangenome_variations(self, *mocks):
+        pairwise_variation = PairwiseVariation(1, 5)
+        self.assertTrue(pairwise_variation in self.dummy_consistent_pangenome_variations)
+
+    @patch.object(ConsistentPangenomeVariations, "alleles_in_consistent_pangenome_variations", new_callable=PropertyMock,
+                  return_value=range(10))
+    def test_____contains_____first_allele_only_in_alleles_in_consistent_pangenome_variations(self, *mocks):
+        pairwise_variation = PairwiseVariation(1, 50)
+        self.assertFalse(pairwise_variation in self.dummy_consistent_pangenome_variations)
+
+    @patch.object(ConsistentPangenomeVariations, "alleles_in_consistent_pangenome_variations",
+                  new_callable=PropertyMock,
+                  return_value=range(10))
+    def test_____contains_____second_allele_only_in_alleles_in_consistent_pangenome_variations(self, *mocks):
+        pairwise_variation = PairwiseVariation(100, 5)
+        self.assertFalse(pairwise_variation in self.dummy_consistent_pangenome_variations)
+
+    @patch.object(ConsistentPangenomeVariations, "alleles_in_consistent_pangenome_variations",
+                  new_callable=PropertyMock,
+                  return_value=range(10))
+    def test_____contains_____no_alleles_in_alleles_in_consistent_pangenome_variations(self, *mocks):
+        pairwise_variation = PairwiseVariation(100, 500)
+        self.assertFalse(pairwise_variation in self.dummy_consistent_pangenome_variations)
+
+    @patch.object(PairwiseVariation, PairwiseVariation.get_PairwiseVariation_from_ShowSNPsDataframe.__name__, return_value=list(range(5)))
+    @patch.object(ConsistentPangenomeVariations, ConsistentPangenomeVariations.__contains__.__name__, side_effect=[True, False, False, True, False])
+    def test___get_boolean_presence_vector_given_ShowSNPsDataframe_core(self, *mocks):
+        actual = self.dummy_consistent_pangenome_variations.get_boolean_presence_vector_given_ShowSNPsDataframe_core(None, None, list(range(5)))
+        expected = [True, False, False, True, False]
+        self.assertListEqual(actual, expected)
 
 
 class TestDeduplicationGraph(TestCase):
@@ -237,26 +313,6 @@ class TestDeduplicationGraph(TestCase):
         self.alleles = [Allele(f"genome_{i}", "chrom_1", 1, "A") for i in range(10)]
         self.pairwise_mutations = [PairwiseVariation(self.alleles[i*2], self.alleles[i*2+1]) for i in range(5)]
         self.deduplication_graph = DeduplicationGraph()
-
-    def test___get_ref_and_query_from_ShowSNPsDataframe_filepath___absolute_path(self):
-        filepath = "/home/leandro/git/pandora1_paper/analysis_output/recall/snps_dfs/CFT073/CFT073_and_H131800734.snps_df.pickle"
-        ref, query = DeduplicationGraph._get_ref_and_query_from_ShowSNPsDataframe_filepath(filepath)
-        assert ref == "CFT073" and query=="H131800734"
-
-    def test___get_ref_and_query_from_ShowSNPsDataframe_filepath___relative_path(self):
-        filepath = "analysis_output/recall/snps_dfs/CFT073/CFT073_and_H131800734.snps_df.pickle"
-        ref, query = DeduplicationGraph._get_ref_and_query_from_ShowSNPsDataframe_filepath(filepath)
-        assert ref == "CFT073" and query=="H131800734"
-
-    def test___get_ref_and_query_from_ShowSNPsDataframe_filepath___local_path(self):
-        filepath = "CFT073_and_H131800734.snps_df.pickle"
-        ref, query = DeduplicationGraph._get_ref_and_query_from_ShowSNPsDataframe_filepath(filepath)
-        assert ref == "CFT073" and query=="H131800734"
-
-    def test___get_ref_and_query_from_ShowSNPsDataframe_filepath___local_path___trivial_names(self):
-        filepath = "A_and_B.snps_df.pickle"
-        ref, query = DeduplicationGraph._get_ref_and_query_from_ShowSNPsDataframe_filepath(filepath)
-        assert ref == "A" and query=="B"
 
     def test___add_variants_from_ShowSNPsDataframe_core___empty_df___no_variations_added(self):
         snps_df = pd.read_csv(StringIO(
