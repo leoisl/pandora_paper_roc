@@ -6,6 +6,7 @@ import pickle
 from typing import Tuple, Iterable, Set, List, Generator
 import functools
 import itertools
+from collections import defaultdict
 
 
 class NotASNP(Exception):
@@ -80,38 +81,61 @@ class PairwiseVariation:
                self.allele_2 == other.allele_1 or self.allele_2 == other.allele_2
 
 
-# Note: trivial class, not tested
 class PangenomeVariation:
+    # Note: trivial method, not tested
     def __init__(self, alleles: Iterable[Allele]):
         self._alleles = set(alleles)
     @property
     def alleles(self) -> Set[Allele]:
         return self._alleles
 
+    # Note: trivial method, not tested
     def __eq__(self, other: object):
         if isinstance(other, PangenomeVariation):
             return self.alleles==other.alleles
         else:
             return False
 
+    def is_consistent(self) -> bool:
+        genomes_to_chrom_and_pos = defaultdict(set)
+        for allele in self.alleles:
+            genomes_to_chrom_and_pos[allele.genome].add((allele.chrom, allele.pos))
+        genomes_to_have_consistent_alleles = {
+            genome: len(chrom_and_pos)==1 for genome, chrom_and_pos in genomes_to_chrom_and_pos.items()
+        }
+        all_genomes_have_consistent_alleles = all(genomes_to_have_consistent_alleles.values())
+        return all_genomes_have_consistent_alleles
 
 
-# Note: trivial class, not tested
 class PangenomeVariations:
+    # Note: trivial method, not tested
     def __init__(self):
         self._pangenome_variations = []
     @property
     def pangenome_variations(self) -> List[PangenomeVariation]:
         return self._pangenome_variations
 
+    # Note: trivial method, not tested
     def append(self, pangenome_variation: PangenomeVariation):
         self.pangenome_variations.append(pangenome_variation)
 
+    # Note: trivial method, not tested
     def __eq__(self, other: object):
         if isinstance(other, PangenomeVariations):
             return self.pangenome_variations==other.pangenome_variations
         else:
             return False
+
+    def get_consistent(self) -> "PangenomeVariations":
+        """
+        For the definition of consistent Pangenome Variations, see https://github.com/iqbal-lab/pandora1_paper/issues/144#issue-603283664
+        :return: Consistent Pangenome Variations
+        """
+        consistent_pangenome_variations = PangenomeVariations()
+        for pangenome_variation in self.pangenome_variations:
+            if pangenome_variation.is_consistent():
+                consistent_pangenome_variations.append(pangenome_variation)
+        return consistent_pangenome_variations
 
 
 class DeduplicationGraph:
@@ -171,7 +195,7 @@ class DeduplicationGraph:
         self._add_variants_from_ShowSNPsDataframe_core(ref, query, snps_df)
 
 
-    def add_edge(self, variant_1, variant_2) -> None:
+    def _add_edge(self, variant_1, variant_2) -> None:
         self._graph.add_edge(variant_1, variant_2)
 
 
@@ -187,13 +211,13 @@ class DeduplicationGraph:
         for variant_1, variant_2 in itertools.product(self.nodes, self.nodes):
             if variant_1 != variant_2:
                 if variant_1.share_allele(variant_2):
-                    self.add_edge(variant_1, variant_2)
+                    self._add_edge(variant_1, variant_2)
 
 
     # Note: not tested (trivial method)
     def _get_connected_components(self) -> Generator[Set[PairwiseVariation], None, None]:
         return nx.connected_components(self.graph)
-    
+
     def get_pangenome_variations(self) -> PangenomeVariations:
         pangenome_variations = PangenomeVariations()
 

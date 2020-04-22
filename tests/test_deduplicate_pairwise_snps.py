@@ -1,9 +1,8 @@
 from evaluate.deduplicate_pairwise_snps import NotASNP, Allele, PairwiseVariation, DeduplicationGraph, PangenomeVariation, PangenomeVariations
 import pandas as pd
 from io import StringIO
-from unittest.mock import patch, PropertyMock
+from unittest.mock import patch, PropertyMock, Mock
 from unittest import TestCase
-import numpy as np
 from collections import defaultdict
 
 class TestAllele(TestCase):
@@ -178,6 +177,59 @@ class TestPairwiseVariation(TestCase):
         pairwise_variation_1 = PairwiseVariation(allele_1, allele_2)
         pairwise_variation_2 = PairwiseVariation(allele_2, allele_1)
         assert pairwise_variation_1.share_allele(pairwise_variation_2) == True
+
+
+class TestPangenomeVariation(TestCase):
+    def test___is_consistent___two_genomes___single_chrom_and_pos_for_each_genome(self):
+        pangenome_variation = PangenomeVariation([Allele("genome_1", "chrom_1", 1, "A"), Allele("genome_2", "chrom_2", 2, "A"),
+                                                  Allele("genome_1", "chrom_1", 1, "A"), Allele("genome_2", "chrom_2", 2, "A"),
+                                                  Allele("genome_1", "chrom_1", 1, "A"), Allele("genome_2", "chrom_2", 2, "A")])
+        self.assertTrue(pangenome_variation.is_consistent())
+
+    def test___is_consistent___two_genomes___different_chrom_for_genome_1(self):
+        pangenome_variation = PangenomeVariation([Allele("genome_1", "chrom_1", 1, "A"), Allele("genome_2", "chrom_2", 2, "A"),
+                                                  Allele("genome_1", "chrom_2", 1, "A"), Allele("genome_2", "chrom_2", 2, "A"),
+                                                  Allele("genome_1", "chrom_1", 1, "A"), Allele("genome_2", "chrom_2", 2, "A")])
+        self.assertFalse(pangenome_variation.is_consistent())
+    def test___is_consistent___two_genomes___different_chrom_for_genome_2(self):
+        pangenome_variation = PangenomeVariation([Allele("genome_1", "chrom_1", 1, "A"), Allele("genome_2", "chrom_2", 2, "A"),
+                                                  Allele("genome_1", "chrom_1", 1, "A"), Allele("genome_2", "chrom_2", 2, "A"),
+                                                  Allele("genome_1", "chrom_1", 1, "A"), Allele("genome_2", "chrom_1", 2, "A")])
+        self.assertFalse(pangenome_variation.is_consistent())
+    def test___is_consistent___two_genomes___different_pos_for_genome_1(self):
+        pangenome_variation = PangenomeVariation([Allele("genome_1", "chrom_1", 1, "A"), Allele("genome_2", "chrom_2", 2, "A"),
+                                                  Allele("genome_1", "chrom_1", 1, "A"), Allele("genome_2", "chrom_2", 2, "A"),
+                                                  Allele("genome_1", "chrom_1", 2, "A"), Allele("genome_2", "chrom_2", 2, "A")])
+        self.assertFalse(pangenome_variation.is_consistent())
+    def test___is_consistent___two_genomes___different_pos_for_genome_2(self):
+        pangenome_variation = PangenomeVariation([Allele("genome_1", "chrom_1", 1, "A"), Allele("genome_2", "chrom_2", 1, "A"),
+                                                  Allele("genome_1", "chrom_1", 1, "A"), Allele("genome_2", "chrom_2", 2, "A"),
+                                                  Allele("genome_1", "chrom_1", 1, "A"), Allele("genome_2", "chrom_2", 2, "A")])
+        self.assertFalse(pangenome_variation.is_consistent())
+
+
+class TestPangenomeVariations(TestCase):
+    def test___get_consistent(self):
+        # setup
+        consistent_pangenome_variation = Mock()
+        consistent_pangenome_variation.is_consistent.return_value = True
+        inconsistent_pangenome_variation = Mock()
+        inconsistent_pangenome_variation.is_consistent.return_value = False
+        list_of_pangenome_variations = [
+            consistent_pangenome_variation,
+            consistent_pangenome_variation,
+            inconsistent_pangenome_variation,
+            inconsistent_pangenome_variation,
+            consistent_pangenome_variation,
+            inconsistent_pangenome_variation
+        ]
+        pangenome_variations = PangenomeVariations()
+        pangenome_variations._pangenome_variations = list_of_pangenome_variations
+        consistent_pangenome_variations_actual = pangenome_variations.get_consistent()
+        consistent_pangenome_variations_expected = PangenomeVariations()
+        consistent_pangenome_variations_expected._pangenome_variations = [consistent_pangenome_variation] * 3
+        self.assertEqual(consistent_pangenome_variations_actual, consistent_pangenome_variations_expected)
+
 
 
 class TestDeduplicationGraph(TestCase):
