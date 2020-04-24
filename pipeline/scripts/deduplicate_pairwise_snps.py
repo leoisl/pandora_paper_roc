@@ -10,13 +10,38 @@ logging.basicConfig(
     format="[%(asctime)s]:%(levelname)s: %(message)s",
     datefmt="%d/%m/%Y %I:%M:%S %p",
 )
+from evaluate.deduplicate_pairwise_snps import DeduplicationGraph, ConsistentPangenomeVariations
 import pickle
-import re
 
-# inputs
-snps_df_filenames = snakemake.input.snps_dfs
-deduplicated_snps_df_filenames = snakemake.input.deduplicated_snps_dfs
 
-logging.info("Reading show-snps dataframes")
-for snps_df_filename, deduplicated_snps_df_filename in zip(snps_df_filenames, deduplicated_snps_df_filenames):
-    with open(snps_df_filename, "rb") as snps_df_fh, open(deduplicated_snps_df_filename, "wb") as deduplicated_snps_df_fh:
+# setup
+snps_dfs_filepaths = snakemake.input.snps_dfs
+deduplicated_snps_dfs_filepaths = snakemake.output.deduplicated_snps_dfs
+deduplicated_snps_dfs_text_filepaths = snakemake.output.deduplicated_snps_dfs_text
+
+
+
+# API usage
+# create the deduplication graph
+deduplication_graph = DeduplicationGraph(number_of_positions_in_each_index_bucket=100)
+logging.info("Building nodes...")
+for snps_df in snps_dfs_filepaths:
+    deduplication_graph.add_variants_from_ShowSNPsDataframe_filepath(snps_df)
+
+logging.info("Building edges...")
+deduplication_graph.build_edges()
+
+# create the consistent pangenome variations
+logging.info("Getting pangenome variations...")
+pangenome_variations = deduplication_graph.get_pangenome_variations()
+logging.info("Getting consistent pangenome variations...")
+consistent_pangenome_variations = ConsistentPangenomeVariations(pangenome_variations)
+
+# write the enriched and filtered deduplicated variations
+logging.info("Outputting...")
+for snps_df_filepath, deduplicated_snps_df_filepath, deduplicated_snps_df_text_filepath \
+        in zip(snps_dfs_filepaths, deduplicated_snps_dfs_filepaths, deduplicated_snps_dfs_text_filepaths):
+    deduplicated_snps_df = consistent_pangenome_variations.load_and_process_ShowSNPsDataframe(snps_df_filepath)
+    with open(deduplicated_snps_df_filepath, "wb") as deduplicated_snps_df_fh:
+        pickle.dump(deduplicated_snps_df, file=deduplicated_snps_df_fh)
+    deduplicated_snps_df.to_csv(deduplicated_snps_df_text_filepath, index=False)

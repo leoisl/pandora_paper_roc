@@ -151,7 +151,8 @@ rule deduplicate_pairwise_snps:
     input:
         snps_dfs = expand(output_folder + "/recall/snps_dfs/{sample_pair_as_str}.snps_df.pickle", sample_pair_as_str=sample_pairs_as_str)
     output:
-        deduplicated_snps_dfs = expand(output_folder + "/recall/deduplicated_snps_dfs/{sample_pair_as_str}.snps_df.pickle", sample_pair_as_str=sample_pairs_as_str)
+        deduplicated_snps_dfs = expand(output_folder + "/recall/deduplicated_snps_dfs/{sample_pair_as_str}.snps_df.pickle", sample_pair_as_str=sample_pairs_as_str),
+        deduplicated_snps_dfs_text = expand(output_folder + "/recall/deduplicated_snps_dfs/{sample_pair_as_str}.snps_df.csv", sample_pair_as_str=sample_pairs_as_str)
     threads: 1
     resources:
         mem_mb = lambda wildcards, attempt: 16000 * attempt
