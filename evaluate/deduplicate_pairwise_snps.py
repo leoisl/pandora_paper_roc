@@ -5,7 +5,6 @@ import re
 import pickle
 from typing import Tuple, Iterable, Set, List, Generator, Dict, Optional
 import functools
-import itertools
 from collections import defaultdict
 
 
@@ -34,7 +33,7 @@ class Allele:
     def __init__(self, genome: str, chrom: str, pos: int, sequence: str):
         self._genome = genome
         self._chrom = chrom
-        self._pos = pos
+        self._pos = pos  # TODO: do we need to care about strand when looking at pos?
         self._sequence = sequence
 
         # sequence is just used to ensure this is a SNP, for now
@@ -332,8 +331,11 @@ class ConsistentPangenomeVariations:
         return str(vars(self))
 
 class DeduplicationGraph:
-    def __init__(self):
+    # Note: trivial methods, not tested
+    def __init__(self, number_of_positions_in_each_index_bucket):
         self._graph = nx.Graph()
+        self._number_of_positions_in_each_index_bucket = number_of_positions_in_each_index_bucket
+        self._genome_chrom_position_bucket_to_pairwise_variations = defaultdict(set)
     @property
     def graph(self):
         return self._graph
@@ -343,15 +345,38 @@ class DeduplicationGraph:
     @property
     def edges(self):
         return self.graph.edges
+    @property
+    def number_of_positions_in_each_index_bucket(self):
+        return self._number_of_positions_in_each_index_bucket
+    @property
+    def genome_chrom_position_bucket_to_pairwise_variations(self):
+        return self._genome_chrom_position_bucket_to_pairwise_variations
+
+    def _get_indexing_bucket(self, allele: Allele) -> Tuple[str, str, int]:
+        return allele.genome, allele.chrom, int(allele.pos / self.number_of_positions_in_each_index_bucket)
+
+    def _index_pairwise_variation(self, pairwise_variation: PairwiseVariation) -> None:
+        for allele in [pairwise_variation.allele_1, pairwise_variation.allele_2]:
+            self.genome_chrom_position_bucket_to_pairwise_variations[self._get_indexing_bucket(allele)].add(pairwise_variation)
+
+    def _get_pairwise_variations_in_the_same_bucket(self, pairwise_variation: PairwiseVariation) -> Set[PairwiseVariation]:
+        bucket_1 = self._get_indexing_bucket(pairwise_variation.allele_1)
+        bucket_2 = self._get_indexing_bucket(pairwise_variation.allele_2)
+        return self.genome_chrom_position_bucket_to_pairwise_variations[bucket_1].union(
+            self.genome_chrom_position_bucket_to_pairwise_variations[bucket_2])
+
+    def _add_pairwise_variation(self, pairwise_variation: PairwiseVariation) -> None:
+        self.graph.add_node(pairwise_variation)
+        self._index_pairwise_variation(pairwise_variation)
 
     # Note: not tested (trivial method)
-    def _add_pairwise_variation(self, pairwise_variation: PairwiseVariation) -> None:
-        self._graph.add_node(pairwise_variation)
-
+    def _add_pairwise_variations(self, pairwise_variations: Iterable[PairwiseVariation]) -> None:
+        for pairwise_variation in pairwise_variations:
+            self._add_pairwise_variation(pairwise_variation)
 
     def _add_variants_from_ShowSNPsDataframe_core(self, ref: str, query: str, snps_df: ShowSNPsDataframe) -> None:
-        for pairwise_variation in PairwiseVariation.get_PairwiseVariation_from_ShowSNPsDataframe(ref, query, snps_df):
-            self._add_pairwise_variation(pairwise_variation)
+        pairwise_variations = PairwiseVariation.get_PairwiseVariation_from_ShowSNPsDataframe(ref, query, snps_df)
+        self._add_pairwise_variations(pairwise_variations)
 
 
     # Note: not tested (trivial method)
@@ -369,15 +394,11 @@ class DeduplicationGraph:
         """
         Note: Should be called after all nodes are added.
         """
-        #TODO: the runtime is quadratic on the number of variants. In the 24-way will be too much. We will have 24*23/2=276
-        #TODO: pairwise comparisons. These comparisons have around 100k variants, so the code inside this for will be executed
-        #TODO: (276 * 100000) ** 2 = ~761 trillion times... probably the bottleneck will be here.
-        #TODO: implement an indexing of variants per (genome, chrom, position/10000)
-        #TODO: a variant only needs to check the buckets belonging to its alleles
-        for variant_1, variant_2 in itertools.product(self.nodes, self.nodes):
-            if variant_1 != variant_2:
-                if variant_1.share_allele(variant_2):
-                    self._add_edge(variant_1, variant_2)
+        for variant_1 in self.nodes:
+            for variant_2 in self._get_pairwise_variations_in_the_same_bucket(variant_1):
+                if variant_1 != variant_2:
+                    if variant_1.share_allele(variant_2):
+                        self._add_edge(variant_1, variant_2)
 
 
     # Note: not tested (trivial method)

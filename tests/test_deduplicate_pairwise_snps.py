@@ -428,7 +428,39 @@ class TestDeduplicationGraph(TestCase):
     def setUp(self):
         self.alleles = [Allele(f"genome_{i}", "chrom_1", 1, "A") for i in range(10)]
         self.pairwise_mutations = [PairwiseVariation(self.alleles[i*2], self.alleles[i*2+1]) for i in range(5)]
-        self.deduplication_graph = DeduplicationGraph()
+        self.deduplication_graph = DeduplicationGraph(number_of_positions_in_each_index_bucket=1)
+
+    def test____get_indexing_bucket___number_of_positions_in_each_index_bucket_1(self):
+        actual_bucket = self.deduplication_graph._get_indexing_bucket(Allele("genome_G", "chrom_C", 42, "A"))
+        expected_bucket = ("genome_G", "chrom_C", 42)
+        self.assertEqual(actual_bucket, expected_bucket)
+
+    def test____get_indexing_bucket___number_of_positions_in_each_index_bucket_5(self):
+        self.deduplication_graph._number_of_positions_in_each_index_bucket = 5
+        actual_bucket = self.deduplication_graph._get_indexing_bucket(Allele("genome_G", "chrom_C", 42, "A"))
+        expected_bucket = ("genome_G", "chrom_C", 8)
+        self.assertEqual(actual_bucket, expected_bucket)
+
+    @patch.object(DeduplicationGraph, DeduplicationGraph._get_indexing_bucket.__name__, return_value=("genome_G", "chrom_C", 8))
+    def test____index_pairwise_variation(self, *mocks):
+        pairwise_variation = Mock(allele_1="dummy", allele_2="dummy")
+        self.deduplication_graph._index_pairwise_variation(pairwise_variation)
+        expected_indexing = {("genome_G", "chrom_C", 8): {pairwise_variation}}
+        self.assertDictEqual(self.deduplication_graph.genome_chrom_position_bucket_to_pairwise_variations, expected_indexing)
+
+
+    @patch.object(DeduplicationGraph, DeduplicationGraph._get_indexing_bucket.__name__, side_effect=["bucket_1", "bucket_2"])
+    @patch.object(DeduplicationGraph, "genome_chrom_position_bucket_to_pairwise_variations", new_callable=PropertyMock,
+                  return_value={"bucket_1": {1,5,10}, "bucket_2": {2,5,9}})
+    def test____get_pairwise_variations_in_the_same_bucket(self, *mocks):
+        actual_value_in_buckets = self.deduplication_graph._get_pairwise_variations_in_the_same_bucket(Mock())
+        expected_value_in_buckets = {1,2,5,9,10}
+        self.assertSetEqual(actual_value_in_buckets, expected_value_in_buckets)
+
+        # ensuring dict indexing did not change
+        self.assertDictEqual(self.deduplication_graph.genome_chrom_position_bucket_to_pairwise_variations,
+                             {"bucket_1": {1,5,10}, "bucket_2": {2,5,9}})
+
 
     def test___add_variants_from_ShowSNPsDataframe_core___empty_df___no_variations_added(self):
         snps_df = pd.read_csv(StringIO(
@@ -534,17 +566,25 @@ class TestDeduplicationGraph(TestCase):
                self.deduplication_graph.graph.has_node(pairwise_variation_3)
 
     @patch.object(PairwiseVariation, PairwiseVariation.share_allele.__name__, return_value=False)
+    @patch.object(DeduplicationGraph, DeduplicationGraph._get_pairwise_variations_in_the_same_bucket.__name__)
     @patch.object(DeduplicationGraph, "nodes", new_callable=PropertyMock)
-    def test___build_edges___no_shared_alleles___no_edge_built(self, nodes_mock, share_allele_mock):
+    def test___build_edges___no_shared_alleles___no_edge_built(self, nodes_mock,
+                                                               _get_pairwise_variations_in_the_same_bucket_mock,
+                                                               share_allele_mock):
         nodes_mock.return_value = self.pairwise_mutations
+        _get_pairwise_variations_in_the_same_bucket_mock.return_value = self.pairwise_mutations
         self.deduplication_graph.build_edges()
         self.assertEqual(self.deduplication_graph.graph.number_of_edges(), 0)
 
     @patch.object(PairwiseVariation, PairwiseVariation.share_allele.__name__, autospec=True)
+    @patch.object(DeduplicationGraph, DeduplicationGraph._get_pairwise_variations_in_the_same_bucket.__name__)
     @patch.object(DeduplicationGraph, "nodes", new_callable=PropertyMock)
-    def test___build_edges___four_shared_alleles___four_edges_built(self, nodes_mock, share_allele_mock):
+    def test___build_edges___four_shared_alleles___four_edges_built(self, nodes_mock,
+                                                                    _get_pairwise_variations_in_the_same_bucket_mock,
+                                                                    share_allele_mock):
         # set up
         nodes_mock.return_value = self.pairwise_mutations
+        _get_pairwise_variations_in_the_same_bucket_mock.return_value = self.pairwise_mutations
         # create a random matrix with 3 variations with shared alleles
         allele_sharing_matrix = defaultdict(lambda: defaultdict(int))
         allele_sharing_matrix[self.pairwise_mutations[0]][self.pairwise_mutations[2]] = 1  # add both ways
