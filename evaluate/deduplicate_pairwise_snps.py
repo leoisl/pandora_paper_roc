@@ -400,24 +400,3 @@ class DeduplicationGraph:
 
     def __repr__(self):
         return str(vars(self))
-
-class Deduplicator:
-    # Note: not tested, this is API usage, to be invoked by the rule (TODO: maybe not add this to evaluate)?
-    @staticmethod
-    def deduplicate(ShowSNPsDataframe_filepaths: List[str]):
-        # create the deduplication graph
-        deduplication_graph = DeduplicationGraph()
-        for ShowSNPsDataframe_filepath in ShowSNPsDataframe_filepaths:
-            deduplication_graph.add_variants_from_ShowSNPsDataframe_filepath(ShowSNPsDataframe_filepath)
-        deduplication_graph.build_edges()
-
-        # create the consistent pangenome variations
-        pangenome_variations = deduplication_graph.get_pangenome_variations()
-        consistent_pangenome_variations = ConsistentPangenomeVariations(pangenome_variations)
-
-        # write the enriched and filtered variations
-        for ShowSNPsDataframe_filepath in ShowSNPsDataframe_filepaths:
-            filtered_snps_df = consistent_pangenome_variations.load_and_process_ShowSNPsDataframe(ShowSNPsDataframe_filepath)
-            with open(f"{ShowSNPsDataframe_filepath}.deduplicated.pickle", "wb") as filtered_snps_df_fh:
-                pickle.dump(filtered_snps_df, file=filtered_snps_df_fh)
-            filtered_snps_df.to_csv(f"{ShowSNPsDataframe_filepath}.deduplicated.csv", index=False)
