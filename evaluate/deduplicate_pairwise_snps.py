@@ -3,7 +3,7 @@ from evaluate.mummer import ShowSNPsDataframe
 from pathlib import Path
 import re
 import pickle
-from typing import Tuple, Iterable, Set, List, Generator
+from typing import Tuple, Iterable, Set, List, Generator, Dict, Optional
 import functools
 import itertools
 from collections import defaultdict
@@ -35,6 +35,7 @@ class Allele:
         self._genome = genome
         self._chrom = chrom
         self._pos = pos
+        self._sequence = sequence
 
         # sequence is just used to ensure this is a SNP, for now
         is_snp = len(sequence) == 1
@@ -51,11 +52,14 @@ class Allele:
     def pos(self) -> int:
         return self._pos
     @property
-    def data_tuple(self) -> Tuple[str,str,int]:
+    def sequence(self) -> str:
+        return self._sequence
+    @property
+    def data_tuple(self) -> Tuple[str,str,int, str]:
         """
         :return: a tuple with all the data in the allele
         """
-        return self.genome, self.chrom, self.pos
+        return self.genome, self.chrom, self.pos, self.sequence
 
     def __eq__(self, other: object) -> bool:
         if isinstance(other, Allele):
@@ -71,6 +75,9 @@ class Allele:
             return self.data_tuple < other.data_tuple
         else:
             raise TypeError()
+
+    def __repr__(self):
+        return str(vars(self))
 
     # Note: tested through DeduplicationGraph._add_variants_from_ShowSNPsDataframe_core()
     @staticmethod
@@ -88,15 +95,27 @@ class Allele:
 
 
 class PairwiseVariation:
-    def __init__(self, allele_1: Allele, allele_2: Allele):
-        self._allele_1 = min(allele_1, allele_2)
-        self._allele_2 = max(allele_1, allele_2)
+    def __init__(self, ref_allele: Allele, query_allele: Allele):
+        # this ordering is done to facilitate the usage of this class, for the equal and hash functions
+        self._allele_1 = min(ref_allele, query_allele)
+        self._allele_2 = max(ref_allele, query_allele)
+
+        # keep the data given to this object anyway
+        self._original_ref_allele = ref_allele
+        self._original_query_allele = query_allele
+
     @property
     def allele_1(self) -> Allele:
         return self._allele_1
     @property
     def allele_2(self) -> Allele:
         return self._allele_2
+    @property
+    def original_ref_allele(self) -> Allele:
+        return self._original_ref_allele
+    @property
+    def original_query_allele(self) -> Allele:
+        return self._original_query_allele
 
     def __eq__(self, other: object) -> bool:
         if isinstance(other, PairwiseVariation):
@@ -118,22 +137,42 @@ class PairwiseVariation:
         for ref_allele, query_allele in Allele.get_alleles_from_ShowSNPsDataframe(ref, query, snps_df):
             yield PairwiseVariation(ref_allele, query_allele)
 
+    def __repr__(self):
+        return str(vars(self))
 
 class PangenomeVariation:
     # Note: trivial method, not tested
-    def __init__(self, alleles: Iterable[Allele]):
-        self._alleles = set(alleles)
+    def __init__(self, id: int, alleles: Iterable[Allele]):
+        self._id = id
+        self._alleles = sorted(list(set(alleles)))
+        self._unique_allele_sequences = self._get_unique_allele_sequences()
+
     @property
-    def alleles(self) -> Set[Allele]:
+    def id(self) -> int:
+        return self._id
+    @property
+    def alleles(self) -> List[Allele]:
         return self._alleles
+    @property
+    def unique_allele_sequences(self) -> List[str]:
+        return self._unique_allele_sequences
 
     # Note: trivial method, not tested
     def __eq__(self, other: object):
         if isinstance(other, PangenomeVariation):
-            return self.alleles==other.alleles
+            return self.id==other.id and self.alleles==other.alleles
         else:
             return False
 
+    def _get_unique_allele_sequences(self) -> List[str]:
+        """
+        Get the set of different allele sequences in this Pangenome Variation.
+        If this is a SNP A -> C, then we have 2 different allele sequences (A and C)
+        If this Pangenome Variations has all possible SNPs, then we would have 4 different allele sequences (ACGT)
+        """
+        set_of_unique_allele_sequences = {allele.sequence for allele in self.alleles}
+        unique_allele_sequences = sorted(list(set_of_unique_allele_sequences))
+        return unique_allele_sequences
 
     def is_consistent(self) -> bool:
         genomes_to_chrom_and_pos = defaultdict(set)
@@ -145,59 +184,152 @@ class PangenomeVariation:
         all_genomes_have_consistent_alleles = all(genomes_to_have_consistent_alleles.values())
         return all_genomes_have_consistent_alleles
 
+    # Note: trivial getters, not tested:
+    def get_number_of_alleles(self) -> int:
+        return len(self.alleles)
+    def get_allele_index(self, allele: Allele) -> int:
+        return self.alleles.index(allele)
+    def get_number_of_different_allele_sequences(self) -> int:
+        return len(self.unique_allele_sequences)
+    def get_allele_sequence_index(self, allele: Allele) -> int:
+        return self.unique_allele_sequences.index(allele.sequence)
+
+    def __repr__(self):
+        return str(vars(self))
 
 # Note: trivial class, not tested
 class PangenomeVariations:
+    """
+    Stores a list of PangenomeVariation
+    """
     def __init__(self):
         self._pangenome_variations = []
     @property
     def pangenome_variations(self) -> List[PangenomeVariation]:
         return self._pangenome_variations
-
     def append(self, pangenome_variation: PangenomeVariation):
         self.pangenome_variations.append(pangenome_variation)
-
     def __eq__(self, other: object):
         if isinstance(other, PangenomeVariations):
-            return self.pangenome_variations==other.pangenome_variations
+            return self.pangenome_variations == other.pangenome_variations
         else:
             return False
 
+    def __repr__(self):
+        return str(vars(self))
 
-class ConsistentPangenomeVariations(PangenomeVariations):
+class InconsistentPangenomeVariations(Exception):
+    pass
+
+class ConsistentPangenomeVariations:
     """
+    Represents a list of ConsistentPangenomeVariations (built from PangenomeVariations)
     For the definition of consistent Pangenome Variations, see https://github.com/iqbal-lab/pandora1_paper/issues/144#issue-603283664
     """
     def __init__(self, pangenome_variations: PangenomeVariations):
-        super().__init__()
-        for pangenome_variation in pangenome_variations.pangenome_variations:
-            if pangenome_variation.is_consistent():
-                self.append(pangenome_variation)
+        self._consistent_pangenome_variations = [
+            pangenome_variation \
+            for pangenome_variation in pangenome_variations.pangenome_variations \
+            if pangenome_variation.is_consistent()
+        ]
 
-        self._alleles_in_consistent_pangenome_variations = set()
-        for consistent_pangenome_variations in self.pangenome_variations:
-            self._alleles_in_consistent_pangenome_variations.update(consistent_pangenome_variations.alleles)
+        # this allele to consistent_pangenome_variations indexing is to speedup some methods
+        self._alleles_to_consistent_pangenome_variations = defaultdict(lambda: None)
+        for consistent_pangenome_variation in self.consistent_pangenome_variations:
+            for allele in consistent_pangenome_variation.alleles:
+                self._alleles_to_consistent_pangenome_variations[allele] = consistent_pangenome_variation
 
     @property
-    def alleles_in_consistent_pangenome_variations(self) -> Set[Allele]:
-        return self._alleles_in_consistent_pangenome_variations
+    def consistent_pangenome_variations(self) -> List[PangenomeVariation]:
+        return self._consistent_pangenome_variations
+    @property
+    def alleles_to_consistent_pangenome_variations(self) -> Dict[Allele, Optional[PangenomeVariation]]:
+        return self._alleles_to_consistent_pangenome_variations
 
 
-    def __contains__(self, item: object) -> bool:
-        if isinstance(item, PairwiseVariation):
-            return item.allele_1 in self.alleles_in_consistent_pangenome_variations and \
-                   item.allele_2 in self.alleles_in_consistent_pangenome_variations
-        else:
-            raise TypeError()
+    def get_consistent_pangenome_variation(self, pairwise_variation: PairwiseVariation) -> Optional[PangenomeVariation]:
+        # Note: pangenome_variation_of_allele_1/2 can be None
+        pangenome_variation_of_allele_1 = self.alleles_to_consistent_pangenome_variations[pairwise_variation.allele_1]
+        pangenome_variation_of_allele_2 = self.alleles_to_consistent_pangenome_variations[pairwise_variation.allele_2]
 
-    def get_boolean_presence_vector_given_ShowSNPsDataframe_core(self, ref: str, query: str, snps_df: ShowSNPsDataframe) -> List[bool]:
-        presence = [False]*len(snps_df)
-        for index, pairwise_variation in enumerate(PairwiseVariation.get_PairwiseVariation_from_ShowSNPsDataframe(ref, query, snps_df)):
-            presence[index] = pairwise_variation in self
-        return presence
+        both_alleles_have_the_same_pangenome_variation = pangenome_variation_of_allele_1 == pangenome_variation_of_allele_2
+        if not both_alleles_have_the_same_pangenome_variation:
+            raise InconsistentPangenomeVariations()
+
+        return pangenome_variation_of_allele_1
 
 
+    def _enrich_ShowSNPsDataframe(self, ref: str, query: str, snps_df: ShowSNPsDataframe) -> ShowSNPsDataframe:
+        """
+        Enriches a ShowSNPsDataframe with info computed from the given ConsistentPangenomeVariations.
+        ** WARNING: this also modifies snps_df parameter, we dont want to make a copy**
 
+        Adds the following columns to snps_df:
+        ref_genome: str
+        query_genome: str
+        present_in_a_consistent_pangenome_variation: bool
+        pangenome_variation_id: int
+        number_of_alleles: int
+        ref_allele_id: int
+        query_allele_id: int
+        number_of_different_allele_sequences: int
+        ref_allele_sequence_id: int
+        query_allele_sequence_id: int
+
+        :return the enriched snps_df
+        """
+        enriched_snps_df = snps_df
+        ref_genome = [ref]*len(enriched_snps_df)
+        query_genome = [query]*len(enriched_snps_df)
+        present_in_a_consistent_pangenome_variation = [False]*len(enriched_snps_df)
+        pangenome_variation_id = [-1]*len(enriched_snps_df)
+        number_of_alleles = [-1]*len(enriched_snps_df)
+        ref_allele_id = [-1]*len(enriched_snps_df)
+        query_allele_id = [-1] * len(enriched_snps_df)
+        number_of_different_allele_sequences = [-1]*len(enriched_snps_df)
+        ref_allele_sequence_id = [-1]*len(enriched_snps_df)
+        query_allele_sequence_id = [-1] * len(enriched_snps_df)
+
+        for index, pairwise_variation in enumerate(PairwiseVariation.get_PairwiseVariation_from_ShowSNPsDataframe(ref, query, enriched_snps_df)):
+            consistent_pangenome_variation = self.get_consistent_pangenome_variation(pairwise_variation)
+            is_present = consistent_pangenome_variation is not None
+            if is_present:
+                present_in_a_consistent_pangenome_variation[index] = True
+                pangenome_variation_id[index] = consistent_pangenome_variation.id
+                number_of_alleles[index] = consistent_pangenome_variation.get_number_of_alleles()
+                ref_allele_id[index] = consistent_pangenome_variation.get_allele_index(pairwise_variation.original_ref_allele)
+                query_allele_id[index] = consistent_pangenome_variation.get_allele_index(pairwise_variation.original_query_allele)
+                number_of_different_allele_sequences[index] = consistent_pangenome_variation.get_number_of_different_allele_sequences()
+                ref_allele_sequence_id[index] = consistent_pangenome_variation.get_allele_sequence_index(pairwise_variation.original_ref_allele)
+                query_allele_sequence_id[index] = consistent_pangenome_variation.get_allele_sequence_index(pairwise_variation.original_query_allele)
+
+        enriched_snps_df["ref_genome"] = ref_genome
+        enriched_snps_df["query_genome"] = query_genome
+        enriched_snps_df["present_in_a_consistent_pangenome_variation"] = present_in_a_consistent_pangenome_variation
+        enriched_snps_df["pangenome_variation_id"] = pangenome_variation_id
+        enriched_snps_df["number_of_alleles"] = number_of_alleles
+        enriched_snps_df["ref_allele_id"] = ref_allele_id
+        enriched_snps_df["query_allele_id"] = query_allele_id
+        enriched_snps_df["number_of_different_allele_sequences"] = number_of_different_allele_sequences
+        enriched_snps_df["ref_allele_sequence_id"] = ref_allele_sequence_id
+        enriched_snps_df["query_allele_sequence_id"] = query_allele_sequence_id
+        return enriched_snps_df
+
+
+    def load_and_process_ShowSNPsDataframe(self, ShowSNPsDataframe_filepath: str) -> ShowSNPsDataframe:
+        """
+        Loads a ShowSNPsDataframe, add all the relevant information about Consistent Pangenome Variations into it,
+        and filter out variations that are not in a Consistent Pangenome Variation
+        """
+        ref, query = DeduplicatePairwiseSNPsUtils._get_ref_and_query_from_ShowSNPsDataframe_filepath(ShowSNPsDataframe_filepath)
+        snps_df = DeduplicatePairwiseSNPsUtils._load_pickled_ShowSNPsDataframe(ShowSNPsDataframe_filepath)
+        enriched_snps_df = self._enrich_ShowSNPsDataframe(ref, query, snps_df)
+        filtered_snps_df = enriched_snps_df[enriched_snps_df.present_in_a_consistent_pangenome_variation == True]
+        filtered_snps_df.reset_index(drop=True, inplace=True)
+        return ShowSNPsDataframe(filtered_snps_df)
+
+    def __repr__(self):
+        return str(vars(self))
 
 class DeduplicationGraph:
     def __init__(self):
@@ -261,7 +393,31 @@ class DeduplicationGraph:
             for pairwise_variation in connected_component:
                 alleles_in_connected_component.append(pairwise_variation.allele_1)
                 alleles_in_connected_component.append(pairwise_variation.allele_2)
-            pangenome_variation = PangenomeVariation(alleles_in_connected_component)
+            pangenome_variation = PangenomeVariation(connected_component_index, alleles_in_connected_component)
             pangenome_variations.append(pangenome_variation)
 
         return pangenome_variations
+
+    def __repr__(self):
+        return str(vars(self))
+
+class Deduplicator:
+    # Note: not tested, this is API usage, to be invoked by the rule (TODO: maybe not add this to evaluate)?
+    @staticmethod
+    def deduplicate(ShowSNPsDataframe_filepaths: List[str]):
+        # create the deduplication graph
+        deduplication_graph = DeduplicationGraph()
+        for ShowSNPsDataframe_filepath in ShowSNPsDataframe_filepaths:
+            deduplication_graph.add_variants_from_ShowSNPsDataframe_filepath(ShowSNPsDataframe_filepath)
+        deduplication_graph.build_edges()
+
+        # create the consistent pangenome variations
+        pangenome_variations = deduplication_graph.get_pangenome_variations()
+        consistent_pangenome_variations = ConsistentPangenomeVariations(pangenome_variations)
+
+        # write the enriched and filtered variations
+        for ShowSNPsDataframe_filepath in ShowSNPsDataframe_filepaths:
+            filtered_snps_df = consistent_pangenome_variations.load_and_process_ShowSNPsDataframe(ShowSNPsDataframe_filepath)
+            with open(f"{ShowSNPsDataframe_filepath}.deduplicated.pickle", "wb") as filtered_snps_df_fh:
+                pickle.dump(filtered_snps_df, file=filtered_snps_df_fh)
+            filtered_snps_df.to_csv(f"{ShowSNPsDataframe_filepath}.deduplicated.csv", index=False)

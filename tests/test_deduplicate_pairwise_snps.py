@@ -1,10 +1,11 @@
 from evaluate.deduplicate_pairwise_snps import DeduplicatePairwiseSNPsUtils, NotASNP, Allele, PairwiseVariation, \
-    DeduplicationGraph, PangenomeVariation, PangenomeVariations, ConsistentPangenomeVariations
+    DeduplicationGraph, PangenomeVariation, PangenomeVariations, ConsistentPangenomeVariations, InconsistentPangenomeVariations
 import pandas as pd
 from io import StringIO
 from unittest.mock import patch, PropertyMock, Mock
 from unittest import TestCase
 from collections import defaultdict
+from evaluate.mummer import ShowSNPsDataframe
 
 
 class TestDeduplicatePairwiseSNPsUtils(TestCase):
@@ -60,7 +61,12 @@ class TestAllele(TestCase):
 
     def test_hash_differentPos_returnsDifferentHashValues(self):
         allele_1 = Allele("genome_1", "chrom_1", 10, "A")
-        allele_2 = Allele("genome_1", "chrom_2", 11, "A")
+        allele_2 = Allele("genome_1", "chrom_1", 11, "A")
+        assert hash(allele_1) != hash(allele_2)
+
+    def test_hash_differentSeqs_returnsDifferentHashValues(self):
+        allele_1 = Allele("genome_1", "chrom_1", 10, "A")
+        allele_2 = Allele("genome_1", "chrom_1", 10, "C")
         assert hash(allele_1) != hash(allele_2)
 
     def test___relational_operators___equalAlleles(self):
@@ -133,6 +139,26 @@ class TestAllele(TestCase):
         assert (allele_1 > allele_2) == True
         assert (allele_1 >= allele_2) == True
 
+    def test___relational_operators___differentSeqs___first_is_smaller(self):
+        allele_1 = Allele("genome_1", "chrom_1", 10, "A")
+        allele_2 = Allele("genome_1", "chrom_1", 10, "C")
+        assert (allele_1 == allele_2) == False
+        assert (allele_1 != allele_2) == True
+        assert (allele_1 < allele_2) == True
+        assert (allele_1 <= allele_2) == True
+        assert (allele_1 > allele_2) == False
+        assert (allele_1 >= allele_2) == False
+
+    def test___relational_operators___differentSeqs___first_is_larger(self):
+        allele_1 = Allele("genome_1", "chrom_1", 10, "C")
+        allele_2 = Allele("genome_1", "chrom_1", 10, "A")
+        assert (allele_1 == allele_2) == False
+        assert (allele_1 != allele_2) == True
+        assert (allele_1 < allele_2) == False
+        assert (allele_1 <= allele_2) == False
+        assert (allele_1 > allele_2) == True
+        assert (allele_1 >= allele_2) == True
+
 
 class TestPairwiseVariation(TestCase):
     def test___constructor___ordered_alleles(self):
@@ -141,6 +167,8 @@ class TestPairwiseVariation(TestCase):
         pairwise_variation = PairwiseVariation(allele_1, allele_2)
         assert pairwise_variation.allele_1 == allele_1
         assert pairwise_variation.allele_2 == allele_2
+        assert pairwise_variation.original_ref_allele == allele_1
+        assert pairwise_variation.original_query_allele == allele_2
 
     def test___constructor___unordered_alleles(self):
         allele_1 = Allele("genome_2", "chrom_2", 20, "A")
@@ -148,6 +176,8 @@ class TestPairwiseVariation(TestCase):
         pairwise_variation = PairwiseVariation(allele_1, allele_2)
         assert pairwise_variation.allele_1 == allele_2
         assert pairwise_variation.allele_2 == allele_1
+        assert pairwise_variation.original_ref_allele == allele_1
+        assert pairwise_variation.original_query_allele == allele_2
 
     def test___equality___equalPairwiseVariations(self):
         allele_1 = Allele("genome_2", "chrom_2", 20, "A")
@@ -205,31 +235,60 @@ class TestPairwiseVariation(TestCase):
 
 
 class TestPangenomeVariation(TestCase):
+    def test____get_unique_allele_sequences___one_allele(self, *mocks):
+        pangenome_variation = PangenomeVariation(0, [Allele("genome_1", "chrom_1", 1, "A")])
+        actual = pangenome_variation.unique_allele_sequences
+        expected=["A"]
+        self.assertListEqual(actual, expected)
+
+    def test____get_unique_allele_sequences___two_unique_alleles_with_several_alleles(self, *mocks):
+        pangenome_variation = PangenomeVariation(0, [Allele("genome_1", "chrom_1", 1, "G"),
+                                                     Allele("genome_1", "chrom_1", 1, "G"),
+                                                     Allele("genome_1", "chrom_1", 1, "G"),
+                                                     Allele("genome_1", "chrom_1", 1, "A"),
+                                                     Allele("genome_1", "chrom_1", 1, "G"),
+                                                     Allele("genome_1", "chrom_1", 1, "A"),])
+        actual = pangenome_variation.unique_allele_sequences
+        expected=["A", "G"]
+        self.assertListEqual(actual, expected)
+
+    def test____get_unique_allele_sequences___three_unique_alleles_with_several_alleles(self, *mocks):
+        pangenome_variation = PangenomeVariation(0, [Allele("genome_1", "chrom_1", 1, "G"),
+                                                     Allele("genome_1", "chrom_1", 1, "G"),
+                                                     Allele("genome_1", "chrom_1", 1, "G"),
+                                                     Allele("genome_1", "chrom_1", 1, "A"),
+                                                     Allele("genome_1", "chrom_1", 1, "G"),
+                                                     Allele("genome_1", "chrom_1", 1, "A"),
+                                                     Allele("genome_1", "chrom_1", 1, "C"),])
+        actual = pangenome_variation.unique_allele_sequences
+        expected=["A", "C", "G"]
+        self.assertListEqual(actual, expected)
+
     def test___is_consistent___two_genomes___single_chrom_and_pos_for_each_genome(self):
-        pangenome_variation = PangenomeVariation([Allele("genome_1", "chrom_1", 1, "A"), Allele("genome_2", "chrom_2", 2, "A"),
-                                                  Allele("genome_1", "chrom_1", 1, "A"), Allele("genome_2", "chrom_2", 2, "A"),
-                                                  Allele("genome_1", "chrom_1", 1, "A"), Allele("genome_2", "chrom_2", 2, "A")])
+        pangenome_variation = PangenomeVariation(0, [Allele("genome_1", "chrom_1", 1, "A"), Allele("genome_2", "chrom_2", 2, "A"),
+                                                     Allele("genome_1", "chrom_1", 1, "A"), Allele("genome_2", "chrom_2", 2, "A"),
+                                                     Allele("genome_1", "chrom_1", 1, "A"), Allele("genome_2", "chrom_2", 2, "A")])
         self.assertTrue(pangenome_variation.is_consistent())
 
     def test___is_consistent___two_genomes___different_chrom_for_genome_1(self):
-        pangenome_variation = PangenomeVariation([Allele("genome_1", "chrom_1", 1, "A"), Allele("genome_2", "chrom_2", 2, "A"),
-                                                  Allele("genome_1", "chrom_2", 1, "A"), Allele("genome_2", "chrom_2", 2, "A"),
-                                                  Allele("genome_1", "chrom_1", 1, "A"), Allele("genome_2", "chrom_2", 2, "A")])
+        pangenome_variation = PangenomeVariation(0, [Allele("genome_1", "chrom_1", 1, "A"), Allele("genome_2", "chrom_2", 2, "A"),
+                                                     Allele("genome_1", "chrom_2", 1, "A"), Allele("genome_2", "chrom_2", 2, "A"),
+                                                     Allele("genome_1", "chrom_1", 1, "A"), Allele("genome_2", "chrom_2", 2, "A")])
         self.assertFalse(pangenome_variation.is_consistent())
     def test___is_consistent___two_genomes___different_chrom_for_genome_2(self):
-        pangenome_variation = PangenomeVariation([Allele("genome_1", "chrom_1", 1, "A"), Allele("genome_2", "chrom_2", 2, "A"),
-                                                  Allele("genome_1", "chrom_1", 1, "A"), Allele("genome_2", "chrom_2", 2, "A"),
-                                                  Allele("genome_1", "chrom_1", 1, "A"), Allele("genome_2", "chrom_1", 2, "A")])
+        pangenome_variation = PangenomeVariation(0, [Allele("genome_1", "chrom_1", 1, "A"), Allele("genome_2", "chrom_2", 2, "A"),
+                                                     Allele("genome_1", "chrom_1", 1, "A"), Allele("genome_2", "chrom_2", 2, "A"),
+                                                     Allele("genome_1", "chrom_1", 1, "A"), Allele("genome_2", "chrom_1", 2, "A")])
         self.assertFalse(pangenome_variation.is_consistent())
     def test___is_consistent___two_genomes___different_pos_for_genome_1(self):
-        pangenome_variation = PangenomeVariation([Allele("genome_1", "chrom_1", 1, "A"), Allele("genome_2", "chrom_2", 2, "A"),
-                                                  Allele("genome_1", "chrom_1", 1, "A"), Allele("genome_2", "chrom_2", 2, "A"),
-                                                  Allele("genome_1", "chrom_1", 2, "A"), Allele("genome_2", "chrom_2", 2, "A")])
+        pangenome_variation = PangenomeVariation(0, [Allele("genome_1", "chrom_1", 1, "A"), Allele("genome_2", "chrom_2", 2, "A"),
+                                                     Allele("genome_1", "chrom_1", 1, "A"), Allele("genome_2", "chrom_2", 2, "A"),
+                                                     Allele("genome_1", "chrom_1", 2, "A"), Allele("genome_2", "chrom_2", 2, "A")])
         self.assertFalse(pangenome_variation.is_consistent())
     def test___is_consistent___two_genomes___different_pos_for_genome_2(self):
-        pangenome_variation = PangenomeVariation([Allele("genome_1", "chrom_1", 1, "A"), Allele("genome_2", "chrom_2", 1, "A"),
-                                                  Allele("genome_1", "chrom_1", 1, "A"), Allele("genome_2", "chrom_2", 2, "A"),
-                                                  Allele("genome_1", "chrom_1", 1, "A"), Allele("genome_2", "chrom_2", 2, "A")])
+        pangenome_variation = PangenomeVariation(0, [Allele("genome_1", "chrom_1", 1, "A"), Allele("genome_2", "chrom_2", 1, "A"),
+                                                     Allele("genome_1", "chrom_1", 1, "A"), Allele("genome_2", "chrom_2", 2, "A"),
+                                                     Allele("genome_1", "chrom_1", 1, "A"), Allele("genome_2", "chrom_2", 2, "A")])
         self.assertFalse(pangenome_variation.is_consistent())
 
 
@@ -240,12 +299,12 @@ class TestConsistentPangenomeVariations(TestCase):
     def test___constructor(self):
         # setup
         consistent_pangenome_variations = []
-        set_of_consistent_alleles = set()
+        alleles_to_consistent_pangenome_variations = {}
         for i in range(3):
             consistent_pangenome_variation = Mock()
             consistent_pangenome_variation.is_consistent.return_value = True
             consistent_pangenome_variation.alleles = [f"consistent_pangenome_variation_{i}.alleles"]
-            set_of_consistent_alleles.update(consistent_pangenome_variation.alleles)
+            alleles_to_consistent_pangenome_variations[f"consistent_pangenome_variation_{i}.alleles"] = consistent_pangenome_variation
             consistent_pangenome_variations.append(consistent_pangenome_variation)
 
         inconsistent_pangenome_variations = []
@@ -266,46 +325,103 @@ class TestConsistentPangenomeVariations(TestCase):
         pangenome_variations._pangenome_variations = list_of_pangenome_variations
         actual_consistent_pangenome_variations = ConsistentPangenomeVariations(pangenome_variations)
 
-        self.assertListEqual(actual_consistent_pangenome_variations.pangenome_variations, consistent_pangenome_variations)
-        self.assertSetEqual(actual_consistent_pangenome_variations.alleles_in_consistent_pangenome_variations,
-                            set_of_consistent_alleles)
+        self.assertListEqual(actual_consistent_pangenome_variations.consistent_pangenome_variations, consistent_pangenome_variations)
+        self.assertDictEqual(actual_consistent_pangenome_variations.alleles_to_consistent_pangenome_variations,
+                             alleles_to_consistent_pangenome_variations)
 
-    def test_____contains_____not_PairwiseVariation___raises_TypeError(self):
-        with self.assertRaises(TypeError):
-            "str" in self.dummy_consistent_pangenome_variations
+    @patch.object(ConsistentPangenomeVariations, "alleles_to_consistent_pangenome_variations", new_callable=PropertyMock,
+                  return_value=defaultdict(lambda: None, {"allele_1": "CPV1", "allele_2": "CPV1"}))
+    def test___get_consistent_pangenome_variation___both_alleles_present_and_in_same_CPV(self, *mocks):
+        pairwise_variation = Mock(allele_1="allele_1", allele_2="allele_2")
+        actual = self.dummy_consistent_pangenome_variations.get_consistent_pangenome_variation(pairwise_variation)
+        expected="CPV1"
+        self.assertEqual(actual, expected)
 
-    @patch.object(ConsistentPangenomeVariations, "alleles_in_consistent_pangenome_variations", new_callable=PropertyMock,
-                  return_value=range(10))
-    def test_____contains_____both_alleles_in_alleles_in_consistent_pangenome_variations(self, *mocks):
-        pairwise_variation = PairwiseVariation(1, 5)
-        self.assertTrue(pairwise_variation in self.dummy_consistent_pangenome_variations)
+    @patch.object(ConsistentPangenomeVariations, "alleles_to_consistent_pangenome_variations", new_callable=PropertyMock,
+                  return_value=defaultdict(lambda: None, {"allele_1": "CPV1", "allele_2": "CPV2"}))
+    def test___get_consistent_pangenome_variation___both_alleles_present_but_in_different_CPVs(self, *mocks):
+        pairwise_variation = Mock(allele_1="allele_1", allele_2="allele_2")
+        with self.assertRaises(InconsistentPangenomeVariations):
+            self.dummy_consistent_pangenome_variations.get_consistent_pangenome_variation(pairwise_variation)
 
-    @patch.object(ConsistentPangenomeVariations, "alleles_in_consistent_pangenome_variations", new_callable=PropertyMock,
-                  return_value=range(10))
-    def test_____contains_____first_allele_only_in_alleles_in_consistent_pangenome_variations(self, *mocks):
-        pairwise_variation = PairwiseVariation(1, 50)
-        self.assertFalse(pairwise_variation in self.dummy_consistent_pangenome_variations)
+    @patch.object(ConsistentPangenomeVariations, "alleles_to_consistent_pangenome_variations", new_callable=PropertyMock,
+                  return_value=defaultdict(lambda: None, {"allele_1": "CPV1"}))
+    def test___get_consistent_pangenome_variation___only_first_allele_present(self, *mocks):
+        pairwise_variation = Mock(allele_1="allele_1", allele_2="allele_2")
+        with self.assertRaises(InconsistentPangenomeVariations):
+            self.dummy_consistent_pangenome_variations.get_consistent_pangenome_variation(pairwise_variation)
 
-    @patch.object(ConsistentPangenomeVariations, "alleles_in_consistent_pangenome_variations",
-                  new_callable=PropertyMock,
-                  return_value=range(10))
-    def test_____contains_____second_allele_only_in_alleles_in_consistent_pangenome_variations(self, *mocks):
-        pairwise_variation = PairwiseVariation(100, 5)
-        self.assertFalse(pairwise_variation in self.dummy_consistent_pangenome_variations)
+    @patch.object(ConsistentPangenomeVariations, "alleles_to_consistent_pangenome_variations", new_callable=PropertyMock,
+                  return_value=defaultdict(lambda: None, {"allele_2": "CPV1"}))
+    def test___get_consistent_pangenome_variation___only_second_allele_present(self, *mocks):
+        pairwise_variation = Mock(allele_1="allele_1", allele_2="allele_2")
+        with self.assertRaises(InconsistentPangenomeVariations):
+            self.dummy_consistent_pangenome_variations.get_consistent_pangenome_variation(pairwise_variation)
 
-    @patch.object(ConsistentPangenomeVariations, "alleles_in_consistent_pangenome_variations",
-                  new_callable=PropertyMock,
-                  return_value=range(10))
-    def test_____contains_____no_alleles_in_alleles_in_consistent_pangenome_variations(self, *mocks):
-        pairwise_variation = PairwiseVariation(100, 500)
-        self.assertFalse(pairwise_variation in self.dummy_consistent_pangenome_variations)
+    @patch.object(ConsistentPangenomeVariations, "alleles_to_consistent_pangenome_variations", new_callable=PropertyMock,
+                  return_value=defaultdict(lambda: None))
+    def test___get_consistent_pangenome_variation___no_alleles_present(self, *mocks):
+        pairwise_variation = Mock(allele_1="allele_1", allele_2="allele_2")
+        actual = self.dummy_consistent_pangenome_variations.get_consistent_pangenome_variation(pairwise_variation)
+        expected = None
+        self.assertEqual(actual, expected)
 
-    @patch.object(PairwiseVariation, PairwiseVariation.get_PairwiseVariation_from_ShowSNPsDataframe.__name__, return_value=list(range(5)))
-    @patch.object(ConsistentPangenomeVariations, ConsistentPangenomeVariations.__contains__.__name__, side_effect=[True, False, False, True, False])
-    def test___get_boolean_presence_vector_given_ShowSNPsDataframe_core(self, *mocks):
-        actual = self.dummy_consistent_pangenome_variations.get_boolean_presence_vector_given_ShowSNPsDataframe_core(None, None, list(range(5)))
-        expected = [True, False, False, True, False]
-        self.assertListEqual(actual, expected)
+
+    @patch.object(PangenomeVariation, "get_number_of_alleles", side_effect=[2,4])
+    @patch.object(PangenomeVariation, "get_allele_index", side_effect=[1,0,2,3])
+    @patch.object(PangenomeVariation, "get_number_of_different_allele_sequences", side_effect=[2,3])
+    @patch.object(PangenomeVariation, "get_allele_sequence_index", side_effect=[0,0,2,1])
+    @patch.object(ConsistentPangenomeVariations, "get_consistent_pangenome_variation",
+                  side_effect=[None,PangenomeVariation(0, []), PangenomeVariation(1, []), None])
+    @patch.object(PairwiseVariation, PairwiseVariation.get_PairwiseVariation_from_ShowSNPsDataframe.__name__,
+                  return_value=[Mock(), Mock(), Mock(), Mock()])
+    def test____enrich_ShowSNPsDataframe(self, *mocks):
+        snps_df = pd.read_csv(StringIO(
+"""dummy
+0
+1
+2
+3
+"""
+        ))
+        actual = self.dummy_consistent_pangenome_variations._enrich_ShowSNPsDataframe("ref", "query", snps_df)
+
+        expected=pd.read_csv(StringIO(
+"""dummy,ref_genome,query_genome,present_in_a_consistent_pangenome_variation,pangenome_variation_id,number_of_alleles,ref_allele_id,query_allele_id,number_of_different_allele_sequences,ref_allele_sequence_id,query_allele_sequence_id
+0,ref,query,False,-1,-1,-1,-1,-1,-1,-1
+1,ref,query,True,0,2,1,0,2,0,0
+2,ref,query,True,1,4,2,3,3,2,1
+3,ref,query,False,-1,-1,-1,-1,-1,-1,-1
+"""
+        ))
+
+        self.assertTrue(actual.equals(expected))
+
+
+    @patch.object(DeduplicatePairwiseSNPsUtils, DeduplicatePairwiseSNPsUtils._get_ref_and_query_from_ShowSNPsDataframe_filepath.__name__,
+                  return_value=(None, None))
+    @patch.object(DeduplicatePairwiseSNPsUtils, DeduplicatePairwiseSNPsUtils._load_pickled_ShowSNPsDataframe.__name__)
+    @patch.object(ConsistentPangenomeVariations, ConsistentPangenomeVariations._enrich_ShowSNPsDataframe.__name__)
+    def test___load_and_process_ShowSNPsDataframe(self, _enrich_ShowSNPsDataframe_mock, *other_mocks):
+        _enrich_ShowSNPsDataframe_mock.return_value = pd.read_csv(StringIO(
+"""dummy,ref_genome,query_genome,present_in_a_consistent_pangenome_variation,pangenome_variation_id,number_of_alleles,ref_allele_id,query_allele_id,number_of_different_allele_sequences,ref_allele_sequence_id,query_allele_sequence_id
+0,ref,query,False,-1,-1,-1,-1,-1,-1,-1
+1,ref,query,True,0,2,1,0,2,0,0
+2,ref,query,True,1,4,2,3,3,2,1
+3,ref,query,False,-1,-1,-1,-1,-1,-1,-1
+"""
+        ))
+
+        actual = self.dummy_consistent_pangenome_variations.load_and_process_ShowSNPsDataframe("dummy")
+        expected=ShowSNPsDataframe(pd.read_csv(StringIO(
+"""dummy,ref_genome,query_genome,present_in_a_consistent_pangenome_variation,pangenome_variation_id,number_of_alleles,ref_allele_id,query_allele_id,number_of_different_allele_sequences,ref_allele_sequence_id,query_allele_sequence_id
+1,ref,query,True,0,2,1,0,2,0,0
+2,ref,query,True,1,4,2,3,3,2,1
+"""
+        )))
+
+        self.assertTrue(actual.equals(expected))
+
 
 
 class TestDeduplicationGraph(TestCase):
@@ -463,7 +579,7 @@ class TestDeduplicationGraph(TestCase):
 
         pangenome_variations_expected = PangenomeVariations()
         for i in range(5):
-            pangenome_variations_expected.append(PangenomeVariation([
+            pangenome_variations_expected.append(PangenomeVariation(i, [
                 self.pairwise_mutations[i].allele_1, self.pairwise_mutations[i].allele_2]))
 
         self.assertEqual(pangenome_variations_actual, pangenome_variations_expected)
@@ -478,7 +594,7 @@ class TestDeduplicationGraph(TestCase):
         pangenome_variations_actual = self.deduplication_graph.get_pangenome_variations()
 
         pangenome_variations_expected = PangenomeVariations()
-        pangenome_variations_expected.append(PangenomeVariation(self.alleles))
+        pangenome_variations_expected.append(PangenomeVariation(0, self.alleles))
 
         self.assertEqual(pangenome_variations_actual, pangenome_variations_expected)
 
@@ -491,13 +607,13 @@ class TestDeduplicationGraph(TestCase):
         pangenome_variations_actual = self.deduplication_graph.get_pangenome_variations()
 
         pangenome_variations_expected = PangenomeVariations()
-        pangenome_variations_expected.append(PangenomeVariation([
+        pangenome_variations_expected.append(PangenomeVariation(0, [
             self.pairwise_mutations[0].allele_1, self.pairwise_mutations[0].allele_2,
             self.pairwise_mutations[1].allele_1, self.pairwise_mutations[1].allele_2,
             self.pairwise_mutations[3].allele_1, self.pairwise_mutations[3].allele_2,
             self.pairwise_mutations[4].allele_1, self.pairwise_mutations[4].allele_2,
         ]))
-        pangenome_variations_expected.append(PangenomeVariation([
+        pangenome_variations_expected.append(PangenomeVariation(1, [
             self.pairwise_mutations[2].allele_1, self.pairwise_mutations[2].allele_2,
         ]))
 
@@ -512,12 +628,12 @@ class TestDeduplicationGraph(TestCase):
         pangenome_variations_actual = self.deduplication_graph.get_pangenome_variations()
 
         pangenome_variations_expected = PangenomeVariations()
-        pangenome_variations_expected.append(PangenomeVariation([
+        pangenome_variations_expected.append(PangenomeVariation(0, [
             self.pairwise_mutations[0].allele_1, self.pairwise_mutations[0].allele_2,
             self.pairwise_mutations[1].allele_1, self.pairwise_mutations[1].allele_2,
             self.pairwise_mutations[3].allele_1, self.pairwise_mutations[3].allele_2,
         ]))
-        pangenome_variations_expected.append(PangenomeVariation([
+        pangenome_variations_expected.append(PangenomeVariation(1, [
             self.pairwise_mutations[2].allele_1, self.pairwise_mutations[2].allele_2,
             self.pairwise_mutations[4].allele_1, self.pairwise_mutations[4].allele_2,
         ]))
