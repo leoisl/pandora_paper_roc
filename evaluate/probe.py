@@ -51,11 +51,9 @@ class ProbeHeader:
         coverage: float = None,
         pangenome_variation_id: int = None,
         number_of_alleles: int = None,
-        ref_allele_id: int = None,
-        query_allele_id: int = None,
+        allele_id: int = None,
         number_of_different_allele_sequences : int = None,
-        ref_allele_sequence_id : int = None,
-        query_allele_sequence_id : int = None,
+        allele_sequence_id : int = None,
     ):
         self.chrom = chrom
         self.sample = sample
@@ -67,11 +65,9 @@ class ProbeHeader:
         self.coverage = coverage
         self.pangenome_variation_id = pangenome_variation_id
         self.number_of_alleles = number_of_alleles
-        self.ref_allele_id = ref_allele_id
-        self.query_allele_id = query_allele_id
+        self.allele_id = allele_id
         self.number_of_different_allele_sequences = number_of_different_allele_sequences
-        self.ref_allele_sequence_id = ref_allele_sequence_id
-        self.query_allele_sequence_id = query_allele_sequence_id
+        self.allele_sequence_id = allele_sequence_id
 
     def __eq__(self, other: "ProbeHeader") -> bool:
         return (
@@ -84,10 +80,8 @@ class ProbeHeader:
                 and self.gt_conf == other.gt_conf
                 and self.coverage == other.coverage
                 and self.pangenome_variation_id == other.pangenome_variation_id
-                and self.ref_allele_id == other.ref_allele_id
-                and self.query_allele_id == other.query_allele_id
-                and self.ref_allele_sequence_id == other.ref_allele_sequence_id
-                and self.query_allele_sequence_id == other.query_allele_sequence_id
+                and self.allele_id == other.allele_id
+                and self.allele_sequence_id == other.allele_sequence_id
         )
 
     def __str__(self) -> str:
@@ -121,11 +115,9 @@ class ProbeHeader:
         coverage = parse_field_from_header("COVERAGE", string, float, None)
         pangenome_variation_id = parse_field_from_header("PANGENOME_VARIATION_ID", string, int, None)
         number_of_alleles = parse_field_from_header("NUMBER_OF_ALLELES", string, int, None)
-        ref_allele_id = parse_field_from_header("REF_ALLELE_ID", string, int, None)
-        query_allele_id = parse_field_from_header("QUERY_ALLELE_ID", string, int, None)
+        allele_id = parse_field_from_header("ALLELE_ID", string, int, None)
         number_of_different_allele_sequences = parse_field_from_header("NUMBER_OF_DIFFERENT_ALLELE_SEQUENCES", string, int, None)
-        ref_allele_sequence_id = parse_field_from_header("REF_ALLELE_SEQUENCE_ID", string, int, None)
-        query_allele_sequence_id = parse_field_from_header("QUERY_ALLELE_SEQUENCE_ID", string, int, None)
+        allele_sequence_id = parse_field_from_header("ALLELE_SEQUENCE_ID", string, int, None)
 
         return ProbeHeader(
             sample=sample,
@@ -138,11 +130,9 @@ class ProbeHeader:
             coverage=coverage,
             pangenome_variation_id=pangenome_variation_id,
             number_of_alleles=number_of_alleles,
-            ref_allele_id=ref_allele_id,
-            query_allele_id=query_allele_id,
+            allele_id=allele_id,
             number_of_different_allele_sequences=number_of_different_allele_sequences,
-            ref_allele_sequence_id=ref_allele_sequence_id,
-            query_allele_sequence_id=query_allele_sequence_id
+            allele_sequence_id=allele_sequence_id,
         )
 
 
