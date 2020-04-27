@@ -6,6 +6,62 @@ import pickle
 from typing import Tuple, Iterable, Set, List, Generator, Dict, Optional
 import functools
 from collections import defaultdict
+import pandas as pd
+from .probe import Probe, ProbeHeader, ProbeInterval
+
+
+class DeduplicatedVariationsDataframe(pd.DataFrame):
+    def get_probes(self) -> Tuple[str, str]:
+        ref_probes = []
+        query_probes = []
+
+        for index, row in self.iterrows():
+            ref_probe, query_probe = self._get_ref_and_query_probe(row)
+            ref_probes.append(str(ref_probe))
+            query_probes.append(str(query_probe))
+
+        return (
+            "\n".join(probe for probe in ref_probes if probe),
+            "\n".join(probe for probe in query_probes if probe),
+        )
+
+
+    @property
+    def _constructor(self):
+        return DeduplicatedVariationsDataframe
+
+
+    @staticmethod
+    def _get_ref_and_query_probe(row: pd.Series) -> Tuple[Probe, ...]:
+        probes = []
+        probe_prefixes = ["ref", "query"]
+
+        # TODO: is this really " - 1" or len(ref/query_sub)??
+        flank_width = int((len(row[f"{probe_prefixes[0]}_context"]) - 1) / 2)
+
+        for prefix in probe_prefixes:
+            core_sequence = row[f"{prefix}_sub"].replace(".", "")
+            left_flank = row[f"{prefix}_context"][:flank_width].replace("-", "")
+            right_flank = row[f"{prefix}_context"][flank_width + 1 :].replace("-", "")
+            call_start_idx = len(left_flank)
+            call_end_idx = call_start_idx + len(core_sequence)
+            header = ProbeHeader(
+                sample=row[f"{prefix}_genome"],
+                chrom=row[f"{prefix}_chrom"],
+                pos=row[f"{prefix}_pos"],
+                ref_length=len(core_sequence),
+                interval=ProbeInterval(call_start_idx, call_end_idx),
+                pangenome_variation_id=row["pangenome_variation_id"],
+                number_of_alleles=row["number_of_alleles"],
+                allele_id=row[f"{prefix}_allele_id"],
+                number_of_different_allele_sequences=row["number_of_different_allele_sequences"],
+                allele_sequence_id=row[f"{prefix}_allele_sequence_id"],
+            )
+            full_sequence = left_flank + core_sequence + right_flank
+            probes.append(Probe(header=header, full_sequence=full_sequence))
+
+        return tuple(probes)
+
 
 
 class DeduplicatePairwiseSNPsUtils:
@@ -258,9 +314,9 @@ class ConsistentPangenomeVariations:
         return pangenome_variation_of_allele_1
 
 
-    def _enrich_ShowSNPsDataframe(self, ref: str, query: str, snps_df: ShowSNPsDataframe) -> ShowSNPsDataframe:
+    def _get_DeduplicatedVariationsDataframe(self, ref: str, query: str, snps_df: ShowSNPsDataframe) -> DeduplicatedVariationsDataframe:
         """
-        Enriches a ShowSNPsDataframe with info computed from the given ConsistentPangenomeVariations.
+        Builds a DeduplicatedVariationsDataframe from a ShowSNPsDataframe with info computed from the ConsistentPangenomeVariations.
         ** WARNING: this also modifies snps_df parameter, we dont want to make a copy**
 
         Adds the following columns to snps_df:
@@ -275,21 +331,20 @@ class ConsistentPangenomeVariations:
         ref_allele_sequence_id: int
         query_allele_sequence_id: int
 
-        :return the enriched snps_df
+        :return the DeduplicatedVariationsDataframe
         """
-        enriched_snps_df = snps_df
-        ref_genome = [ref]*len(enriched_snps_df)
-        query_genome = [query]*len(enriched_snps_df)
-        present_in_a_consistent_pangenome_variation = [False]*len(enriched_snps_df)
-        pangenome_variation_id = [-1]*len(enriched_snps_df)
-        number_of_alleles = [-1]*len(enriched_snps_df)
-        ref_allele_id = [-1]*len(enriched_snps_df)
-        query_allele_id = [-1] * len(enriched_snps_df)
-        number_of_different_allele_sequences = [-1]*len(enriched_snps_df)
-        ref_allele_sequence_id = [-1]*len(enriched_snps_df)
-        query_allele_sequence_id = [-1] * len(enriched_snps_df)
+        ref_genome = [ref]*len(snps_df)
+        query_genome = [query]*len(snps_df)
+        present_in_a_consistent_pangenome_variation = [False]*len(snps_df)
+        pangenome_variation_id = [-1]*len(snps_df)
+        number_of_alleles = [-1]*len(snps_df)
+        ref_allele_id = [-1]*len(snps_df)
+        query_allele_id = [-1] * len(snps_df)
+        number_of_different_allele_sequences = [-1]*len(snps_df)
+        ref_allele_sequence_id = [-1]*len(snps_df)
+        query_allele_sequence_id = [-1] * len(snps_df)
 
-        for index, pairwise_variation in enumerate(PairwiseVariation.get_PairwiseVariation_from_ShowSNPsDataframe(ref, query, enriched_snps_df)):
+        for index, pairwise_variation in enumerate(PairwiseVariation.get_PairwiseVariation_from_ShowSNPsDataframe(ref, query, snps_df)):
             consistent_pangenome_variation = self.get_consistent_pangenome_variation(pairwise_variation)
             is_present = consistent_pangenome_variation is not None
             if is_present:
@@ -302,33 +357,35 @@ class ConsistentPangenomeVariations:
                 ref_allele_sequence_id[index] = consistent_pangenome_variation.get_allele_sequence_index(pairwise_variation.original_ref_allele)
                 query_allele_sequence_id[index] = consistent_pangenome_variation.get_allele_sequence_index(pairwise_variation.original_query_allele)
 
-        enriched_snps_df["ref_genome"] = ref_genome
-        enriched_snps_df["query_genome"] = query_genome
-        enriched_snps_df["present_in_a_consistent_pangenome_variation"] = present_in_a_consistent_pangenome_variation
-        enriched_snps_df["pangenome_variation_id"] = pangenome_variation_id
-        enriched_snps_df["number_of_alleles"] = number_of_alleles
-        enriched_snps_df["ref_allele_id"] = ref_allele_id
-        enriched_snps_df["query_allele_id"] = query_allele_id
-        enriched_snps_df["number_of_different_allele_sequences"] = number_of_different_allele_sequences
-        enriched_snps_df["ref_allele_sequence_id"] = ref_allele_sequence_id
-        enriched_snps_df["query_allele_sequence_id"] = query_allele_sequence_id
-        return enriched_snps_df
+        deduplicated_snps_df = DeduplicatedVariationsDataframe(snps_df)
+        deduplicated_snps_df["ref_genome"] = ref_genome
+        deduplicated_snps_df["query_genome"] = query_genome
+        deduplicated_snps_df["present_in_a_consistent_pangenome_variation"] = present_in_a_consistent_pangenome_variation
+        deduplicated_snps_df["pangenome_variation_id"] = pangenome_variation_id
+        deduplicated_snps_df["number_of_alleles"] = number_of_alleles
+        deduplicated_snps_df["ref_allele_id"] = ref_allele_id
+        deduplicated_snps_df["query_allele_id"] = query_allele_id
+        deduplicated_snps_df["number_of_different_allele_sequences"] = number_of_different_allele_sequences
+        deduplicated_snps_df["ref_allele_sequence_id"] = ref_allele_sequence_id
+        deduplicated_snps_df["query_allele_sequence_id"] = query_allele_sequence_id
+        return deduplicated_snps_df
 
 
-    def load_and_process_ShowSNPsDataframe(self, ShowSNPsDataframe_filepath: str) -> ShowSNPsDataframe:
+    def build_DeduplicatedVariationsDataframe_from_ShowSNPsDataframe(self, ShowSNPsDataframe_filepath: str) -> DeduplicatedVariationsDataframe:
         """
         Loads a ShowSNPsDataframe, add all the relevant information about Consistent Pangenome Variations into it,
-        and filter out variations that are not in a Consistent Pangenome Variation
+        builds the DeduplicatedVariationsDataframe, and filter out variations that are not in a Consistent Pangenome Variation
         """
         ref, query = DeduplicatePairwiseSNPsUtils._get_ref_and_query_from_ShowSNPsDataframe_filepath(ShowSNPsDataframe_filepath)
         snps_df = DeduplicatePairwiseSNPsUtils._load_pickled_ShowSNPsDataframe(ShowSNPsDataframe_filepath)
-        enriched_snps_df = self._enrich_ShowSNPsDataframe(ref, query, snps_df)
-        filtered_snps_df = enriched_snps_df[enriched_snps_df.present_in_a_consistent_pangenome_variation == True]
+        deduplicated_snps_df = self._get_DeduplicatedVariationsDataframe(ref, query, snps_df)
+        filtered_snps_df = deduplicated_snps_df[deduplicated_snps_df.present_in_a_consistent_pangenome_variation == True]
         filtered_snps_df.reset_index(drop=True, inplace=True)
-        return ShowSNPsDataframe(filtered_snps_df)
+        return DeduplicatedVariationsDataframe(filtered_snps_df)
 
     def __repr__(self):
         return str(vars(self))
+
 
 class DeduplicationGraph:
     # Note: trivial methods, not tested
