@@ -1,5 +1,5 @@
 import re
-from typing import NamedTuple, Type
+from typing import NamedTuple, Type, Optional
 
 DELIM = ";"
 
@@ -30,25 +30,32 @@ class ProbeInterval(NamedTuple):
     interval_regex = re.compile(r"\[(\d+),(\d+)\)")
 
     @staticmethod
-    def from_string(string: str) -> "ProbeInterval":
-        match = ProbeInterval.interval_regex.search(string)
-        if not match:
-            return ProbeInterval()
-
-        return ProbeInterval(int(match.group(1)), int(match.group(2)))
+    def from_string(string: str) -> Optional["ProbeInterval"]:
+        try:
+            match = ProbeInterval.interval_regex.search(string)
+            return ProbeInterval(int(match.group(1)), int(match.group(2)))
+        except (TypeError, AttributeError):
+            return None
 
 
 class ProbeHeader:
     def __init__(
         self,
-        sample: str = "",
-        chrom: str = "",
-        pos: int = 0,
-        ref_length: int = 0,
-        interval: ProbeInterval = ProbeInterval(),
-        svtype: str = "",
+        sample: str = None,
+        chrom: str = None,
+        pos: int = None,
+        ref_length: int = None,
+        interval: ProbeInterval = None,
+        svtype: str = None,
         gt_conf: float = None,
-        coverage: float = None
+        coverage: float = None,
+        pangenome_variation_id: int = None,
+        number_of_alleles: int = None,
+        ref_allele_id: int = None,
+        query_allele_id: int = None,
+        number_of_different_allele_sequences : int = None,
+        ref_allele_sequence_id : int = None,
+        query_allele_sequence_id : int = None,
     ):
         self.chrom = chrom
         self.sample = sample
@@ -58,6 +65,13 @@ class ProbeHeader:
         self.svtype = svtype
         self.gt_conf = gt_conf
         self.coverage = coverage
+        self.pangenome_variation_id = pangenome_variation_id
+        self.number_of_alleles = number_of_alleles
+        self.ref_allele_id = ref_allele_id
+        self.query_allele_id = query_allele_id
+        self.number_of_different_allele_sequences = number_of_different_allele_sequences
+        self.ref_allele_sequence_id = ref_allele_sequence_id
+        self.query_allele_sequence_id = query_allele_sequence_id
 
     def __eq__(self, other: "ProbeHeader") -> bool:
         return (
@@ -69,19 +83,18 @@ class ProbeHeader:
                 and self.svtype == other.svtype
                 and self.gt_conf == other.gt_conf
                 and self.coverage == other.coverage
+                and self.pangenome_variation_id == other.pangenome_variation_id
+                and self.ref_allele_id == other.ref_allele_id
+                and self.query_allele_id == other.query_allele_id
+                and self.ref_allele_sequence_id == other.ref_allele_sequence_id
+                and self.query_allele_sequence_id == other.query_allele_sequence_id
         )
 
     def __str__(self) -> str:
-        list_of_key_values_to_add = [f"{k.upper()}={str(v)}" for k, v in vars(self).items() if k != "gt_conf" and v]
-        # forcibly add gt conf
-        if self.gt_conf is not None:
-            list_of_key_values_to_add.append(f"GT_CONF={round(self.gt_conf, 1):.1f}")
-
+        list_of_key_values_to_add = [f"{k.upper()}={str(v)}" for k, v in vars(self).items() if v is not None]
         contents = DELIM.join(list_of_key_values_to_add)
-
         if not contents:
             return ""
-
         return f">{contents}{DELIM}"
 
     @staticmethod
@@ -96,19 +109,40 @@ class ProbeHeader:
             else:
                 return value_to_return_if_not_found
 
-        chrom = parse_field_from_header("CHROM", string, str, "")
-        sample = parse_field_from_header("SAMPLE", string, str, "")
-        pos = parse_field_from_header("POS", string, int, 0)
-        ref_length = parse_field_from_header("REF_LENGTH", string, int, 0)
-        svtype = parse_field_from_header("SVTYPE", string, str, "")
+        chrom = parse_field_from_header("CHROM", string, str, None)
+        sample = parse_field_from_header("SAMPLE", string, str, None)
+        pos = parse_field_from_header("POS", string, int, None)
+        ref_length = parse_field_from_header("REF_LENGTH", string, int, None)
+        svtype = parse_field_from_header("SVTYPE", string, str, None)
         gt_conf = parse_field_from_header("GT_CONF", string, float, None)
         interval = ProbeInterval.from_string(
-            parse_field_from_header("INTERVAL", string, str, "")
+            parse_field_from_header("INTERVAL", string, str, None)
         )
         coverage = parse_field_from_header("COVERAGE", string, float, None)
+        pangenome_variation_id = parse_field_from_header("PANGENOME_VARIATION_ID", string, int, None)
+        number_of_alleles = parse_field_from_header("NUMBER_OF_ALLELES", string, int, None)
+        ref_allele_id = parse_field_from_header("REF_ALLELE_ID", string, int, None)
+        query_allele_id = parse_field_from_header("QUERY_ALLELE_ID", string, int, None)
+        number_of_different_allele_sequences = parse_field_from_header("NUMBER_OF_DIFFERENT_ALLELE_SEQUENCES", string, int, None)
+        ref_allele_sequence_id = parse_field_from_header("REF_ALLELE_SEQUENCE_ID", string, int, None)
+        query_allele_sequence_id = parse_field_from_header("QUERY_ALLELE_SEQUENCE_ID", string, int, None)
 
         return ProbeHeader(
-            sample, chrom, pos, ref_length, interval, svtype, gt_conf, coverage
+            sample=sample,
+            chrom=chrom,
+            pos=pos,
+            ref_length=ref_length,
+            interval=interval,
+            svtype=svtype,
+            gt_conf=gt_conf,
+            coverage=coverage,
+            pangenome_variation_id=pangenome_variation_id,
+            number_of_alleles=number_of_alleles,
+            ref_allele_id=ref_allele_id,
+            query_allele_id=query_allele_id,
+            number_of_different_allele_sequences=number_of_different_allele_sequences,
+            ref_allele_sequence_id=ref_allele_sequence_id,
+            query_allele_sequence_id=query_allele_sequence_id
         )
 
 
@@ -147,6 +181,9 @@ class Probe:
     @property
     def interval(self) -> ProbeInterval:
         return self.header.interval
+
+    def get_interval_or_default_interval_if_none(self) -> ProbeInterval:
+        return self.interval if self.interval is not None else ProbeInterval()
 
     @property
     def gt_conf(self) -> float:
