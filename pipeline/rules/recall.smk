@@ -164,7 +164,7 @@ rule deduplicate_pairwise_snps:
 
 rule make_recall_truth_probeset:
     input:
-        deduplicated_snps_df = output_folder + "/recall/snps_dfs/{sample1}/{sample1}_and_{sample2}.snps_df.pickle",
+        deduplicated_snps_df = output_folder + "/recall/deduplicated_snps_dfs/{sample1}/{sample1}_and_{sample2}.snps_df.pickle",
     output:
         probeset1 = output_folder + "/recall/truth_probesets/{sample1}/{sample1}_and_{sample2}.truth_probeset.fa",
         probeset2 = output_folder + "/recall/truth_probesets/{sample2}/{sample1}_and_{sample2}.truth_probeset.fa",
