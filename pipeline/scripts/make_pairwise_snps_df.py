@@ -94,6 +94,7 @@ aligned_bases_percentage_sample_2.write_text(str(query_aligned_bases_percentage)
 
 logging.info("Converting show-snps output to dataframe")
 snps_df = ShowSnps.to_dataframe(mummer_snps)
+snps_df = snps_df.translate_to_FWD_strand()
 with open(snakemake.output.snps_df, "wb") as snps_df_fh:
     pickle.dump(snps_df, file=snps_df_fh)
 snps_df.to_csv(snakemake.output.snps_df_text, index=False)
