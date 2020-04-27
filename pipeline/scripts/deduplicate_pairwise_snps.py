@@ -41,7 +41,7 @@ consistent_pangenome_variations = ConsistentPangenomeVariations(pangenome_variat
 logging.info("Outputting...")
 for snps_df_filepath, deduplicated_snps_df_filepath, deduplicated_snps_df_text_filepath \
         in zip(snps_dfs_filepaths, deduplicated_snps_dfs_filepaths, deduplicated_snps_dfs_text_filepaths):
-    deduplicated_snps_df = consistent_pangenome_variations.load_and_process_ShowSNPsDataframe(snps_df_filepath)
+    deduplicated_snps_df = consistent_pangenome_variations.build_DeduplicatedVariationsDataframe_from_ShowSNPsDataframe(snps_df_filepath)
     with open(deduplicated_snps_df_filepath, "wb") as deduplicated_snps_df_fh:
         pickle.dump(deduplicated_snps_df, file=deduplicated_snps_df_fh)
     deduplicated_snps_df.to_csv(deduplicated_snps_df_text_filepath, index=False)

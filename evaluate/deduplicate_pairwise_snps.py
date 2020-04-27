@@ -78,7 +78,9 @@ class DeduplicatePairwiseSNPsUtils:
     @staticmethod
     def _load_pickled_ShowSNPsDataframe(df_filepath: str) -> ShowSNPsDataframe:
         with open(df_filepath, "rb") as df_fh:
-            return pickle.load(df_fh)
+            snps_df = pickle.load(df_fh)
+        snps_df = snps_df.translate_to_FWD_strand()
+        return snps_df
 
 
 class NotASNP(Exception):
