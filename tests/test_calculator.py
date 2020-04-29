@@ -1,20 +1,17 @@
 import pandas as pd
 from evaluate.calculator import (
-    Calculator,
     RecallCalculator,
     PrecisionCalculator,
     EmptyReportError,
 )
-from evaluate.classification import AlignmentAssessment
 import pytest
-from unittest.mock import patch
+from unittest.mock import patch, Mock
 from evaluate.report import (
     Report,
     PrecisionReport,
     RecallReport
 )
-from numpy.testing import assert_allclose
-from tests.common import create_recall_report_row, create_precision_report_row
+from tests.common import create_precision_report_row
 
 class TestPrecisionCalculator:
     def test_calculatePrecision_NoReportsRaisesEmptyReportError(self):
@@ -134,365 +131,77 @@ class TestPrecisionCalculator:
 
 
 class TestRecallCalculator:
-    def test_calculateRecall_noReportsRaisesEmptyReportError(self):
-        columns = ["sample", "query_probe_header", "ref_probe_header", "classification"]
-        df = pd.DataFrame(columns=columns)
-        report = RecallReport([df])
-        calculator = RecallCalculator(report)
-        threshold = 0
+    @patch.object(Report, Report.get_classifications_as_list.__name__, return_value=[
+        "unmapped", "partially_mapped", "primary_correct", "primary_incorrect",
+        "secondary_correct", "secondary_incorrect", "supplementary_correct",
+        "supplementary_incorrect"
+    ])
+    @patch.object(RecallReport, RecallReport._create_helper_columns.__name__)
+    @patch.object(RecallReport, RecallReport.assure_there_are_no_duplicated_evaluation.__name__)
+    @patch.object(RecallReport, RecallReport.get_number_of_truth_probes.__name__, return_value=8)
+    def test____calculate_info_wrt_truth_probes___one_classification_of_each(self, *mocks):
+        report = RecallReport([pd.DataFrame()], False)
+        true_positives, number_of_truth_probes = RecallCalculator._calculate_info_wrt_truth_probes(report)
+        assert true_positives==3 and number_of_truth_probes==8
 
-        with pytest.raises(EmptyReportError):
-            calculator._calculate_recall_for_a_given_confidence(conf_threshold=threshold)
+    @patch.object(Report, Report.get_classifications_as_list.__name__, return_value=[
+        "unmapped", "partially_mapped", "primary_correct", "primary_incorrect",
+        "secondary_correct", "secondary_incorrect", "supplementary_correct",
+        "supplementary_incorrect", "partially_mapped", "partially_mapped",
+        "primary_correct", "primary_correct", "primary_correct",
+        "supplementary_incorrect", "supplementary_incorrect", "supplementary_incorrect",
+        "unmapped", "unmapped", "unmapped",
+    ])
+    @patch.object(RecallReport, RecallReport._create_helper_columns.__name__)
+    @patch.object(RecallReport, RecallReport.assure_there_are_no_duplicated_evaluation.__name__)
+    @patch.object(RecallReport, RecallReport.get_number_of_truth_probes.__name__, return_value=19)
+    def test____calculate_info_wrt_truth_probes___some_duplicated_classifications(self, *mocks):
+        report = RecallReport([pd.DataFrame()], False)
+        true_positives, number_of_truth_probes = RecallCalculator._calculate_info_wrt_truth_probes(report)
+        assert true_positives == 6 and number_of_truth_probes == 19
 
-    def test_calculateRecall_oneReportNoTruePositivesReturnsZero(self):
-        columns = ["sample", "query_probe_header", "ref_probe_header", "classification"]
-        df = pd.DataFrame(
-            data=[
-                create_recall_report_row("truth_probe_1", AlignmentAssessment.UNMAPPED, gt_conf=100),
-                create_recall_report_row("truth_probe_2", AlignmentAssessment.UNMAPPED, gt_conf=100),
-                create_recall_report_row(
-                    "truth_probe_3", AlignmentAssessment.PRIMARY_CORRECT, gt_conf=10
-                ),
-                create_recall_report_row(
-                    "truth_probe_4", AlignmentAssessment.PRIMARY_INCORRECT, gt_conf=100
-                ),
-            ],
-            columns=columns,
-        )
-        report = RecallReport([df])
-        calculator = RecallCalculator(report)
 
-        threshold = 60
+    @patch.object(RecallReport, RecallReport.get_proportion_of_allele_seqs_found_for_each_variant.__name__,
+                  return_value=[1.0, 0.5, 0.8, 1.0, 0.9, 1.0, 0.0, 0.1, 1.0])
+    @patch.object(RecallReport, RecallReport.get_proportion_of_alleles_found_for_each_variant.__name__,
+                  return_value=[0.0, 0.1, 0.2, 0.3, 1.0, 0.9, 0.8, 0.7, 0.6])
+    @patch.object(RecallReport, RecallReport.get_number_of_variants.__name__, return_value=20)
+    @patch.object(RecallReport, RecallReport._create_helper_columns.__name__)
+    @patch.object(RecallReport, RecallReport.assure_there_are_no_duplicated_evaluation.__name__)
+    def test____calculate_info_wrt_variants(self, *mocks):
+        report = RecallReport([pd.DataFrame()], False)
+        nb_variants_where_all_allele_seqs_were_found, nb_variants_found_wrt_alleles, variants_total = \
+            RecallCalculator._calculate_info_wrt_variants(report)
+        assert nb_variants_where_all_allele_seqs_were_found == 4 and \
+               nb_variants_found_wrt_alleles == 4.6 and \
+               variants_total == 20
 
-        actual = calculator._calculate_recall_for_a_given_confidence(conf_threshold=threshold)
-
-        assert actual.recall == 0.0
-        assert actual.true_positives == 0.0
-        assert actual.total == 4.0
-
-    def test_calculateRecall_oneReportNoTruePositivesTwoTruthProbesReturnsZero(self):
-        columns = ["sample", "query_probe_header", "ref_probe_header", "classification"]
-        df = pd.DataFrame(
-            data=[
-                create_recall_report_row("truth_probe_1", AlignmentAssessment.UNMAPPED, gt_conf=100),
-                create_recall_report_row("truth_probe_2", AlignmentAssessment.UNMAPPED, gt_conf=100),
-                create_recall_report_row(
-                    "truth_probe_1", AlignmentAssessment.PRIMARY_CORRECT, gt_conf=10
-                ),
-                create_recall_report_row(
-                    "truth_probe_2", AlignmentAssessment.PRIMARY_INCORRECT, gt_conf=100
-                ),
-                create_recall_report_row(
-                    "truth_probe_1", AlignmentAssessment.PARTIALLY_MAPPED, gt_conf=10
-                ),
-                create_recall_report_row(
-                    "truth_probe_2", AlignmentAssessment.SECONDARY_INCORRECT, gt_conf=100
-                ),
-            ],
-            columns=columns,
-        )
-        report = RecallReport([df])
-        calculator = RecallCalculator(report)
-
-        threshold = 60
-
-        actual = calculator._calculate_recall_for_a_given_confidence(conf_threshold=threshold)
-
-        assert actual.recall == 0.0
-        assert actual.true_positives == 0.0
-        assert actual.total == 2.0
-
-    def test_calculateRecall_oneReportNoFalseNegativesReturnsOne(self):
-        columns = ["sample", "query_probe_header", "ref_probe_header", "classification"]
-        df = pd.DataFrame(
-            data=[
-                create_recall_report_row(
-                    "truth_probe_1", AlignmentAssessment.PRIMARY_CORRECT, gt_conf=100
-                ),
-                create_recall_report_row(
-                    "truth_probe_2", AlignmentAssessment.SECONDARY_CORRECT, gt_conf=100
-                ),
-                create_recall_report_row(
-                    "truth_probe_3", AlignmentAssessment.SUPPLEMENTARY_CORRECT, gt_conf=100
-                ),
-                create_recall_report_row(
-                    "truth_probe_4", AlignmentAssessment.SUPPLEMENTARY_CORRECT, gt_conf=100
-                ),
-            ],
-            columns=columns,
-        )
-        report = RecallReport([df])
+    @patch.object(RecallReport, RecallReport._create_helper_columns.__name__)
+    @patch.object(RecallReport, RecallReport.assure_there_are_no_duplicated_evaluation.__name__)
+    @patch.object(Report, Report.get_report_satisfying_confidence_threshold.__name__)
+    @patch.object(RecallCalculator, RecallCalculator._calculate_info_wrt_truth_probes.__name__, return_value=(5, 10))
+    @patch.object(RecallCalculator, RecallCalculator._calculate_info_wrt_variants.__name__, return_value=(4, 8, 10))
+    def test____calculate_recall_for_a_given_confidence(self, calculate_info_wrt_variants_mock,
+                                                        calculate_info_wrt_truth_probes_mock,
+                                                        get_report_satisfying_confidence_threshold_mock,
+                                                        *other_mocks):
+        # setup
+        report_satisfying_confidence_threshold_mock = Mock()
+        get_report_satisfying_confidence_threshold_mock.return_value = report_satisfying_confidence_threshold_mock
+        report = RecallReport([pd.DataFrame()], False)
         calculator = RecallCalculator(report)
 
-        threshold = 60
+        recall_info_actual = calculator._calculate_recall_for_a_given_confidence(100)
 
-        actual = calculator._calculate_recall_for_a_given_confidence(conf_threshold=threshold)
+        get_report_satisfying_confidence_threshold_mock.assert_called_once_with(100)
+        calculate_info_wrt_truth_probes_mock.assert_called_once_with(report_satisfying_confidence_threshold_mock)
+        calculate_info_wrt_variants_mock.assert_called_once_with(report_satisfying_confidence_threshold_mock)
 
-        assert actual.recall == 1.0
-        assert actual.true_positives == 4.0
-        assert actual.total == 4.0
-
-
-    def test_calculateRecall_oneReportNoFalseNegativesTwoProbesReturnsOne(self):
-        columns = ["sample", "query_probe_header", "ref_probe_header", "classification"]
-        df = pd.DataFrame(
-            data=[
-                create_recall_report_row(
-                    "truth_probe_1", AlignmentAssessment.PRIMARY_CORRECT, gt_conf=100
-                ),
-                create_recall_report_row(
-                    "truth_probe_2", AlignmentAssessment.SECONDARY_CORRECT, gt_conf=100
-                ),
-                create_recall_report_row(
-                    "truth_probe_1", AlignmentAssessment.SUPPLEMENTARY_CORRECT, gt_conf=100
-                ),
-                create_recall_report_row(
-                    "truth_probe_2", AlignmentAssessment.PRIMARY_CORRECT, gt_conf=100
-                ),
-                create_recall_report_row(
-                    "truth_probe_1", AlignmentAssessment.SUPPLEMENTARY_INCORRECT, gt_conf=100
-                ),
-                create_recall_report_row(
-                    "truth_probe_2", AlignmentAssessment.PRIMARY_INCORRECT, gt_conf=100
-                ),
-                create_recall_report_row(
-                    "truth_probe_1", AlignmentAssessment.UNMAPPED, gt_conf=100
-                ),
-                create_recall_report_row(
-                    "truth_probe_2", AlignmentAssessment.PARTIALLY_MAPPED, gt_conf=100
-                ),
-            ],
-            columns=columns,
-        )
-        report = RecallReport([df])
-        calculator = RecallCalculator(report)
-
-        threshold = 60
-
-        actual = calculator._calculate_recall_for_a_given_confidence(conf_threshold=threshold)
-
-        assert actual.recall == 1.0
-        assert actual.true_positives == 2.0
-        assert actual.total == 2.0
-
-
-    def test_calculateRecall_oneReportHalfTruePositiveHalfFalseNegativeReturnsFifty(
-        self
-    ):
-        columns = ["sample", "query_probe_header", "ref_probe_header", "classification"]
-        df = pd.DataFrame(
-            data=[
-                create_recall_report_row(
-                    "truth_probe_1", AlignmentAssessment.PRIMARY_CORRECT, gt_conf=10
-                ),
-                create_recall_report_row(
-                    "truth_probe_1", AlignmentAssessment.SUPPLEMENTARY_CORRECT, gt_conf=100
-                ),
-                create_recall_report_row(
-                    "truth_probe_2", AlignmentAssessment.PRIMARY_CORRECT, gt_conf=20
-                ),
-                create_recall_report_row(
-                    "truth_probe_2", AlignmentAssessment.SECONDARY_CORRECT, gt_conf=100
-                ),
-                create_recall_report_row(
-                    "truth_probe_3", AlignmentAssessment.PRIMARY_CORRECT, gt_conf=100
-                ),
-                create_recall_report_row(
-                    "truth_probe_4", AlignmentAssessment.UNMAPPED, gt_conf=100
-                ),
-                create_recall_report_row(
-                    "truth_probe_5", AlignmentAssessment.SUPPLEMENTARY_INCORRECT, gt_conf=10
-                ),
-                create_recall_report_row(
-                    "truth_probe_6", AlignmentAssessment.PRIMARY_INCORRECT, gt_conf=100
-                ),
-            ],
-            columns=columns,
-        )
-        report = RecallReport([df])
-        calculator = RecallCalculator(report)
-
-        threshold = 60
-
-        actual = calculator._calculate_recall_for_a_given_confidence(conf_threshold=threshold)
-
-        assert actual.recall == 0.5
-        assert actual.true_positives == 3.0
-        assert actual.total == 6.0
-
-
-    def test_calculateRecall_oneReportAllTruePositivesAllBelowThresholdReturnsZero(
-        self
-    ):
-        columns = ["sample", "query_probe_header", "ref_probe_header", "classification"]
-        df = pd.DataFrame(
-            data=[
-                create_recall_report_row(
-                    "truth_probe_1", AlignmentAssessment.PRIMARY_CORRECT, gt_conf=50
-                ),
-                create_recall_report_row(
-                    "truth_probe_2", AlignmentAssessment.PRIMARY_CORRECT, gt_conf=80
-                ),
-            ],
-            columns=columns,
-        )
-        report = RecallReport([df])
-        calculator = RecallCalculator(report)
-
-        threshold = 100
-
-        actual = calculator._calculate_recall_for_a_given_confidence(conf_threshold=threshold)
-
-        assert actual.recall == 0.0
-        assert actual.true_positives == 0.0
-        assert actual.total == 2.0
-
-    def test_calculateRecall_oneReportAllTruePositivesAllBelowThresholdOneTruthProbeReturnsZero(
-        self
-    ):
-        columns = ["sample", "query_probe_header", "ref_probe_header", "classification"]
-        df = pd.DataFrame(
-            data=[
-                create_recall_report_row(
-                    "truth_probe_1", AlignmentAssessment.PRIMARY_CORRECT, gt_conf=50
-                ),
-                create_recall_report_row(
-                    "truth_probe_1", AlignmentAssessment.PRIMARY_CORRECT, gt_conf=80
-                ),
-            ],
-            columns=columns,
-        )
-        report = RecallReport([df])
-        calculator = RecallCalculator(report)
-
-        threshold = 100
-
-        actual = calculator._calculate_recall_for_a_given_confidence(conf_threshold=threshold)
-
-        assert actual.recall == 0.0
-        assert actual.true_positives == 0.0
-        assert actual.total == 1.0
-
-
-    def test_calculateRecall_AllAlignmentsAreIncorrectAndOneIsCorrect(
-        self
-    ):
-        columns = ["sample", "query_probe_header", "ref_probe_header", "classification"]
-        df = pd.DataFrame(
-            data=[
-                create_recall_report_row(
-                    "truth_probe_1", AlignmentAssessment.PRIMARY_INCORRECT, gt_conf=100
-                ),
-                create_recall_report_row(
-                    "truth_probe_2", AlignmentAssessment.PRIMARY_INCORRECT, gt_conf=100
-                ),
-                create_recall_report_row(
-                    "truth_probe_3", AlignmentAssessment.PRIMARY_INCORRECT, gt_conf=100
-                ),
-                create_recall_report_row(
-                    "truth_probe_4", AlignmentAssessment.PRIMARY_CORRECT, gt_conf=100
-                ),
-            ],
-            columns=columns,
-        )
-        report = RecallReport([df])
-        calculator = RecallCalculator(report)
-
-        threshold = 60
-
-        actual = calculator._calculate_recall_for_a_given_confidence(conf_threshold=threshold)
-
-        assert actual.recall == 0.25
-        assert actual.true_positives == 1.0
-        assert actual.total == 4.0
-
-
-    def test_calculateRecall_AllAlignmentsAreIncorrectAndOneIsCorrectTwoTruthProbes(
-        self
-    ):
-        columns = ["sample", "query_probe_header", "ref_probe_header", "classification"]
-        df = pd.DataFrame(
-            data=[
-                create_recall_report_row(
-                    "truth_probe_1", AlignmentAssessment.PRIMARY_INCORRECT, gt_conf=100
-                ),
-                create_recall_report_row(
-                    "truth_probe_2", AlignmentAssessment.PRIMARY_INCORRECT, gt_conf=100
-                ),
-                create_recall_report_row(
-                    "truth_probe_1", AlignmentAssessment.PRIMARY_INCORRECT, gt_conf=100
-                ),
-                create_recall_report_row(
-                    "truth_probe_2", AlignmentAssessment.PRIMARY_CORRECT, gt_conf=100
-                ),
-            ],
-            columns=columns,
-        )
-        report = RecallReport([df])
-        calculator = RecallCalculator(report)
-
-        threshold = 60
-
-        actual = calculator._calculate_recall_for_a_given_confidence(conf_threshold=threshold)
-
-        assert actual.recall == 0.5
-        assert actual.true_positives == 1.0
-        assert actual.total == 2.0
-
-
-    def test_calculateRecall_twoReportsHalfTruePositiveHalfFalseNegativeReturnsFifty(
-        self
-    ):
-        columns = ["sample", "query_probe_header", "ref_probe_header", "classification"]
-        report1 = pd.DataFrame(
-            data=[
-                create_recall_report_row(
-                    "truth_probe_1", AlignmentAssessment.PRIMARY_CORRECT, gt_conf=10
-                ),
-                create_recall_report_row(
-                    "truth_probe_2", AlignmentAssessment.PRIMARY_CORRECT, gt_conf=100
-                ),
-                create_recall_report_row(
-                    "truth_probe_3", AlignmentAssessment.PRIMARY_CORRECT, gt_conf=100
-                ),
-                create_recall_report_row(
-                    "truth_probe_4", AlignmentAssessment.UNMAPPED, gt_conf=100
-                ),
-                create_recall_report_row(
-                    "truth_probe_5", AlignmentAssessment.SUPPLEMENTARY_INCORRECT, gt_conf=10
-                ),
-                create_recall_report_row(
-                    "truth_probe_6", AlignmentAssessment.SECONDARY_CORRECT, gt_conf=100
-                ),
-                create_recall_report_row(
-                    "truth_probe_7", AlignmentAssessment.PRIMARY_INCORRECT, gt_conf=100
-                ),
-            ],
-            columns=columns,
-        )
-        report2 = pd.DataFrame(
-            data=[
-                create_recall_report_row(
-                    "truth_probe_8", AlignmentAssessment.PRIMARY_CORRECT, gt_conf=100
-                ),
-                create_recall_report_row(
-                    "truth_probe_9", AlignmentAssessment.PRIMARY_CORRECT, gt_conf=100
-                ),
-                create_recall_report_row(
-                    "truth_probe_10", AlignmentAssessment.PRIMARY_INCORRECT, gt_conf=100
-                ),
-            ],
-            columns=columns,
-        )
-        report = RecallReport([report1, report2])
-        calculator = RecallCalculator(report)
-
-        threshold = 60
-
-        actual = calculator._calculate_recall_for_a_given_confidence(conf_threshold=threshold)
-
-        assert actual.recall == 0.5
-        assert actual.true_positives == 5.0
-        assert actual.total == 10.0
-
-
+        assert recall_info_actual.truth_probes_true_positives == 5
+        assert recall_info_actual.truth_probes_total == 10
+        assert recall_info_actual.nb_variants_where_all_allele_seqs_were_found == 4
+        assert recall_info_actual.nb_variants_found_wrt_alleles == 8
+        assert recall_info_actual.variants_total == 10
+        assert recall_info_actual.recall_wrt_truth_probes == 0.5
+        assert recall_info_actual.recall_wrt_variants_where_all_allele_seqs_were_found == 0.4
+        assert recall_info_actual.recall_wrt_variants_found_wrt_alleles == 0.8
