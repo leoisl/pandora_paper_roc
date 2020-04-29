@@ -194,6 +194,34 @@ class TestPrecisionReporter:
 
         assert actual.equals(expected)
 
+    def test_fromFiles_TwoFilesReturnsValidRecallReport(self):
+        contents_1 = """sample	query_probe_header	ref_probe_header	classification
+CFT073	>CHROM=1;POS=1246;INTERVAL=[20,30);PANGENOME_VARIATION_ID=1;NUMBER_OF_ALLELES=1;ALLELE_ID=1;NUMBER_OF_DIFFERENT_ALLELE_SEQUENCES=1;ALLELE_SEQUENCE_ID=1;	>GT_CONF=1;	unmapped
+CFT073	>CHROM=1;POS=1248;INTERVAL=[30,40);PANGENOME_VARIATION_ID=2;NUMBER_OF_ALLELES=2;ALLELE_ID=2;NUMBER_OF_DIFFERENT_ALLELE_SEQUENCES=2;ALLELE_SEQUENCE_ID=2;	>CHROM=GC00005358_3;SAMPLE=CFT073;POS=1;INTERVAL=[0,17);SVTYPE=PH_SNPs;MEAN_FWD_COVG=3;MEAN_REV_COVG=6;GT_CONF=60.1133;	primary_correct
+CFT073	>CHROM=1;POS=1252;INTERVAL=[40,50);PANGENOME_VARIATION_ID=3;NUMBER_OF_ALLELES=3;ALLELE_ID=3;NUMBER_OF_DIFFERENT_ALLELE_SEQUENCES=3;ALLELE_SEQUENCE_ID=3;	>GT_CONF=3;	unmapped
+"""
+        contents_2 = """sample	query_probe_header	ref_probe_header	classification
+CFT073	>CHROM=1;POS=1260;INTERVAL=[50,60);PANGENOME_VARIATION_ID=4;NUMBER_OF_ALLELES=4;ALLELE_ID=4;NUMBER_OF_DIFFERENT_ALLELE_SEQUENCES=4;ALLELE_SEQUENCE_ID=4;	>CHROM=GC00000578_3;SAMPLE=CFT073;POS=165;INTERVAL=[25,29);SVTYPE=PH_SNPs;MEAN_FWD_COVG=3;MEAN_REV_COVG=3;GT_CONF=3.22199;	primary_incorrect
+CFT073	>CHROM=1;POS=1262;INTERVAL=[60,70);PANGENOME_VARIATION_ID=5;NUMBER_OF_ALLELES=5;ALLELE_ID=5;NUMBER_OF_DIFFERENT_ALLELE_SEQUENCES=5;ALLELE_SEQUENCE_ID=5;	>GT_CONF=5;	unmapped
+CFT073	>CHROM=1;POS=1281;INTERVAL=[70,80);PANGENOME_VARIATION_ID=6;NUMBER_OF_ALLELES=6;ALLELE_ID=6;NUMBER_OF_DIFFERENT_ALLELE_SEQUENCES=6;ALLELE_SEQUENCE_ID=6;	>GT_CONF=6;	unmapped
+"""
+        path_1 = create_tmp_file(contents_1)
+        path_2 = create_tmp_file(contents_2)
+
+        contents_1_input = StringIO(contents_1)
+        contents_2_input = StringIO(contents_2)
+        dataframes = [
+            pd.read_csv(contents_1_input, sep="\t", keep_default_na=False),
+            pd.read_csv(contents_2_input, sep="\t", keep_default_na=False),
+        ]
+
+        actual = PrecisionReport.from_files([path_1, path_2])
+        expected = PrecisionReport(dataframes)
+
+        path_1.unlink()
+        path_2.unlink()
+
+        assert actual == expected
 
 
 
