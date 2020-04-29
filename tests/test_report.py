@@ -3,78 +3,211 @@ from pandas.testing import assert_frame_equal
 from evaluate.report import (
     PrecisionReport,
     RecallReport,
-    Report
+    Report,
+    DelimNotFoundError,
+    ReturnTypeDoesNotMatchError
 )
 from evaluate.classification import AlignmentAssessment
 import pytest
 from io import StringIO
 import math
 from tests.common import create_tmp_file, create_recall_report_row, create_precision_report_row
+from unittest.mock import patch
 
 class TestReport:
+    def test___get_report_satisfying_confidence_threshold(self):
+        report = Report([
+            pd.read_csv(StringIO(
+"""id,GT_CONF
+0,2
+1,1
+2,3
+""")),
+            pd.read_csv(StringIO(
+"""id,GT_CONF
+4,3
+5,1
+6,2
+"""))
+        ])
+
+        actual_report = report.get_report_satisfying_confidence_threshold(2)
+        expected_report = Report([
+            pd.read_csv(StringIO(
+"""id,GT_CONF
+0,2
+2,3
+4,3
+6,2
+"""))])
+        assert actual_report==expected_report
+
+    def test___get_value_from_header_fast___field_is_in_header(self):
+        actual_value = Report.get_value_from_header_fast("FIELD_1=10;", "FIELD_1", int, -1, delim=";")
+        expected_value = 10
+        assert actual_value==expected_value
+
+    def test___get_value_from_header_fast___field_is_in_header_between_two_other_fields(self):
+        actual_value = Report.get_value_from_header_fast("DUMMY_1=asd;FIELD_1=10;DUMMY_2=99;", "FIELD_1", int, -1, delim=";")
+        expected_value = 10
+        assert actual_value==expected_value
+
+    def test___get_value_from_header_fast___field_is_first_before_two_other_fields(self):
+        actual_value = Report.get_value_from_header_fast("FIELD_1=10;DUMMY_1=asd;DUMMY_2=99;", "FIELD_1", int, -1, delim=";")
+        expected_value = 10
+        assert actual_value==expected_value
+
+    def test___get_value_from_header_fast___field_is_last_after_two_other_fields(self):
+        actual_value = Report.get_value_from_header_fast("DUMMY_1=asd;DUMMY_2=99;FIELD_1=10;", "FIELD_1", int, -1, delim=";")
+        expected_value = 10
+        assert actual_value==expected_value
+
+    def test___get_value_from_header_fast___field_is_not_in_header(self):
+        actual_value = Report.get_value_from_header_fast("DUMMY_1=asd;FIELD_1=10;DUMMY_2=99;", "FIELD_2", int, -1, delim=";")
+        expected_value = -1
+        assert actual_value==expected_value
+
+    def test___get_value_from_header_fast___field_is_in_header___return_type_does_not_match(self):
+        with pytest.raises(ReturnTypeDoesNotMatchError):
+            Report.get_value_from_header_fast("DUMMY_1=asd;FIELD_1=asd;DUMMY_2=99;", "FIELD_1", int, -1, delim=";")
+
+    def test___get_value_from_header_fast___field_is_in_header___delim_is_not(self):
+        with pytest.raises(DelimNotFoundError):
+            Report.get_value_from_header_fast("DUMMY_1=asd;FIELD_1=asd;DUMMY_2=99;", "FIELD_1", int, -1, delim="~")
+
+    def test____create_field_from_header(self):
+        report = Report([
+            pd.read_csv(StringIO(
+"""id,header
+1,SEQ=ACGT;LEN=4;
+2,SEQ=TG;LEN=2;
+3,dummy
+"""))])
+        report._create_field_from_header("SEQ", "header", str, "A")
+        report._create_field_from_header("LEN", "header", int, 1)
+
+        expected_report = Report([
+            pd.read_csv(StringIO(
+"""id,header,SEQ,LEN
+1,SEQ=ACGT;LEN=4;,ACGT,4
+2,SEQ=TG;LEN=2;,TG,2
+3,dummy,A,1
+"""))])
+        assert report==expected_report
+
+
+    def test____create_good_eval_column(self):
+        report = Report([
+            pd.read_csv(StringIO(
+"""classification
+primary_correct
+whatever
+secondary_correct
+dummy
+supplementary_correct
+woot
+"""))])
+        report._create_good_eval_column()
+
+        expected_report = Report([
+            pd.read_csv(StringIO(
+"""classification,good_eval
+primary_correct,True
+whatever,False
+secondary_correct,True
+dummy,False
+supplementary_correct,True
+woot,False
+"""))])
+        assert report==expected_report
+
     def test_getMaximumGtConf_no_gt_conf_columnRaisesKeyError(self):
-        calculator = Report([pd.DataFrame()])
+        report = Report([pd.DataFrame()])
         with pytest.raises(KeyError):
-            calculator.get_maximum_gt_conf()
+            report.get_maximum_gt_conf()
 
     def test_getMaximumGtConf_emptyReportReturnsNaN(self):
-        calculator = Report([pd.DataFrame(data={"gt_conf": []})])
-        actual = calculator.get_maximum_gt_conf()
+        report = Report([pd.DataFrame(data={"GT_CONF": []})])
+        actual = report.get_maximum_gt_conf()
 
         assert math.isnan(actual)
 
     def test_getMaximumGtConf_oneGTConfInReportReturnsGTConf(self):
-        calculator = Report([pd.DataFrame(data={"gt_conf": [1.5]})])
-        actual = calculator.get_maximum_gt_conf()
+        report = Report([pd.DataFrame(data={"GT_CONF": [1.5]})])
+        actual = report.get_maximum_gt_conf()
         expected = 1.5
 
         assert actual == expected
 
     def test_getMaximumGtConf_threeGTConfsInReportReturnsHighest(self):
-        calculator = Report([pd.DataFrame(data={"gt_conf": [1.5, 10.5, 5.0]})])
-        actual = calculator.get_maximum_gt_conf()
+        report = Report([pd.DataFrame(data={"GT_CONF": [1.5, 10.5, 5.0]})])
+        actual = report.get_maximum_gt_conf()
         expected = 10.5
 
         assert actual == expected
 
 
     def test_getMinimumGtConf_no_gt_conf_columnRaisesKeyError(self):
-        calculator = Report([pd.DataFrame()])
+        report = Report([pd.DataFrame()])
         with pytest.raises(KeyError):
-            calculator.get_minimum_gt_conf()
+            report.get_minimum_gt_conf()
 
     def test_getMinimumGtConf_emptyReportReturnsNaN(self):
-        calculator = Report([pd.DataFrame(data={"gt_conf": []})])
-        actual = calculator.get_minimum_gt_conf()
+        report = Report([pd.DataFrame(data={"GT_CONF": []})])
+        actual = report.get_minimum_gt_conf()
 
         assert math.isnan(actual)
 
     def test_getMinimumGtConf_oneGTConfInReportReturnsGTConf(self):
-        calculator = Report([pd.DataFrame(data={"gt_conf": [1.5]})])
-        actual = calculator.get_minimum_gt_conf()
+        report = Report([pd.DataFrame(data={"GT_CONF": [1.5]})])
+        actual = report.get_minimum_gt_conf()
         expected = 1.5
 
         assert actual == expected
 
     def test_getMinimumGtConf_threeGTConfsInReportReturnsHighest(self):
-        calculator = Report([pd.DataFrame(data={"gt_conf": [10.5, 5.0, 0.2]})])
-        actual = calculator.get_minimum_gt_conf()
+        report = Report([pd.DataFrame(data={"GT_CONF": [10.5, 5.0, 0.2]})])
+        actual = report.get_minimum_gt_conf()
         expected = 0.2
 
         assert actual == expected
 
 
+
+
+class TestPrecisionReporter:
+    def test_init_gtconfIsExtractedCorrectly(self):
+        columns = ["sample", "query_probe_header", "ref_probe_header", "classification"]
+        dfs = pd.DataFrame(
+            data=[
+                create_precision_report_row(0.0, gt_conf=100),
+                create_precision_report_row(0.0, gt_conf=100),
+                create_precision_report_row(0.0, gt_conf=10),
+                create_precision_report_row(0.0, gt_conf=100),
+            ],
+            columns=columns,
+        )
+        report = PrecisionReport([dfs])
+        actual = report.report.GT_CONF
+
+        expected = pd.Series([100.0, 100.0, 10.0, 100.0])
+
+        assert actual.equals(expected)
+
+
+
+
 class TestRecallReport:
     def test_fromFiles_TwoFilesReturnsValidRecallReport(self):
         contents_1 = """sample	query_probe_header	ref_probe_header	classification
-CFT073	>CHROM=1;POS=1246;INTERVAL=[20,30);		unmapped
-CFT073	>CHROM=1;POS=1248;INTERVAL=[30,40);	>CHROM=GC00005358_3;SAMPLE=CFT073;POS=1;INTERVAL=[0,17);SVTYPE=PH_SNPs;MEAN_FWD_COVG=3;MEAN_REV_COVG=6;GT_CONF=60.1133;	primary_correct
-CFT073	>CHROM=1;POS=1252;INTERVAL=[40,50);		unmapped
+CFT073	>CHROM=1;POS=1246;INTERVAL=[20,30);PANGENOME_VARIATION_ID=1;NUMBER_OF_ALLELES=1;ALLELE_ID=1;NUMBER_OF_DIFFERENT_ALLELE_SEQUENCES=1;ALLELE_SEQUENCE_ID=1;	>GT_CONF=1;	unmapped
+CFT073	>CHROM=1;POS=1248;INTERVAL=[30,40);PANGENOME_VARIATION_ID=2;NUMBER_OF_ALLELES=2;ALLELE_ID=2;NUMBER_OF_DIFFERENT_ALLELE_SEQUENCES=2;ALLELE_SEQUENCE_ID=2;	>CHROM=GC00005358_3;SAMPLE=CFT073;POS=1;INTERVAL=[0,17);SVTYPE=PH_SNPs;MEAN_FWD_COVG=3;MEAN_REV_COVG=6;GT_CONF=60.1133;	primary_correct
+CFT073	>CHROM=1;POS=1252;INTERVAL=[40,50);PANGENOME_VARIATION_ID=3;NUMBER_OF_ALLELES=3;ALLELE_ID=3;NUMBER_OF_DIFFERENT_ALLELE_SEQUENCES=3;ALLELE_SEQUENCE_ID=3;	>GT_CONF=3;	unmapped
 """
         contents_2 = """sample	query_probe_header	ref_probe_header	classification
-CFT073	>CHROM=1;POS=1260;INTERVAL=[50,60);	>CHROM=GC00000578_3;SAMPLE=CFT073;POS=165;INTERVAL=[25,29);SVTYPE=PH_SNPs;MEAN_FWD_COVG=3;MEAN_REV_COVG=3;GT_CONF=3.22199;	primary_incorrect
-CFT073	>CHROM=1;POS=1262;INTERVAL=[60,70);		unmapped
-CFT073	>CHROM=1;POS=1281;INTERVAL=[70,80);		unmapped
+CFT073	>CHROM=1;POS=1260;INTERVAL=[50,60);PANGENOME_VARIATION_ID=4;NUMBER_OF_ALLELES=4;ALLELE_ID=4;NUMBER_OF_DIFFERENT_ALLELE_SEQUENCES=4;ALLELE_SEQUENCE_ID=4;	>CHROM=GC00000578_3;SAMPLE=CFT073;POS=165;INTERVAL=[25,29);SVTYPE=PH_SNPs;MEAN_FWD_COVG=3;MEAN_REV_COVG=3;GT_CONF=3.22199;	primary_incorrect
+CFT073	>CHROM=1;POS=1262;INTERVAL=[60,70);PANGENOME_VARIATION_ID=5;NUMBER_OF_ALLELES=5;ALLELE_ID=5;NUMBER_OF_DIFFERENT_ALLELE_SEQUENCES=5;ALLELE_SEQUENCE_ID=5;	>GT_CONF=5;	unmapped
+CFT073	>CHROM=1;POS=1281;INTERVAL=[70,80);PANGENOME_VARIATION_ID=6;NUMBER_OF_ALLELES=6;ALLELE_ID=6;NUMBER_OF_DIFFERENT_ALLELE_SEQUENCES=6;ALLELE_SEQUENCE_ID=6;	>GT_CONF=6;	unmapped
 """
         path_1 = create_tmp_file(contents_1)
         path_2 = create_tmp_file(contents_2)
@@ -94,27 +227,25 @@ CFT073	>CHROM=1;POS=1281;INTERVAL=[70,80);		unmapped
 
         assert actual == expected
 
-    def test_init_gtconfIsExtractedCorrectly(self):
-        columns = ["sample", "query_probe_header", "ref_probe_header", "classification"]
-        dfs = pd.DataFrame(
-            data=[
-                create_recall_report_row("truth_probe_1", AlignmentAssessment.UNMAPPED, gt_conf=100),
-                create_recall_report_row("truth_probe_2", AlignmentAssessment.UNMAPPED, gt_conf=100),
-                create_recall_report_row("truth_probe_3",
-                    AlignmentAssessment.PRIMARY_CORRECT, gt_conf=10
-                ),
-                create_recall_report_row("truth_probe_4",
-                    AlignmentAssessment.PRIMARY_INCORRECT, gt_conf=100
-                ),
-            ],
-            columns=columns,
-        )
-        calculator = RecallReport([dfs])
-        actual = calculator.report.gt_conf
+    def test_init(self):
+        contents_1 = """sample	query_probe_header	ref_probe_header	classification
+CFT073	>CHROM=1;POS=1246;INTERVAL=[20,30);PANGENOME_VARIATION_ID=1;NUMBER_OF_ALLELES=1;ALLELE_ID=1;NUMBER_OF_DIFFERENT_ALLELE_SEQUENCES=1;ALLELE_SEQUENCE_ID=1;	>GT_CONF=1;	unmapped
+CFT073	>CHROM=1;POS=1248;INTERVAL=[30,40);PANGENOME_VARIATION_ID=2;NUMBER_OF_ALLELES=2;ALLELE_ID=2;NUMBER_OF_DIFFERENT_ALLELE_SEQUENCES=2;ALLELE_SEQUENCE_ID=2;	>CHROM=GC00005358_3;SAMPLE=CFT073;POS=1;INTERVAL=[0,17);SVTYPE=PH_SNPs;MEAN_FWD_COVG=3;MEAN_REV_COVG=6;GT_CONF=60.1133;	primary_correct
+CFT073	>CHROM=1;POS=1252;INTERVAL=[40,50);PANGENOME_VARIATION_ID=3;NUMBER_OF_ALLELES=3;ALLELE_ID=3;NUMBER_OF_DIFFERENT_ALLELE_SEQUENCES=3;ALLELE_SEQUENCE_ID=3;	>GT_CONF=3;	unmapped
+"""
+        contents_1_input = StringIO(contents_1)
+        dataframes = [pd.read_csv(contents_1_input, sep="\t", keep_default_na=False)]
+        report = RecallReport(dataframes)
+        actual_df = report.report
+        expected_df = pd.read_csv(StringIO(
+"""sample	query_probe_header	ref_probe_header	classification	GT_CONF	PANGENOME_VARIATION_ID	NUMBER_OF_ALLELES	ALLELE_ID	NUMBER_OF_DIFFERENT_ALLELE_SEQUENCES	ALLELE_SEQUENCE_ID	good_eval
+CFT073	>CHROM=1;POS=1246;INTERVAL=[20,30);PANGENOME_VARIATION_ID=1;NUMBER_OF_ALLELES=1;ALLELE_ID=1;NUMBER_OF_DIFFERENT_ALLELE_SEQUENCES=1;ALLELE_SEQUENCE_ID=1;	>GT_CONF=1;	unmapped	1.0	1	1	1	1	1	False
+CFT073	>CHROM=1;POS=1248;INTERVAL=[30,40);PANGENOME_VARIATION_ID=2;NUMBER_OF_ALLELES=2;ALLELE_ID=2;NUMBER_OF_DIFFERENT_ALLELE_SEQUENCES=2;ALLELE_SEQUENCE_ID=2;	>CHROM=GC00005358_3;SAMPLE=CFT073;POS=1;INTERVAL=[0,17);SVTYPE=PH_SNPs;MEAN_FWD_COVG=3;MEAN_REV_COVG=6;GT_CONF=60.1133;	primary_correct	60.1133	2	2	2	2	2	True
+CFT073	>CHROM=1;POS=1252;INTERVAL=[40,50);PANGENOME_VARIATION_ID=3;NUMBER_OF_ALLELES=3;ALLELE_ID=3;NUMBER_OF_DIFFERENT_ALLELE_SEQUENCES=3;ALLELE_SEQUENCE_ID=3;	>GT_CONF=3;	unmapped	3.0	3	3	3	3	3	False
+"""), sep="\t")
 
-        expected = pd.Series([100.0, 100.0, 10.0, 100.0])
+        assert actual_df.equals(expected_df)
 
-        assert actual.equals(expected)
 
 
     def test_checkIfOnlyBestMappingIsKept_hasPrimaryMapping(self):
@@ -307,22 +438,129 @@ CFT073	>CHROM=1;POS=1281;INTERVAL=[70,80);		unmapped
         ])
         assert_frame_equal(actual, expected, check_dtype=False)
 
-class TestPrecisionReporter:
-    def test_init_gtconfIsExtractedCorrectly(self):
-        columns = ["sample", "query_probe_header", "ref_probe_header", "classification"]
-        dfs = pd.DataFrame(
-            data=[
-                create_precision_report_row(0.0, gt_conf=100),
-                create_precision_report_row(0.0, gt_conf=100),
-                create_precision_report_row(0.0, gt_conf=10),
-                create_precision_report_row(0.0, gt_conf=100),
-            ],
-            columns=columns,
-        )
-        calculator = PrecisionReport([dfs])
-        actual = calculator.report.gt_conf
 
-        expected = pd.Series([100.0, 100.0, 10.0, 100.0])
+    @patch.object(RecallReport, RecallReport._create_helper_columns.__name__)
+    def test____get_id_to_nb_of_allele_sequences_found(self, *mocks):
+        contents = StringIO(
+"""sample,dummy_field,PANGENOME_VARIATION_ID,ALLELE_SEQUENCE_ID,good_eval
+S1,0,2,0,True
+S2,0,0,2,False
+S3,0,1,1,True
+S4,0,0,2,True
+S5,0,1,1,False
+S6,0,1,2,False
+S7,0,2,1,True
+S8,0,1,2,True
+S1,0,2,2,True
+S1,0,0,2,False
+S1,0,2,3,True
+S1,0,1,3,False
+S1,0,2,4,False
+S1,0,2,5,False
+S1,0,2,6,False
+S1,0,3,0,False
+S1,0,3,1,False
+""")
+        report = RecallReport([pd.read_csv(contents)], False)
+        actual=report._get_id_to_nb_of_allele_sequences_found()
+        expected=pd.read_csv(StringIO(
+"""PANGENOME_VARIATION_ID,NB_OF_ALLELE_SEQUENCE_ID_FOUND
+0,1
+1,2
+2,4
+3,0
+"""), index_col="PANGENOME_VARIATION_ID")
 
         assert actual.equals(expected)
 
+    @patch.object(RecallReport, RecallReport._create_helper_columns.__name__)
+    def test____get_id_to_nb_of_different_allele_sequences(self, *mocks):
+        contents = StringIO(
+"""sample,dummy_field,PANGENOME_VARIATION_ID,NUMBER_OF_DIFFERENT_ALLELE_SEQUENCES,good_eval
+S1,0,2,10,True
+S2,0,0,1,False
+S3,0,1,3,True
+S4,0,0,1,True
+S5,0,1,3,False
+S6,0,1,3,False
+S7,0,2,10,True
+S8,0,1,3,True
+S1,0,2,10,True
+S1,0,0,1,False
+S1,0,2,10,True
+S1,0,1,3,False
+S1,0,2,10,False
+S1,0,2,10,False
+S1,0,2,10,False
+S1,0,3,2,False
+S1,0,3,2,False
+""")
+        report = RecallReport([pd.read_csv(contents)], False)
+        actual = report._get_id_to_nb_of_different_allele_sequences()
+        expected = pd.read_csv(StringIO(
+"""PANGENOME_VARIATION_ID,NUMBER_OF_DIFFERENT_ALLELE_SEQUENCES
+0,1
+1,3
+2,10
+3,2
+"""), index_col="PANGENOME_VARIATION_ID")
+
+        assert actual.equals(expected)
+
+    @patch.object(RecallReport, RecallReport._create_helper_columns.__name__)
+    def test___get_proportion_of_allele_seqs_found_for_each_variant(self, *mocks):
+        contents = StringIO(
+"""sample,dummy_field,PANGENOME_VARIATION_ID,ALLELE_SEQUENCE_ID,NUMBER_OF_DIFFERENT_ALLELE_SEQUENCES,good_eval
+S1,0,2,0,10,True
+S2,0,0,2,1,False
+S3,0,1,1,3,True
+S4,0,0,2,1,True
+S5,0,1,1,3,False
+S6,0,1,2,3,False
+S7,0,2,1,10,True
+S8,0,1,2,3,True
+S1,0,2,2,10,True
+S1,0,0,2,1,False
+S1,0,2,3,10,True
+S1,0,1,3,3,False
+S1,0,2,4,10,False
+S1,0,2,5,10,False
+S1,0,2,6,10,False
+S1,0,3,0,2,False
+S1,0,3,1,2,False
+""")
+        report = RecallReport([pd.read_csv(contents)], False)
+        actual = report.get_proportion_of_allele_seqs_found_for_each_variant()
+        expected = [1/1, 2/3, 4/10, 0/2]
+
+        assert actual == expected
+
+
+
+    @patch.object(RecallReport, RecallReport._create_helper_columns.__name__)
+    def test___get_proportion_of_alleles_found_for_each_variant(self, *mocks):
+        contents = StringIO(
+"""sample,dummy_field,PANGENOME_VARIATION_ID,ALLELE_ID,NUMBER_OF_ALLELES,good_eval
+S1,0,2,0,10,True
+S2,0,0,2,1,False
+S3,0,1,1,3,True
+S4,0,0,2,1,True
+S5,0,1,1,3,False
+S6,0,1,2,3,False
+S7,0,2,1,10,True
+S8,0,1,2,3,True
+S1,0,2,2,10,True
+S1,0,0,2,1,False
+S1,0,2,3,10,True
+S1,0,1,3,3,False
+S1,0,2,4,10,False
+S1,0,2,5,10,False
+S1,0,2,6,10,False
+S1,0,3,0,2,False
+S1,0,3,1,2,False
+""")
+        report = RecallReport([pd.read_csv(contents)], False)
+        actual = report.get_proportion_of_alleles_found_for_each_variant()
+        expected = [1/1, 2/3, 4/10, 0/2]
+
+        assert actual == expected

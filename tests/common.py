@@ -287,9 +287,15 @@ def create_recall_report_row(
         "query_probe_header": str(truth_probe_header),
         "ref_probe_header": str(vcf_probe_header),
         "classification": classification.value,
+        "good_eval": classification.value in ["primary_correct", "secondary_correct", "supplementary_correct"],
+        "PANGENOME_VARIATION_ID": None,
+        "NUMBER_OF_ALLELES": None,
+        "ALLELE_ID": None,
+        "NUMBER_OF_DIFFERENT_ALLELE_SEQUENCES": None,
+        "ALLELE_SEQUENCE_ID": None
     }
     if with_gt_conf:
-        data["gt_conf"] = gt_conf
+        data["GT_CONF"] = gt_conf
 
     return pd.Series(data=data)
 
