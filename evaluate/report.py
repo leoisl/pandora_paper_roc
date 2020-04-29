@@ -100,6 +100,17 @@ class RecallReport(Report):
             #  simple concatenation
             super().__init__(dfs)
         self._create_helper_columns()
+        self.assure_there_are_no_duplicated_evaluation()
+
+
+    # TODO: should this be added to the PrecisionReport also?
+    def assure_there_are_no_duplicated_evaluation(self):
+        no_duplicated_evaluation = len(self.report) == self.get_number_of_truth_probes()
+        assert no_duplicated_evaluation,\
+            f"[FATAL ERROR @ RecallReport.assure_there_are_no_duplicated_evaluation] Expected one evaluation line per truth probe. " \
+            f"Nb of evaluation lines: {len(self.report)}. " \
+            f"Nb of truth probes: {self.get_number_of_truth_probes()}."
+
 
     def _create_helper_columns(self):
         self._create_gt_conf_column_from("ref_probe_header")
@@ -110,14 +121,19 @@ class RecallReport(Report):
         self._create_allele_sequence_id_column_from("query_probe_header")
         self._create_good_eval_column()
 
+
     @classmethod
     def from_files(cls, paths: List[Path], concatenate_dfs_one_by_one_keeping_only_best_mappings: bool = True) -> "RecallReport":
         reports = (pd.read_csv(path, sep="\t", keep_default_na=False) for path in paths)
         return cls(reports, concatenate_dfs_one_by_one_keeping_only_best_mappings)
 
+
     # Note: trivial method, not tested
     def get_number_of_truth_probes(self):
         return len(self.report["query_probe_header"].unique())
+    def get_number_of_variants(self) -> int:
+        return len(self.report["PANGENOME_VARIATION_ID"].unique())
+
 
     def _concatenate_dfs_one_by_one_keeping_only_best_mappings(self, dfs: Iterable[pd.DataFrame]) -> None:
         self.report = None
@@ -192,6 +208,3 @@ class RecallReport(Report):
         merged_data["proportion_of_alleles_found"] = \
             merged_data["NB_OF_ALLELE_ID_FOUND"] / merged_data["NUMBER_OF_ALLELES"]
         return merged_data["proportion_of_alleles_found"].to_list()
-
-    def get_number_of_variants(self) -> int:
-        return len(self.report["PANGENOME_VARIATION_ID"].unique())

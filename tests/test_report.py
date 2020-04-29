@@ -429,22 +429,22 @@ CFT073	>CHROM=1;POS=1252;INTERVAL=[40,50);PANGENOME_VARIATION_ID=3;NUMBER_OF_ALL
         df_1 = pd.DataFrame(
             data=[
                 create_recall_report_row("truth_probe_1", AlignmentAssessment.UNMAPPED, gt_conf=100, with_gt_conf=True),
-                create_recall_report_row("truth_probe_1", AlignmentAssessment.PARTIALLY_MAPPED, gt_conf=100, with_gt_conf=True),
+                create_recall_report_row("truth_probe_2", AlignmentAssessment.PARTIALLY_MAPPED, gt_conf=100, with_gt_conf=True),
             ],
         )
         df_2 = pd.DataFrame(
             data=[
-                create_recall_report_row("truth_probe_1", AlignmentAssessment.PRIMARY_INCORRECT, gt_conf=100,
+                create_recall_report_row("truth_probe_3", AlignmentAssessment.PRIMARY_INCORRECT, gt_conf=100,
                                          with_gt_conf=True),
-                create_recall_report_row("truth_probe_1", AlignmentAssessment.SECONDARY_INCORRECT, gt_conf=100,
+                create_recall_report_row("truth_probe_4", AlignmentAssessment.SECONDARY_INCORRECT, gt_conf=100,
                                          with_gt_conf=True),
             ],
         )
         df_3 = pd.DataFrame(
             data=[
-                create_recall_report_row("truth_probe_1", AlignmentAssessment.SUPPLEMENTARY_INCORRECT, gt_conf=100,
+                create_recall_report_row("truth_probe_5", AlignmentAssessment.SUPPLEMENTARY_INCORRECT, gt_conf=100,
                                          with_gt_conf=True),
-                create_recall_report_row("truth_probe_1", AlignmentAssessment.PRIMARY_CORRECT, gt_conf=100,
+                create_recall_report_row("truth_probe_6", AlignmentAssessment.PRIMARY_CORRECT, gt_conf=100,
                                          with_gt_conf=True),
             ],
         )
@@ -453,15 +453,15 @@ CFT073	>CHROM=1;POS=1252;INTERVAL=[40,50);PANGENOME_VARIATION_ID=3;NUMBER_OF_ALL
         actual = report.report
         expected = pd.DataFrame(data=[
             create_recall_report_row("truth_probe_1", AlignmentAssessment.UNMAPPED, gt_conf=100, with_gt_conf=True),
-            create_recall_report_row("truth_probe_1", AlignmentAssessment.PARTIALLY_MAPPED, gt_conf=100,
+            create_recall_report_row("truth_probe_2", AlignmentAssessment.PARTIALLY_MAPPED, gt_conf=100,
                                      with_gt_conf=True),
-            create_recall_report_row("truth_probe_1", AlignmentAssessment.PRIMARY_INCORRECT, gt_conf=100,
+            create_recall_report_row("truth_probe_3", AlignmentAssessment.PRIMARY_INCORRECT, gt_conf=100,
                                      with_gt_conf=True),
-            create_recall_report_row("truth_probe_1", AlignmentAssessment.SECONDARY_INCORRECT, gt_conf=100,
+            create_recall_report_row("truth_probe_4", AlignmentAssessment.SECONDARY_INCORRECT, gt_conf=100,
                                      with_gt_conf=True),
-            create_recall_report_row("truth_probe_1", AlignmentAssessment.SUPPLEMENTARY_INCORRECT, gt_conf=100,
+            create_recall_report_row("truth_probe_5", AlignmentAssessment.SUPPLEMENTARY_INCORRECT, gt_conf=100,
                                      with_gt_conf=True),
-            create_recall_report_row("truth_probe_1", AlignmentAssessment.PRIMARY_CORRECT, gt_conf=100,
+            create_recall_report_row("truth_probe_6", AlignmentAssessment.PRIMARY_CORRECT, gt_conf=100,
                                      with_gt_conf=True),
         ])
         assert_frame_equal(actual, expected, check_dtype=False)
@@ -470,24 +470,24 @@ CFT073	>CHROM=1;POS=1252;INTERVAL=[40,50);PANGENOME_VARIATION_ID=3;NUMBER_OF_ALL
     @patch.object(RecallReport, RecallReport._create_helper_columns.__name__)
     def test____get_id_to_nb_of_allele_sequences_found(self, *mocks):
         contents = StringIO(
-"""sample,dummy_field,PANGENOME_VARIATION_ID,ALLELE_SEQUENCE_ID,good_eval
+"""sample,query_probe_header,PANGENOME_VARIATION_ID,ALLELE_SEQUENCE_ID,good_eval
 S1,0,2,0,True
-S2,0,0,2,False
-S3,0,1,1,True
-S4,0,0,2,True
-S5,0,1,1,False
-S6,0,1,2,False
-S7,0,2,1,True
-S8,0,1,2,True
-S1,0,2,2,True
-S1,0,0,2,False
-S1,0,2,3,True
-S1,0,1,3,False
-S1,0,2,4,False
-S1,0,2,5,False
-S1,0,2,6,False
-S1,0,3,0,False
-S1,0,3,1,False
+S2,1,0,2,False
+S3,2,1,1,True
+S4,3,0,2,True
+S5,4,1,1,False
+S6,5,1,2,False
+S7,6,2,1,True
+S8,7,1,2,True
+S1,8,2,2,True
+S1,9,0,2,False
+S1,10,2,3,True
+S1,11,1,3,False
+S1,12,2,4,False
+S1,13,2,5,False
+S1,14,2,6,False
+S1,15,3,0,False
+S1,16,3,1,False
 """)
         report = RecallReport([pd.read_csv(contents)], False)
         actual=report._get_id_to_nb_of_allele_sequences_found()
@@ -504,24 +504,24 @@ S1,0,3,1,False
     @patch.object(RecallReport, RecallReport._create_helper_columns.__name__)
     def test____get_id_to_nb_of_different_allele_sequences(self, *mocks):
         contents = StringIO(
-"""sample,dummy_field,PANGENOME_VARIATION_ID,NUMBER_OF_DIFFERENT_ALLELE_SEQUENCES,good_eval
+"""sample,query_probe_header,PANGENOME_VARIATION_ID,NUMBER_OF_DIFFERENT_ALLELE_SEQUENCES,good_eval
 S1,0,2,10,True
-S2,0,0,1,False
-S3,0,1,3,True
-S4,0,0,1,True
-S5,0,1,3,False
-S6,0,1,3,False
-S7,0,2,10,True
-S8,0,1,3,True
-S1,0,2,10,True
-S1,0,0,1,False
-S1,0,2,10,True
-S1,0,1,3,False
-S1,0,2,10,False
-S1,0,2,10,False
-S1,0,2,10,False
-S1,0,3,2,False
-S1,0,3,2,False
+S2,1,0,1,False
+S3,2,1,3,True
+S4,3,0,1,True
+S5,4,1,3,False
+S6,5,1,3,False
+S7,6,2,10,True
+S8,7,1,3,True
+S1,8,2,10,True
+S1,9,0,1,False
+S1,10,2,10,True
+S1,11,1,3,False
+S1,12,2,10,False
+S1,13,2,10,False
+S1,14,2,10,False
+S1,15,3,2,False
+S1,16,3,2,False
 """)
         report = RecallReport([pd.read_csv(contents)], False)
         actual = report._get_id_to_nb_of_different_allele_sequences()
@@ -538,24 +538,24 @@ S1,0,3,2,False
     @patch.object(RecallReport, RecallReport._create_helper_columns.__name__)
     def test___get_proportion_of_allele_seqs_found_for_each_variant(self, *mocks):
         contents = StringIO(
-"""sample,dummy_field,PANGENOME_VARIATION_ID,ALLELE_SEQUENCE_ID,NUMBER_OF_DIFFERENT_ALLELE_SEQUENCES,good_eval
-S1,0,2,0,10,True
-S2,0,0,2,1,False
-S3,0,1,1,3,True
-S4,0,0,2,1,True
-S5,0,1,1,3,False
-S6,0,1,2,3,False
-S7,0,2,1,10,True
-S8,0,1,2,3,True
-S1,0,2,2,10,True
-S1,0,0,2,1,False
-S1,0,2,3,10,True
-S1,0,1,3,3,False
-S1,0,2,4,10,False
-S1,0,2,5,10,False
-S1,0,2,6,10,False
-S1,0,3,0,2,False
-S1,0,3,1,2,False
+"""sample,query_probe_header,PANGENOME_VARIATION_ID,ALLELE_SEQUENCE_ID,NUMBER_OF_DIFFERENT_ALLELE_SEQUENCES,good_eval
+S1,1,2,0,10,True
+S2,2,0,2,1,False
+S3,3,1,1,3,True
+S4,4,0,2,1,True
+S5,5,1,1,3,False
+S6,6,1,2,3,False
+S7,7,2,1,10,True
+S8,8,1,2,3,True
+S1,9,2,2,10,True
+S1,10,0,2,1,False
+S1,11,2,3,10,True
+S1,12,1,3,3,False
+S1,13,2,4,10,False
+S1,14,2,5,10,False
+S1,15,2,6,10,False
+S1,16,3,0,2,False
+S1,17,3,1,2,False
 """)
         report = RecallReport([pd.read_csv(contents)], False)
         actual = report.get_proportion_of_allele_seqs_found_for_each_variant()
@@ -568,24 +568,24 @@ S1,0,3,1,2,False
     @patch.object(RecallReport, RecallReport._create_helper_columns.__name__)
     def test___get_proportion_of_alleles_found_for_each_variant(self, *mocks):
         contents = StringIO(
-"""sample,dummy_field,PANGENOME_VARIATION_ID,ALLELE_ID,NUMBER_OF_ALLELES,good_eval
+"""sample,query_probe_header,PANGENOME_VARIATION_ID,ALLELE_ID,NUMBER_OF_ALLELES,good_eval
 S1,0,2,0,10,True
-S2,0,0,2,1,False
-S3,0,1,1,3,True
-S4,0,0,2,1,True
-S5,0,1,1,3,False
-S6,0,1,2,3,False
-S7,0,2,1,10,True
-S8,0,1,2,3,True
-S1,0,2,2,10,True
-S1,0,0,2,1,False
-S1,0,2,3,10,True
-S1,0,1,3,3,False
-S1,0,2,4,10,False
-S1,0,2,5,10,False
-S1,0,2,6,10,False
-S1,0,3,0,2,False
-S1,0,3,1,2,False
+S2,1,0,2,1,False
+S3,2,1,1,3,True
+S4,3,0,2,1,True
+S5,4,1,1,3,False
+S6,5,1,2,3,False
+S7,6,2,1,10,True
+S8,7,1,2,3,True
+S1,8,2,2,10,True
+S1,9,0,2,1,False
+S1,10,2,3,10,True
+S1,11,1,3,3,False
+S1,12,2,4,10,False
+S1,13,2,5,10,False
+S1,14,2,6,10,False
+S1,15,3,0,2,False
+S1,16,3,1,2,False
 """)
         report = RecallReport([pd.read_csv(contents)], False)
         actual = report.get_proportion_of_alleles_found_for_each_variant()
