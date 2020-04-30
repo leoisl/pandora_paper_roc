@@ -3,8 +3,6 @@ from dash.dependencies import Input, Output, State
 
 from plot_helpers import *
 
-
-
 # set up the app
 external_stylesheets = ["css/style.css"]
 dash_app = dash.Dash("ROC_pandora", assets_folder="assets", external_stylesheets=external_stylesheets)
@@ -28,15 +26,41 @@ dash_app.layout = html.Div([
                                      "margin-right": "auto"}),
 
     html.H3("3. See data (might take some seconds to plot):"),
-    html.H3("Proportion ROC curve:"),
+
+
+    html.H3("[TRUTH PROBES (NON DEDUPLICATED)] Proportion ROC:"),
     html.Div(children=[
-        dcc.Loading(id=f"loading_graph_proportion",
-                    children=[html.Div(id="graph_proportion")],
+        dcc.Loading(id=f"truth_probes_loading_graph_proportion",
+                    children=[html.Div(id="truth_probes_graph_proportion")],
                     type="graph")]),
-    html.H3("Raw numbers ROC curve:"),
+    html.H3("[TRUTH PROBES (NON DEDUPLICATED)] Raw numbers ROC:"),
     html.Div(children=[
-        dcc.Loading(id=f"loading_graph_raw",
-                    children=[html.Div(id="graph_raw")],
+        dcc.Loading(id=f"truth_probes_loading_graph_raw",
+                    children=[html.Div(id="truth_probes_graph_raw")],
+                    type="graph")]),
+
+
+    html.H3("[EQUIVALENCE CLASSES (DEDUPLICATED)] Proportion ROC:"),
+    html.Div(children=[
+        dcc.Loading(id=f"equivalence_classes_loading_graph_proportion",
+                    children=[html.Div(id="equivalence_classes_graph_proportion")],
+                    type="graph")]),
+    html.H3("[EQUIVALENCE CLASSES (DEDUPLICATED)] Raw numbers ROC:"),
+    html.Div(children=[
+        dcc.Loading(id=f"equivalence_classes_loading_graph_raw",
+                    children=[html.Div(id="equivalence_classes_graph_raw")],
+                    type="graph")]),
+
+
+    html.H3("[ALLELES (DEDUPLICATED)] Proportion ROC:"),
+    html.Div(children=[
+        dcc.Loading(id=f"alleles_loading_graph_proportion",
+                    children=[html.Div(id="alleles_graph_proportion")],
+                    type="graph")]),
+    html.H3("[ALLELES (DEDUPLICATED)] Raw numbers ROC:"),
+    html.Div(children=[
+        dcc.Loading(id=f"alleles_loading_graph_raw",
+                    children=[html.Div(id="alleles_graph_raw")],
                     type="graph")]),
 
     html.H3("Extra informations:"),
@@ -73,8 +97,12 @@ def update_all_checklists(plots_value):
 
 
 @dash_app.callback(
-    [Output(f'graph_proportion', 'children'),
-     Output(f'graph_raw', 'children'),
+    [Output(f'truth_probes_graph_proportion', 'children'),
+     Output(f'truth_probes_graph_raw', 'children'),
+     Output(f'equivalence_classes_graph_proportion', 'children'),
+     Output(f'equivalence_classes_graph_raw', 'children'),
+     Output(f'alleles_graph_proportion', 'children'),
+     Output(f'alleles_graph_raw', 'children'),
      Output('data_with_no_gt_conf_filter', 'children')],
     [Input('button', 'n_clicks')],
     [
@@ -87,7 +115,17 @@ def update_all_checklists(plots_value):
      ])
 def update_all_graphs (*args):
     df = get_df_and_check_args_for_graph (*args)
-    return get_graph_proportion(df, *args), get_graph_raw(df, *args), get_data_table_with_no_gt_conf_filter(df)
+    return \
+           get_graph_proportion(df, "error_rate", "Error rate", "recalls_wrt_truth_probes", "Recall (WRT truth probes)", *args),\
+           get_graph_raw(df, "nb_of_correct_calls", "Number of correct calls", "nbs_of_truth_probes_found", "Number of truth probes found", *args), \
+           \
+           get_graph_proportion(df, "error_rate", "Error rate", "recalls_wrt_variants_where_all_allele_seqs_were_found", "Recall (WRT variants where all sequences were found)", *args), \
+           get_graph_raw(df, "nb_of_correct_calls", "Number of correct calls", "nbs_variants_where_all_allele_seqs_were_found", "Nb of variants where all sequences were found", *args), \
+           \
+           get_graph_proportion(df, "error_rate", "Error rate", "recalls_wrt_variants_found_wrt_alleles", "Recall (WRT number of alleles found for each variant)", *args), \
+           get_graph_raw(df, "nb_of_correct_calls", "Number of correct calls", "nbs_variants_found_wrt_alleles", "Nb of variants found", *args), \
+           \
+           get_data_table_with_no_gt_conf_filter(df)
 
 
 if __name__ == '__main__':

@@ -59,8 +59,8 @@ def update_gaps_checklist(df):
 ###################################################################################
 # update graph functions
 ###################################################################################
-def get_highest_error_rate_after_given_recall(df, recall):
-    return df.query(f"recall >= {recall}")["error_rate"].max()
+def get_highest_error_rate_after_given_recall(df, recall_column, recall_lower_bound):
+    return df.query(f"{recall_column} >= {recall_lower_bound}")["error_rate"].max()
 
 def get_snippy_trace_data_for_given_ref(df, snippy_ref):
     trace_name = f"Tool: {snippy_ref}"
@@ -87,7 +87,7 @@ def compute_traces_in_product_of_args(df, tools, dataset_coverages, coverage_fil
                 config = snippy_trace_data["config"]
                 df_for_label = snippy_trace_data["df_for_snippy"]
 
-                highest_error_rate_after_20_percent_recall = get_highest_error_rate_after_given_recall(df_for_label, 0.2)
+                highest_error_rate_after_20_percent_recall = get_highest_error_rate_after_given_recall(df_for_label, y_label, 0.2)
 
                 trace = go.Scatter(x=df_for_label[x_label], y=df_for_label[y_label], name=trace_name,
                                    mode='lines',
@@ -105,7 +105,7 @@ def compute_traces_in_product_of_args(df, tools, dataset_coverages, coverage_fil
                     f"tool==\"{tool}\" & coverage==\"{dataset_coverage}\" & coverage_threshold==\"{coverage_threshold}\" & strand_bias_threshold==\"{strand_bias_threshold}\" & gaps_threshold==\"{gaps_threshold}\"")
 
                 trace_name = f"Tool: {tool}, Coverage: {dataset_coverage}, Coverage threshold: {coverage_threshold}, Strand bias threshold: {strand_bias_threshold}, Gaps threshold: {gaps_threshold}"
-                highest_error_rate_after_20_percent_recall = get_highest_error_rate_after_given_recall(df_for_label, 0.2)
+                highest_error_rate_after_20_percent_recall = get_highest_error_rate_after_given_recall(df_for_label, y_label, 0.2)
 
                 trace = go.Scatter(x=df_for_label[x_label], y=df_for_label[y_label], name=trace_name,
                                         mode='lines',
@@ -170,38 +170,40 @@ def get_df_and_check_args_for_graph(button_value, plots_value, tool_checklist_va
 
 
 
-def get_graph_proportion (df, button_value, plots_value, tool_checklist_values, dataset_coverage_checklist_values, coverage_checklist_values,
-                             strand_bias_checklist_values, gaps_checklist_values):
+def get_graph_proportion (df, x_axis, x_axis_label, y_axis, y_axis_label,
+                          button_value, plots_value, tool_checklist_values, dataset_coverage_checklist_values,
+                          coverage_checklist_values, strand_bias_checklist_values, gaps_checklist_values):
     config_to_all_traces_proportion = compute_traces_in_product_of_args(df,
                                                                         tool_checklist_values,
                                                                         dataset_coverage_checklist_values,
                                                                         coverage_checklist_values,
                                                                         strand_bias_checklist_values,
                                                                         gaps_checklist_values,
-                                                                        x_label="error_rate", y_label="recall")
+                                                                        x_label=x_axis, y_label=y_axis)
     return dcc.Graph(figure=get_figure_for_graph(config_to_all_traces_proportion, tool_checklist_values,
                                                  dataset_coverage_checklist_values,
                                                  coverage_checklist_values, strand_bias_checklist_values,
                                                  gaps_checklist_values,
-                                                 xaxis_label="Error rate", yaxis_label="Recall", set_ranges=True),
+                                                 xaxis_label=x_axis_label, yaxis_label=y_axis_label, set_ranges=True),
                      style={'height': '1000px', 'width': '1000px'})
 
 
 
-def get_graph_raw (df, button_value, plots_value, tool_checklist_values, dataset_coverage_checklist_values, coverage_checklist_values,
-                             strand_bias_checklist_values, gaps_checklist_values):
+def get_graph_raw (df, x_axis, x_axis_label, y_axis, y_axis_label,
+                   button_value, plots_value, tool_checklist_values, dataset_coverage_checklist_values,
+                   coverage_checklist_values, strand_bias_checklist_values, gaps_checklist_values):
     config_to_all_traces_raw = compute_traces_in_product_of_args(df,
                                                                         tool_checklist_values,
                                                                         dataset_coverage_checklist_values,
                                                                         coverage_checklist_values,
                                                                         strand_bias_checklist_values,
                                                                         gaps_checklist_values,
-                                                                        x_label="nb_of_correct_calls", y_label="nb_of_truth_probes_found")
+                                                                        x_label=x_axis, y_label=y_axis)
     return dcc.Graph(figure=get_figure_for_graph(config_to_all_traces_raw, tool_checklist_values,
                                                  dataset_coverage_checklist_values,
                                                  coverage_checklist_values, strand_bias_checklist_values,
                                                  gaps_checklist_values,
-                                                 xaxis_label="Nb of correct calls", yaxis_label="Nb of truth variants found", set_ranges=False),
+                                                 xaxis_label=x_axis_label, yaxis_label=y_axis_label, set_ranges=False),
                      style={'height': '1000px', 'width': '1000px'})
 
 
