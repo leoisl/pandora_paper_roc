@@ -8,6 +8,7 @@ import functools
 from collections import defaultdict
 import pandas as pd
 from .probe import Probe, ProbeHeader, ProbeInterval
+import itertools
 
 
 class DeduplicatedVariationsDataframe(pd.DataFrame):
@@ -151,6 +152,7 @@ class Allele:
             yield ref_allele, query_allele
 
 
+@functools.total_ordering
 class PairwiseVariation:
     def __init__(self, ref_allele: Allele, query_allele: Allele):
         # this ordering is done to facilitate the usage of this class, for the equal and hash functions
@@ -183,6 +185,16 @@ class PairwiseVariation:
     def __hash__(self) -> int:
         return hash((self.allele_1, self.allele_2))
 
+    def __lt__(self, other: object) -> bool:
+        if isinstance(other, PairwiseVariation):
+            return (self.allele_1 < other.allele_1) or \
+                   (self.allele_1 == other.allele_1 and self.allele_2 < other.allele_2)
+        else:
+            raise TypeError()
+
+    def __repr__(self):
+        return str(vars(self))
+
     def share_allele(self, other: "PairwiseVariation") -> bool:
         return self.allele_1 == other.allele_1 or self.allele_1 == other.allele_2 or \
                self.allele_2 == other.allele_1 or self.allele_2 == other.allele_2
@@ -194,8 +206,6 @@ class PairwiseVariation:
         for ref_allele, query_allele in Allele.get_alleles_from_ShowSNPsDataframe(ref, query, snps_df):
             yield PairwiseVariation(ref_allele, query_allele)
 
-    def __repr__(self):
-        return str(vars(self))
 
 class PangenomeVariation:
     # Note: trivial method, not tested
@@ -391,10 +401,9 @@ class ConsistentPangenomeVariations:
 
 class DeduplicationGraph:
     # Note: trivial methods, not tested
-    def __init__(self, number_of_positions_in_each_index_bucket):
+    def __init__(self):
         self._graph = nx.Graph()
-        self._number_of_positions_in_each_index_bucket = number_of_positions_in_each_index_bucket
-        self._genome_chrom_position_bucket_to_pairwise_variations = defaultdict(set)
+        self._allele_to_pairwise_variations = defaultdict(set)
     @property
     def graph(self):
         return self._graph
@@ -405,24 +414,12 @@ class DeduplicationGraph:
     def edges(self):
         return self.graph.edges
     @property
-    def number_of_positions_in_each_index_bucket(self):
-        return self._number_of_positions_in_each_index_bucket
-    @property
-    def genome_chrom_position_bucket_to_pairwise_variations(self):
-        return self._genome_chrom_position_bucket_to_pairwise_variations
-
-    def _get_indexing_bucket(self, allele: Allele) -> Tuple[str, str, int]:
-        return allele.genome, allele.chrom, int(allele.pos / self.number_of_positions_in_each_index_bucket)
+    def allele_to_pairwise_variations(self):
+        return self._allele_to_pairwise_variations
 
     def _index_pairwise_variation(self, pairwise_variation: PairwiseVariation) -> None:
         for allele in [pairwise_variation.allele_1, pairwise_variation.allele_2]:
-            self.genome_chrom_position_bucket_to_pairwise_variations[self._get_indexing_bucket(allele)].add(pairwise_variation)
-
-    def _get_pairwise_variations_in_the_same_bucket(self, pairwise_variation: PairwiseVariation) -> Set[PairwiseVariation]:
-        bucket_1 = self._get_indexing_bucket(pairwise_variation.allele_1)
-        bucket_2 = self._get_indexing_bucket(pairwise_variation.allele_2)
-        return self.genome_chrom_position_bucket_to_pairwise_variations[bucket_1].union(
-            self.genome_chrom_position_bucket_to_pairwise_variations[bucket_2])
+            self.allele_to_pairwise_variations[allele].add(pairwise_variation)
 
     def _add_pairwise_variation(self, pairwise_variation: PairwiseVariation) -> None:
         self.graph.add_node(pairwise_variation)
@@ -437,7 +434,6 @@ class DeduplicationGraph:
         pairwise_variations = PairwiseVariation.get_PairwiseVariation_from_ShowSNPsDataframe(ref, query, snps_df)
         self._add_pairwise_variations(pairwise_variations)
 
-
     # Note: not tested (trivial method)
     def add_variants_from_ShowSNPsDataframe_filepath(self, ShowSNPsDataframe_filepath: str) -> None:
         ref, query = DeduplicatePairwiseSNPsUtils._get_ref_and_query_from_ShowSNPsDataframe_filepath(ShowSNPsDataframe_filepath)
@@ -448,16 +444,17 @@ class DeduplicationGraph:
     def _add_edge(self, variant_1, variant_2) -> None:
         self._graph.add_edge(variant_1, variant_2)
 
-
     def build_edges(self) -> None:
         """
         Note: Should be called after all nodes are added.
         """
-        for variant_1 in self.nodes:
-            for variant_2 in self._get_pairwise_variations_in_the_same_bucket(variant_1):
-                if variant_1 != variant_2:
-                    if variant_1.share_allele(variant_2):
-                        self._add_edge(variant_1, variant_2)
+        for pairwise_variations in self.allele_to_pairwise_variations.values():
+            if len(pairwise_variations) > 1:
+                # connect the variations with a path
+                pairwise_variations_as_list = list(pairwise_variations)
+                for pairwise_variation_1, pairwise_variation_2 in \
+                    zip(pairwise_variations_as_list, pairwise_variations_as_list[1:]):
+                    self._add_edge(pairwise_variation_1, pairwise_variation_2)
 
 
     # Note: not tested (trivial method)

@@ -23,7 +23,7 @@ deduplicated_snps_dfs_text_filepaths = snakemake.output.deduplicated_snps_dfs_te
 
 # API usage
 # create the deduplication graph
-deduplication_graph = DeduplicationGraph(number_of_positions_in_each_index_bucket=100)
+deduplication_graph = DeduplicationGraph()
 logging.info("Building nodes...")
 for snps_df in snps_dfs_filepaths:
     deduplication_graph.add_variants_from_ShowSNPsDataframe_filepath(snps_df)
