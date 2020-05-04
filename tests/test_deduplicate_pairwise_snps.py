@@ -1225,7 +1225,7 @@ class TestDeduplicationGraph(TestCase):
 
     @patch.object(DeduplicationGraph, "allele_to_pairwise_variations", new_callable=PropertyMock, return_value={})
     def test___build_edges___no_shared_alleles___no_edge_built(self, *mocks):
-        self.deduplication_graph.build_edges()
+        self.deduplication_graph._build_edges()
         self.assertEqual(self.deduplication_graph.graph.number_of_edges(), 0)
 
     @patch.object(DeduplicationGraph, "allele_to_pairwise_variations", new_callable=PropertyMock)
@@ -1237,7 +1237,7 @@ class TestDeduplicationGraph(TestCase):
         "allele_3": {self.pairwise_mutations[4], self.pairwise_mutations[2]}, # add the other way
         "allele_4": {self.pairwise_mutations[3], self.pairwise_mutations[3]}, # self loop, not added
     }
-        self.deduplication_graph.build_edges()
+        self.deduplication_graph._build_edges()
         self.assertTrue(self.deduplication_graph.graph.has_edge(self.pairwise_mutations[0], self.pairwise_mutations[2]))
         self.assertTrue(self.deduplication_graph.graph.has_edge(self.pairwise_mutations[2], self.pairwise_mutations[0]))
         self.assertTrue(self.deduplication_graph.graph.has_edge(self.pairwise_mutations[1], self.pairwise_mutations[0]))
@@ -1256,7 +1256,7 @@ class TestDeduplicationGraph(TestCase):
             {self.pairwise_mutations[3]},
             {self.pairwise_mutations[4]}
         ]
-        pangenome_variations_actual = self.deduplication_graph.get_pangenome_variations()
+        pangenome_variations_actual = self.deduplication_graph.get_pangenome_variations_defined_by_allele_ids()
 
         pangenome_variations_expected = PangenomeVariations()
         for i in range(5):
@@ -1272,7 +1272,7 @@ class TestDeduplicationGraph(TestCase):
             {self.pairwise_mutations[0], self.pairwise_mutations[1], self.pairwise_mutations[2],
              self.pairwise_mutations[3], self.pairwise_mutations[4]}
         ]
-        pangenome_variations_actual = self.deduplication_graph.get_pangenome_variations()
+        pangenome_variations_actual = self.deduplication_graph.get_pangenome_variations_defined_by_allele_ids()
 
         pangenome_variations_expected = PangenomeVariations()
         pangenome_variations_expected.append(PangenomeVariation(0, self.alleles))
@@ -1285,7 +1285,7 @@ class TestDeduplicationGraph(TestCase):
             {self.pairwise_mutations[0], self.pairwise_mutations[1], self.pairwise_mutations[3], self.pairwise_mutations[4]},
             {self.pairwise_mutations[2]}
         ]
-        pangenome_variations_actual = self.deduplication_graph.get_pangenome_variations()
+        pangenome_variations_actual = self.deduplication_graph.get_pangenome_variations_defined_by_allele_ids()
 
         pangenome_variations_expected = PangenomeVariations()
         pangenome_variations_expected.append(PangenomeVariation(0, [
@@ -1306,7 +1306,7 @@ class TestDeduplicationGraph(TestCase):
             {self.pairwise_mutations[0], self.pairwise_mutations[1], self.pairwise_mutations[3]},
             {self.pairwise_mutations[2], self.pairwise_mutations[4]}
         ]
-        pangenome_variations_actual = self.deduplication_graph.get_pangenome_variations()
+        pangenome_variations_actual = self.deduplication_graph.get_pangenome_variations_defined_by_allele_ids()
 
         pangenome_variations_expected = PangenomeVariations()
         pangenome_variations_expected.append(PangenomeVariation(0, [

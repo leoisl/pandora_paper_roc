@@ -3,12 +3,11 @@ from evaluate.mummer import ShowSNPsDataframe
 from pathlib import Path
 import re
 import pickle
-from typing import Tuple, Iterable, Set, List, Generator, Dict, Optional
+from typing import Tuple, Iterable, Set, List, Generator, Dict, Optional, BinaryIO, TextIO
 import functools
 from collections import defaultdict
 import pandas as pd
 from .probe import Probe, ProbeHeader, ProbeInterval
-import itertools
 
 
 class DeduplicatedVariationsDataframe(pd.DataFrame):
@@ -84,6 +83,47 @@ class DeduplicatePairwiseSNPsUtils:
         return snps_df
 
 
+
+class MPHF:
+    def __init__(self):
+        self._object_to_id = {}
+        self._id_to_object = []
+
+    @property
+    def object_to_id(self) -> Dict[object, int]:
+        return self._object_to_id
+    @property
+    def id_to_object(self) -> List[object]:
+        return self._id_to_object
+
+    def add_object(self, object):
+        if object not in self.object_to_id:
+            new_id = self.get_number_of_objects()
+            self.object_to_id[object] = new_id
+            self.id_to_object.append(object)
+
+    def get_id(self, object) -> int:
+        return self.object_to_id[object]
+
+    def get_object(self, object_id: int) -> object:
+        return self.id_to_object[object_id]
+
+    def get_number_of_objects(self) -> int:
+        both_DS_have_the_same_length = len(self.object_to_id) == len(self.id_to_object)
+        assert both_DS_have_the_same_length
+        return len(self.object_to_id)
+
+
+    # serialization
+    def dump(self, file_with_nb_of_objects: TextIO, pickle_file: BinaryIO):
+        file_with_nb_of_objects.write(str(self.get_number_of_objects()))
+        pickle.dump(self, pickle_file)
+    @staticmethod
+    def load(file: BinaryIO) -> "AlleleMPHF":
+        return pickle.load(file)
+
+
+
 class NotASNP(Exception):
     pass
 
@@ -152,43 +192,83 @@ class Allele:
             yield ref_allele, query_allele
 
 
+
+class AlleleMPHF(MPHF):
+    def __init__(self):
+        super().__init__()
+
+    # helpers
+    def _add_variants_from_ShowSNPsDataframe_core(self, ref: str, query: str, snps_df: ShowSNPsDataframe):
+        for ref_allele, query_allele in Allele.get_alleles_from_ShowSNPsDataframe(ref, query, snps_df):
+            self.add_object(ref_allele)
+            self.add_object(query_allele)
+
+    def _add_variants_from_ShowSNPsDataframe_filepath(self, ShowSNPsDataframe_filepath):
+        ref, query = DeduplicatePairwiseSNPsUtils._get_ref_and_query_from_ShowSNPsDataframe_filepath(
+            ShowSNPsDataframe_filepath)
+        snps_df = DeduplicatePairwiseSNPsUtils._load_pickled_ShowSNPsDataframe(ShowSNPsDataframe_filepath)
+        self._add_variants_from_ShowSNPsDataframe_core(ref, query, snps_df)
+
+    @staticmethod
+    def build_from_list_of_snps_dfs_filepaths(snps_dfs_filepaths: List[str]) -> "AlleleMPHF":
+        allele_mphf = AlleleMPHF()
+        for snps_df_filepath in snps_dfs_filepaths:
+            allele_mphf._add_variants_from_ShowSNPsDataframe_filepath(snps_df_filepath)
+        return allele_mphf
+
+
+
 @functools.total_ordering
 class PairwiseVariation:
-    def __init__(self, ref_allele: Allele, query_allele: Allele):
+    """
+    Pairwise variation does not know alleles, only allele IDs
+    """
+    def __init__(self, ref_allele_id: int, query_allele_id: int,
+                 allele_mphf: AlleleMPHF):
         # this ordering is done to facilitate the usage of this class, for the equal and hash functions
-        self._allele_1 = min(ref_allele, query_allele)
-        self._allele_2 = max(ref_allele, query_allele)
+        self._allele_1_id = min(ref_allele_id, query_allele_id)
+        self._allele_2_id = max(ref_allele_id, query_allele_id)
+        self._original_ref_allele_id = ref_allele_id
+        self._original_query_allele_id = query_allele_id
+        self._allele_mphf = allele_mphf
 
-        # keep the data given to this object anyway
-        self._original_ref_allele = ref_allele
-        self._original_query_allele = query_allele
-
+    @property
+    def allele_1_id(self) -> int:
+        return self._allele_1_id
+    @property
+    def allele_2_id(self) -> int:
+        return self._allele_2_id
+    @property
+    def original_ref_allele_id(self) -> int:
+        return self._original_ref_allele_id
+    @property
+    def original_query_allele_id(self) -> int:
+        return self._original_query_allele_id
     @property
     def allele_1(self) -> Allele:
-        return self._allele_1
+        return self._allele_mphf.get_object(self.allele_1_id)
     @property
     def allele_2(self) -> Allele:
-        return self._allele_2
+        return self._allele_mphf.get_object(self.allele_2_id)
     @property
     def original_ref_allele(self) -> Allele:
-        return self._original_ref_allele
+        return self._allele_mphf.get_object(self.original_ref_allele_id)
     @property
     def original_query_allele(self) -> Allele:
-        return self._original_query_allele
+        return self._allele_mphf.get_object(self.original_query_allele_id)
 
     def __eq__(self, other: object) -> bool:
         if isinstance(other, PairwiseVariation):
-            return self.allele_1 == other.allele_1 and self.allele_2 == other.allele_2
+            return (self.allele_1_id, self.allele_2_id) == (other.allele_1_id, other.allele_2_id)
         else:
             return False
 
     def __hash__(self) -> int:
-        return hash((self.allele_1, self.allele_2))
+        return hash((self.allele_1_id, self.allele_2_id))
 
     def __lt__(self, other: object) -> bool:
         if isinstance(other, PairwiseVariation):
-            return (self.allele_1 < other.allele_1) or \
-                   (self.allele_1 == other.allele_1 and self.allele_2 < other.allele_2)
+            return (self.allele_1_id, self.allele_2_id) < (other.allele_1_id, other.allele_2_id)
         else:
             raise TypeError()
 
@@ -196,15 +276,135 @@ class PairwiseVariation:
         return str(vars(self))
 
     def share_allele(self, other: "PairwiseVariation") -> bool:
-        return self.allele_1 == other.allele_1 or self.allele_1 == other.allele_2 or \
-               self.allele_2 == other.allele_1 or self.allele_2 == other.allele_2
+        return self.allele_1_id == other.allele_1_id or self.allele_1_id == other.allele_2_id or \
+               self.allele_2_id == other.allele_1_id or self.allele_2_id == other.allele_2_id
 
     # Note: tested through DeduplicationGraph._add_variants_from_ShowSNPsDataframe_core()
     @staticmethod
-    def get_PairwiseVariation_from_ShowSNPsDataframe(ref: str, query: str, snps_df: ShowSNPsDataframe) -> Generator[
-        "PairwiseVariation", None, None]:
+    def get_PairwiseVariation_from_ShowSNPsDataframe(ref: str, query: str, snps_df: ShowSNPsDataframe,
+                                                     allele_mphf: AlleleMPHF) -> Generator["PairwiseVariation", None, None]:
         for ref_allele, query_allele in Allele.get_alleles_from_ShowSNPsDataframe(ref, query, snps_df):
-            yield PairwiseVariation(ref_allele, query_allele)
+            ref_allele_id = allele_mphf.get_id(ref_allele)
+            query_allele_id = allele_mphf.get_id(query_allele)
+            yield PairwiseVariation(ref_allele_id, query_allele_id, allele_mphf)
+
+
+
+class PairwiseVariationMPHF(MPHF):
+    def __init__(self):
+        super().__init__()
+
+    # helpers
+    def _add_variants_from_ShowSNPsDataframe_core(self, ref: str, query: str, snps_df: ShowSNPsDataframe, allele_mphf: AlleleMPHF):
+        for pairwise_variation in PairwiseVariation.get_PairwiseVariation_from_ShowSNPsDataframe(ref, query, snps_df,
+                                                                                                 allele_mphf):
+            self.add_object(pairwise_variation)
+
+    def _add_variants_from_ShowSNPsDataframe_filepath(self, ShowSNPsDataframe_filepath: str, allele_mphf: AlleleMPHF):
+        ref, query = DeduplicatePairwiseSNPsUtils._get_ref_and_query_from_ShowSNPsDataframe_filepath(
+            ShowSNPsDataframe_filepath)
+        snps_df = DeduplicatePairwiseSNPsUtils._load_pickled_ShowSNPsDataframe(ShowSNPsDataframe_filepath)
+        self._add_variants_from_ShowSNPsDataframe_core(ref, query, snps_df, allele_mphf)
+
+    @staticmethod
+    def build_from_list_of_snps_dfs_filepaths(snps_dfs_filepaths: List[str], allele_mphf_filepath: str) -> "PairwiseVariationMPHF":
+        with open(allele_mphf_filepath, "rb") as allele_mphf_file:
+            allele_mphf = AlleleMPHF.load(allele_mphf_file)
+
+        pairwise_variation_mphf = PairwiseVariationMPHF()
+        for snps_df_filepath in snps_dfs_filepaths:
+            pairwise_variation_mphf._add_variants_from_ShowSNPsDataframe_filepath(snps_df_filepath, allele_mphf)
+        return pairwise_variation_mphf
+
+    def get_pairwise_variation_id_to_alleles_id(self) -> List[Tuple[int, int]]:
+        pairwise_variation_id_to_alleles_id = []
+        for pairwise_variation in self.id_to_object:
+            pairwise_variation_id_to_alleles_id.append((pairwise_variation.allele_1_id, pairwise_variation.allele_2_id))
+        return pairwise_variation_id_to_alleles_id
+
+    def dump(self, file_with_nb_of_objects: TextIO, pickle_file: BinaryIO, pairwise_variation_id_to_alleles_id_file: BinaryIO):
+        super().dump(file_with_nb_of_objects, pickle_file)
+        pairwise_variation_id_to_alleles_id = self.get_pairwise_variation_id_to_alleles_id()
+        pickle.dump(pairwise_variation_id_to_alleles_id, pairwise_variation_id_to_alleles_id_file)
+
+
+
+class DeduplicationGraph:
+    def __init__(self, number_of_alleles: int, pairwise_variation_id_to_alleles_id: List[Tuple[int, int]]):
+        self._number_of_alleles = number_of_alleles
+        self._pairwise_variation_id_to_alleles_id = pairwise_variation_id_to_alleles_id
+        self._build_graph_nodes()
+        self._index()
+        self._build_edges()
+    @property
+    def number_of_alleles(self) -> int:
+        return self._number_of_alleles
+    @property
+    def pairwise_variation_id_to_alleles_id(self) -> List[Tuple[int, int]]:
+        return self._pairwise_variation_id_to_alleles_id
+    @property
+    def number_of_pairwise_variations(self) -> int:
+        return len(self.pairwise_variation_id_to_alleles_id)
+    @property
+    def graph(self) -> nx.Graph:
+        return self._graph
+    @property
+    def nodes(self):
+        return self.graph.nodes
+    @property
+    def edges(self):
+        return self.graph.edges
+    @property
+    def allele_to_pairwise_variations(self) -> List[Set[int]]:
+        return self._allele_to_pairwise_variations
+
+
+    def _build_graph_nodes(self):
+        self._graph = nx.Graph()
+        self._graph.add_nodes_from(range(self.number_of_pairwise_variations))
+
+    def _index(self):
+        self._allele_to_pairwise_variations = [set() for _ in range(self.number_of_alleles)]
+        for pairwise_variation_id, (allele_id_1, allele_id_2) in enumerate(self.pairwise_variation_id_to_alleles_id):
+            self._allele_to_pairwise_variations[allele_id_1].add(pairwise_variation_id)
+            self._allele_to_pairwise_variations[allele_id_2].add(pairwise_variation_id)
+
+    def _add_edge(self, variant_1, variant_2) -> None:
+        self._graph.add_edge(variant_1, variant_2)
+
+    def _build_edges(self) -> None:
+        """
+        Note: Should be called after all nodes are added.
+        """
+        for pairwise_variations in self.allele_to_pairwise_variations:
+            if len(pairwise_variations) > 1:
+                # connect the variations with a path
+                pairwise_variations_as_list = list(pairwise_variations)
+                for pairwise_variation_1, pairwise_variation_2 in \
+                    zip(pairwise_variations_as_list, pairwise_variations_as_list[1:]):
+                    self._add_edge(pairwise_variation_1, pairwise_variation_2)
+
+
+    # Note: not tested (trivial method)
+    def _get_connected_components(self) -> Generator[Set[int], None, None]:
+        return nx.connected_components(self.graph)
+
+    def get_pangenome_variations_defined_by_allele_ids(self) -> List[Set[int]]:
+        pangenome_variations_defined_by_allele_ids = []
+
+        connected_components = self._get_connected_components()
+        for connected_component_index, connected_component in enumerate(connected_components):
+            allele_ids_in_connected_component = []
+            for pairwise_variation_id in connected_component:
+                allele_ids_in_connected_component.extend(self.pairwise_variation_id_to_alleles_id[pairwise_variation_id])
+            pangenome_variation = set(allele_ids_in_connected_component)
+            pangenome_variations_defined_by_allele_ids.append(pangenome_variation)
+
+        return pangenome_variations_defined_by_allele_ids
+
+    def __repr__(self):
+        return str(vars(self))
+
 
 
 class PangenomeVariation:
@@ -285,6 +485,16 @@ class PangenomeVariations:
     def __repr__(self):
         return str(vars(self))
 
+    @staticmethod
+    def build_from_pangenome_variations_defined_by_allele_ids(pangenome_variations_defined_by_allele_ids: List[Set[int]],
+                                                              allele_mphf: AlleleMPHF) -> "PangenomeVariations":
+        pangenome_variations = PangenomeVariations()
+        for pangenome_variation_index, alleles_indexes in enumerate(pangenome_variations_defined_by_allele_ids):
+            alleles = [allele_mphf.get_object(allele_index) for allele_index in alleles_indexes]
+            pangenome_variation = PangenomeVariation(pangenome_variation_index, alleles)
+            pangenome_variations.append(pangenome_variation)
+        return pangenome_variations
+
 class InconsistentPangenomeVariations(Exception):
     pass
 
@@ -326,7 +536,8 @@ class ConsistentPangenomeVariations:
         return pangenome_variation_of_allele_1
 
 
-    def _get_DeduplicatedVariationsDataframe(self, ref: str, query: str, snps_df: ShowSNPsDataframe) -> DeduplicatedVariationsDataframe:
+    def _get_DeduplicatedVariationsDataframe(self, ref: str, query: str, snps_df: ShowSNPsDataframe,
+                                             allele_mphf: AlleleMPHF) -> DeduplicatedVariationsDataframe:
         """
         Builds a DeduplicatedVariationsDataframe from a ShowSNPsDataframe with info computed from the ConsistentPangenomeVariations.
         ** WARNING: this also modifies snps_df parameter, we dont want to make a copy**
@@ -356,7 +567,7 @@ class ConsistentPangenomeVariations:
         ref_allele_sequence_id = [-1]*len(snps_df)
         query_allele_sequence_id = [-1] * len(snps_df)
 
-        for index, pairwise_variation in enumerate(PairwiseVariation.get_PairwiseVariation_from_ShowSNPsDataframe(ref, query, snps_df)):
+        for index, pairwise_variation in enumerate(PairwiseVariation.get_PairwiseVariation_from_ShowSNPsDataframe(ref, query, snps_df, allele_mphf)):
             consistent_pangenome_variation = self.get_consistent_pangenome_variation(pairwise_variation)
             is_present = consistent_pangenome_variation is not None
             if is_present:
@@ -383,97 +594,18 @@ class ConsistentPangenomeVariations:
         return deduplicated_snps_df
 
 
-    def build_DeduplicatedVariationsDataframe_from_ShowSNPsDataframe(self, ShowSNPsDataframe_filepath: str) -> DeduplicatedVariationsDataframe:
+    def build_DeduplicatedVariationsDataframe_from_ShowSNPsDataframe(self, ShowSNPsDataframe_filepath: str,
+                                                                     allele_mphf: AlleleMPHF) -> DeduplicatedVariationsDataframe:
         """
         Loads a ShowSNPsDataframe, add all the relevant information about Consistent Pangenome Variations into it,
         builds the DeduplicatedVariationsDataframe, and filter out variations that are not in a Consistent Pangenome Variation
         """
         ref, query = DeduplicatePairwiseSNPsUtils._get_ref_and_query_from_ShowSNPsDataframe_filepath(ShowSNPsDataframe_filepath)
         snps_df = DeduplicatePairwiseSNPsUtils._load_pickled_ShowSNPsDataframe(ShowSNPsDataframe_filepath)
-        deduplicated_snps_df = self._get_DeduplicatedVariationsDataframe(ref, query, snps_df)
+        deduplicated_snps_df = self._get_DeduplicatedVariationsDataframe(ref, query, snps_df, allele_mphf)
         filtered_snps_df = deduplicated_snps_df[deduplicated_snps_df.present_in_a_consistent_pangenome_variation == True]
         filtered_snps_df.reset_index(drop=True, inplace=True)
         return DeduplicatedVariationsDataframe(filtered_snps_df)
-
-    def __repr__(self):
-        return str(vars(self))
-
-
-class DeduplicationGraph:
-    # Note: trivial methods, not tested
-    def __init__(self):
-        self._graph = nx.Graph()
-        self._allele_to_pairwise_variations = defaultdict(set)
-    @property
-    def graph(self):
-        return self._graph
-    @property
-    def nodes(self):
-        return self.graph.nodes
-    @property
-    def edges(self):
-        return self.graph.edges
-    @property
-    def allele_to_pairwise_variations(self):
-        return self._allele_to_pairwise_variations
-
-    def _index_pairwise_variation(self, pairwise_variation: PairwiseVariation) -> None:
-        for allele in [pairwise_variation.allele_1, pairwise_variation.allele_2]:
-            self.allele_to_pairwise_variations[allele].add(pairwise_variation)
-
-    def _add_pairwise_variation(self, pairwise_variation: PairwiseVariation) -> None:
-        self.graph.add_node(pairwise_variation)
-        self._index_pairwise_variation(pairwise_variation)
-
-    # Note: not tested (trivial method)
-    def _add_pairwise_variations(self, pairwise_variations: Iterable[PairwiseVariation]) -> None:
-        for pairwise_variation in pairwise_variations:
-            self._add_pairwise_variation(pairwise_variation)
-
-    def _add_variants_from_ShowSNPsDataframe_core(self, ref: str, query: str, snps_df: ShowSNPsDataframe) -> None:
-        pairwise_variations = PairwiseVariation.get_PairwiseVariation_from_ShowSNPsDataframe(ref, query, snps_df)
-        self._add_pairwise_variations(pairwise_variations)
-
-    # Note: not tested (trivial method)
-    def add_variants_from_ShowSNPsDataframe_filepath(self, ShowSNPsDataframe_filepath: str) -> None:
-        ref, query = DeduplicatePairwiseSNPsUtils._get_ref_and_query_from_ShowSNPsDataframe_filepath(ShowSNPsDataframe_filepath)
-        snps_df = DeduplicatePairwiseSNPsUtils._load_pickled_ShowSNPsDataframe(ShowSNPsDataframe_filepath)
-        self._add_variants_from_ShowSNPsDataframe_core(ref, query, snps_df)
-
-
-    def _add_edge(self, variant_1, variant_2) -> None:
-        self._graph.add_edge(variant_1, variant_2)
-
-    def build_edges(self) -> None:
-        """
-        Note: Should be called after all nodes are added.
-        """
-        for pairwise_variations in self.allele_to_pairwise_variations.values():
-            if len(pairwise_variations) > 1:
-                # connect the variations with a path
-                pairwise_variations_as_list = list(pairwise_variations)
-                for pairwise_variation_1, pairwise_variation_2 in \
-                    zip(pairwise_variations_as_list, pairwise_variations_as_list[1:]):
-                    self._add_edge(pairwise_variation_1, pairwise_variation_2)
-
-
-    # Note: not tested (trivial method)
-    def _get_connected_components(self) -> Generator[Set[PairwiseVariation], None, None]:
-        return nx.connected_components(self.graph)
-
-    def get_pangenome_variations(self) -> PangenomeVariations:
-        pangenome_variations = PangenomeVariations()
-
-        connected_components = self._get_connected_components()
-        for connected_component_index, connected_component in enumerate(connected_components):
-            alleles_in_connected_component = []
-            for pairwise_variation in connected_component:
-                alleles_in_connected_component.append(pairwise_variation.allele_1)
-                alleles_in_connected_component.append(pairwise_variation.allele_2)
-            pangenome_variation = PangenomeVariation(connected_component_index, alleles_in_connected_component)
-            pangenome_variations.append(pangenome_variation)
-
-        return pangenome_variations
 
     def __repr__(self):
         return str(vars(self))

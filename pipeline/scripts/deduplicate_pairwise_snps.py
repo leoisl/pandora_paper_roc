@@ -10,38 +10,22 @@ logging.basicConfig(
     format="[%(asctime)s]:%(levelname)s: %(message)s",
     datefmt="%d/%m/%Y %I:%M:%S %p",
 )
-from evaluate.deduplicate_pairwise_snps import DeduplicationGraph, ConsistentPangenomeVariations
+from evaluate.deduplicate_pairwise_snps import DeduplicationGraph
 import pickle
 
 
 # setup
-snps_dfs_filepaths = snakemake.input.snps_dfs
-deduplicated_snps_dfs_filepaths = snakemake.output.deduplicated_snps_dfs
-deduplicated_snps_dfs_text_filepaths = snakemake.output.deduplicated_snps_dfs_text
-
-
+number_of_alleles_filepath = Path(snakemake.input.number_of_alleles_filepath)
+pairwise_variation_id_to_alleles_id_filepath = snakemake.input.pairwise_variation_id_to_alleles_id_filepath
+pangenome_variations_defined_by_allele_ids_filepath = snakemake.output.pangenome_variations_defined_by_allele_ids
 
 # API usage
+number_of_alleles = int(number_of_alleles_filepath.read_text().strip())
+with open(pairwise_variation_id_to_alleles_id_filepath, "rb") as pairwise_variation_id_to_alleles_id_file:
+    pairwise_variation_id_to_alleles_id = pickle.load(pairwise_variation_id_to_alleles_id_file)
+
 # create the deduplication graph
-deduplication_graph = DeduplicationGraph()
-logging.info("Building nodes...")
-for snps_df in snps_dfs_filepaths:
-    deduplication_graph.add_variants_from_ShowSNPsDataframe_filepath(snps_df)
-
-logging.info("Building edges...")
-deduplication_graph.build_edges()
-
-# create the consistent pangenome variations
-logging.info("Getting pangenome variations...")
-pangenome_variations = deduplication_graph.get_pangenome_variations()
-logging.info("Getting consistent pangenome variations...")
-consistent_pangenome_variations = ConsistentPangenomeVariations(pangenome_variations)
-
-# write the enriched and filtered deduplicated variations
-logging.info("Outputting...")
-for snps_df_filepath, deduplicated_snps_df_filepath, deduplicated_snps_df_text_filepath \
-        in zip(snps_dfs_filepaths, deduplicated_snps_dfs_filepaths, deduplicated_snps_dfs_text_filepaths):
-    deduplicated_snps_df = consistent_pangenome_variations.build_DeduplicatedVariationsDataframe_from_ShowSNPsDataframe(snps_df_filepath)
-    with open(deduplicated_snps_df_filepath, "wb") as deduplicated_snps_df_fh:
-        pickle.dump(deduplicated_snps_df, file=deduplicated_snps_df_fh)
-    deduplicated_snps_df.to_csv(deduplicated_snps_df_text_filepath, index=False)
+deduplication_graph = DeduplicationGraph(number_of_alleles, pairwise_variation_id_to_alleles_id)
+pangenome_variations = deduplication_graph.get_pangenome_variations_defined_by_allele_ids()
+with open(pangenome_variations_defined_by_allele_ids_filepath, "wb") as pangenome_variations_defined_by_allele_ids_file:
+    pickle.dump(pangenome_variations, pangenome_variations_defined_by_allele_ids_file)
