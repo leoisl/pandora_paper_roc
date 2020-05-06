@@ -37,3 +37,44 @@ rule fix_snippy_vcf_for_pipeline:
     script:
         "../scripts/fix_snippy_vcf.py"
 
+
+rule make_empty_depth_file:
+    input:
+        file = "{file}"
+    output:
+        empty_depth_file = "{file}.depth"
+    threads: 1
+    resources:
+        mem_mb = lambda wildcards, attempt: 100 * attempt
+    log:
+        "logs/make_empty_depth_file{file}.log"
+    shell:
+        "touch {output.empty_depth_file}"
+
+
+rule gzip_vcf_file:
+    input:
+        vcf_file = "{filename}.vcf"
+    output:
+        gzipped_vcf_file = "{filename}.vcf.gz"
+    threads: 1
+    resources:
+        mem_mb = lambda wildcards, attempt: 4000 * attempt
+    log:
+        "logs/gzip_vcf_file{filename}.log"
+    shell:
+        "bgzip -c {input.vcf_file} > {output.gzipped_vcf_file}"
+
+
+rule index_gzipped_vcf_file:
+    input:
+        gzipped_vcf_file = rules.gzip_vcf_file.output.gzipped_vcf_file
+    output:
+        indexed_gzipped_vcf_file = "{filename}.vcf.gz.tbi"
+    threads: 1
+    resources:
+        mem_mb = lambda wildcards, attempt: 4000 * attempt
+    log:
+        "logs/index_gzipped_vcf_file{filename}.log"
+    shell:
+        "tabix -p vcf {input.gzipped_vcf_file}"

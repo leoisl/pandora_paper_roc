@@ -29,6 +29,7 @@ step_gt_conf_percentile = int(config['step_gt_conf_percentile'])
 # Global variables
 # ======================================================
 output_folder = config['output_folder']
+deduplicated_variants_output_folder = config['deduplicated_variants_output_folder']
 data: pd.DataFrame = pd.merge(variant_calls, samples, on="sample_id")
 data = data.set_index(["sample_id", "coverage", "tool"], drop=False)
 samples = samples.set_index(["sample_id"], drop=False)
