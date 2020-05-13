@@ -188,22 +188,46 @@ class RecallReport(Report):
     def _get_id_to_nb_of_alleles(self) -> pd.DataFrame:
         return self._get_id_to_total_nb_of_objects(
             field_containing_total_nb_of_objects="NUMBER_OF_ALLELES")
+    def _get_id_to_nb_of_samples(self) -> pd.DataFrame:
+        return self._get_id_to_total_nb_of_objects(
+            field_containing_total_nb_of_objects="NB_OF_SAMPLES")
 
 
-    def get_proportion_of_allele_seqs_found_for_each_variant(self) -> List[float]:
+    def _get_df_with_recall_proportions(self) -> pd.DataFrame:
         id_to_nb_of_allele_sequences_found = self._get_id_to_nb_of_allele_sequences_found()
         id_to_nb_of_different_allele_sequences = self._get_id_to_nb_of_different_allele_sequences()
-        merged_data = id_to_nb_of_allele_sequences_found.merge(
+        allele_seqs_merged_data = id_to_nb_of_allele_sequences_found.merge(
             id_to_nb_of_different_allele_sequences, left_index=True, right_index=True)
-        merged_data["proportion_of_allele_seqs_found"] = \
-            merged_data["NB_OF_ALLELE_SEQUENCE_ID_FOUND"] / merged_data["NUMBER_OF_DIFFERENT_ALLELE_SEQUENCES"]
-        return merged_data["proportion_of_allele_seqs_found"].to_list()
+        allele_seqs_merged_data["proportion_of_allele_seqs_found"] = \
+            allele_seqs_merged_data["NB_OF_ALLELE_SEQUENCE_ID_FOUND"] / allele_seqs_merged_data["NUMBER_OF_DIFFERENT_ALLELE_SEQUENCES"]
 
-    def get_proportion_of_alleles_found_for_each_variant(self) -> List[float]:
         id_to_nb_of_alleles_found = self._get_id_to_nb_of_alleles_found()
         id_to_nb_of_alleles = self._get_id_to_nb_of_alleles()
-        merged_data = id_to_nb_of_alleles_found.merge(
+        alleles_merged_data = id_to_nb_of_alleles_found.merge(
             id_to_nb_of_alleles, left_index=True, right_index=True)
-        merged_data["proportion_of_alleles_found"] = \
-            merged_data["NB_OF_ALLELE_ID_FOUND"] / merged_data["NUMBER_OF_ALLELES"]
+        alleles_merged_data["proportion_of_alleles_found"] = \
+            alleles_merged_data["NB_OF_ALLELE_ID_FOUND"] / alleles_merged_data["NUMBER_OF_ALLELES"]
+
+        merged_data = allele_seqs_merged_data.merge(alleles_merged_data, left_index=True, right_index=True)
+        return merged_data
+
+
+    def _get_df_with_recall_proportions_and_with_nb_of_samples(self) -> pd.DataFrame:
+        merged_data = self._get_df_with_recall_proportions()
+        id_to_nb_of_samples = self._get_id_to_nb_of_samples()
+        merged_data = merged_data.merge(id_to_nb_of_samples, left_index=True, right_index=True)
+        return merged_data
+
+    def get_proportion_of_allele_seqs_found_for_each_variant(self) -> List[float]:
+        merged_data = self._get_df_with_recall_proportions()
+        return merged_data["proportion_of_allele_seqs_found"].to_list()
+
+    def get_proportion_of_allele_seqs_found_for_each_variant_with_nb_of_samples(self) -> pd.DataFrame:
+        merged_data = self._get_df_with_recall_proportions_and_with_nb_of_samples()
+        return merged_data[["proportion_of_allele_seqs_found", "NB_OF_SAMPLES"]]
+
+
+    def get_proportion_of_alleles_found_for_each_variant(self) -> List[float]:
+        merged_data = self._get_df_with_recall_proportions()
         return merged_data["proportion_of_alleles_found"].to_list()
+

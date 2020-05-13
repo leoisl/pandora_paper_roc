@@ -536,26 +536,47 @@ S1,16,3,2,False
         assert actual.equals(expected)
 
     @patch.object(RecallReport, RecallReport._create_helper_columns.__name__)
+    def test____get_id_to_nb_of_samples(self, *mocks):
+        contents = StringIO(
+            """sample,query_probe_header,PANGENOME_VARIATION_ID,NB_OF_SAMPLES
+            S1,0,2,3
+            S2,1,0,4
+            S3,2,1,10
+            """)
+        report = RecallReport([pd.read_csv(contents)], False)
+        actual = report._get_id_to_nb_of_samples()
+        expected = pd.read_csv(StringIO(
+            """PANGENOME_VARIATION_ID,NB_OF_SAMPLES
+            0,4
+            1,10
+            2,3
+            """), index_col="PANGENOME_VARIATION_ID")
+
+        assert actual.equals(expected)
+
+
+
+    @patch.object(RecallReport, RecallReport._create_helper_columns.__name__)
     def test___get_proportion_of_allele_seqs_found_for_each_variant(self, *mocks):
         contents = StringIO(
-"""sample,query_probe_header,PANGENOME_VARIATION_ID,ALLELE_SEQUENCE_ID,NUMBER_OF_DIFFERENT_ALLELE_SEQUENCES,good_eval
-S1,1,2,0,10,True
-S2,2,0,2,1,False
-S3,3,1,1,3,True
-S4,4,0,2,1,True
-S5,5,1,1,3,False
-S6,6,1,2,3,False
-S7,7,2,1,10,True
-S8,8,1,2,3,True
-S1,9,2,2,10,True
-S1,10,0,2,1,False
-S1,11,2,3,10,True
-S1,12,1,3,3,False
-S1,13,2,4,10,False
-S1,14,2,5,10,False
-S1,15,2,6,10,False
-S1,16,3,0,2,False
-S1,17,3,1,2,False
+"""sample,query_probe_header,PANGENOME_VARIATION_ID,ALLELE_SEQUENCE_ID,NUMBER_OF_DIFFERENT_ALLELE_SEQUENCES,good_eval,ALLELE_ID,NUMBER_OF_ALLELES
+S1,1,2,0,10,True,0,0
+S2,2,0,2,1,False,0,0
+S3,3,1,1,3,True,0,0
+S4,4,0,2,1,True,0,0
+S5,5,1,1,3,False,0,0
+S6,6,1,2,3,False,0,0
+S7,7,2,1,10,True,0,0
+S8,8,1,2,3,True,0,0
+S1,9,2,2,10,True,0,0
+S1,10,0,2,1,False,0,0
+S1,11,2,3,10,True,0,0
+S1,12,1,3,3,False,0,0
+S1,13,2,4,10,False,0,0
+S1,14,2,5,10,False,0,0
+S1,15,2,6,10,False,0,0
+S1,16,3,0,2,False,0,0
+S1,17,3,1,2,False,0,0
 """)
         report = RecallReport([pd.read_csv(contents)], False)
         actual = report.get_proportion_of_allele_seqs_found_for_each_variant()
@@ -564,14 +585,49 @@ S1,17,3,1,2,False
         assert actual == expected
 
     @patch.object(RecallReport, RecallReport._create_helper_columns.__name__)
+    def test___get_proportion_of_allele_seqs_found_for_each_variant_with_nb_of_samples(self, *mocks):
+        contents = StringIO(
+            """sample,query_probe_header,PANGENOME_VARIATION_ID,ALLELE_SEQUENCE_ID,NUMBER_OF_DIFFERENT_ALLELE_SEQUENCES,good_eval,ALLELE_ID,NUMBER_OF_ALLELES,NB_OF_SAMPLES
+            S1,1,2,0,10,True,0,0,20
+            S2,2,0,2,1,False,0,0,1
+            S3,3,1,1,3,True,0,0,10
+            S4,4,0,2,1,True,0,0,1
+            S5,5,1,1,3,False,0,0,10
+            S6,6,1,2,3,False,0,0,10
+            S7,7,2,1,10,True,0,0,20
+            S8,8,1,2,3,True,0,0,10
+            S1,9,2,2,10,True,0,0,20
+            S1,10,0,2,1,False,0,0,1
+            S1,11,2,3,10,True,0,0,20
+            S1,12,1,3,3,False,0,0,10
+            S1,13,2,4,10,False,0,0,20
+            S1,14,2,5,10,False,0,0,20
+            S1,15,2,6,10,False,0,0,20
+            S1,16,3,0,2,False,0,0,30
+            S1,17,3,1,2,False,0,0,30
+            """)
+        report = RecallReport([pd.read_csv(contents)], False)
+        actual = report.get_proportion_of_allele_seqs_found_for_each_variant_with_nb_of_samples()
+        expected = pd.read_csv(StringIO(
+            """PANGENOME_VARIATION_ID,proportion_of_allele_seqs_found,NB_OF_SAMPLES
+            0,1.0,1
+            1,0.6666666666666666,10
+            2,0.4,20
+            3,0.0,30
+            """
+        ), index_col="PANGENOME_VARIATION_ID")
+
+        assert actual.equals(expected)
+
+    @patch.object(RecallReport, RecallReport._create_helper_columns.__name__)
     def test___get_proportion_of_allele_seqs_found_for_each_variant___duplicated_evaluation_is_disregarded(self, *mocks):
         contents = StringIO(
-            """sample,query_probe_header,PANGENOME_VARIATION_ID,ALLELE_SEQUENCE_ID,NUMBER_OF_DIFFERENT_ALLELE_SEQUENCES,good_eval
-            S1,1,0,0,5,True
-            S1,2,0,1,5,True
-            S1,3,0,0,5,True
-            S1,4,0,0,5,True
-            S1,5,0,1,5,True
+            """sample,query_probe_header,PANGENOME_VARIATION_ID,ALLELE_SEQUENCE_ID,NUMBER_OF_DIFFERENT_ALLELE_SEQUENCES,good_eval,ALLELE_ID,NUMBER_OF_ALLELES
+            S1,1,0,0,5,True,0,0
+            S1,2,0,1,5,True,0,0
+            S1,3,0,0,5,True,0,0
+            S1,4,0,0,5,True,0,0
+            S1,5,0,1,5,True,0,0
             """)
         report = RecallReport([pd.read_csv(contents)], False)
         actual = report.get_proportion_of_allele_seqs_found_for_each_variant()
@@ -582,24 +638,24 @@ S1,17,3,1,2,False
     @patch.object(RecallReport, RecallReport._create_helper_columns.__name__)
     def test___get_proportion_of_alleles_found_for_each_variant(self, *mocks):
         contents = StringIO(
-"""sample,query_probe_header,PANGENOME_VARIATION_ID,ALLELE_ID,NUMBER_OF_ALLELES,good_eval
-S1,0,2,0,10,True
-S2,1,0,2,1,False
-S3,2,1,1,3,True
-S4,3,0,2,1,True
-S5,4,1,1,3,False
-S6,5,1,2,3,False
-S7,6,2,1,10,True
-S8,7,1,2,3,True
-S1,8,2,2,10,True
-S1,9,0,2,1,False
-S1,10,2,3,10,True
-S1,11,1,3,3,False
-S1,12,2,4,10,False
-S1,13,2,5,10,False
-S1,14,2,6,10,False
-S1,15,3,0,2,False
-S1,16,3,1,2,False
+"""sample,query_probe_header,PANGENOME_VARIATION_ID,ALLELE_ID,NUMBER_OF_ALLELES,good_eval,ALLELE_SEQUENCE_ID,NUMBER_OF_DIFFERENT_ALLELE_SEQUENCES
+S1,0,2,0,10,True,0,0
+S2,1,0,2,1,False,0,0
+S3,2,1,1,3,True,0,0
+S4,3,0,2,1,True,0,0
+S5,4,1,1,3,False,0,0
+S6,5,1,2,3,False,0,0
+S7,6,2,1,10,True,0,0
+S8,7,1,2,3,True,0,0
+S1,8,2,2,10,True,0,0
+S1,9,0,2,1,False,0,0
+S1,10,2,3,10,True,0,0
+S1,11,1,3,3,False,0,0
+S1,12,2,4,10,False,0,0
+S1,13,2,5,10,False,0,0
+S1,14,2,6,10,False,0,0
+S1,15,3,0,2,False,0,0
+S1,16,3,1,2,False,0,0
 """)
         report = RecallReport([pd.read_csv(contents)], False)
         actual = report.get_proportion_of_alleles_found_for_each_variant()
@@ -611,12 +667,12 @@ S1,16,3,1,2,False
     @patch.object(RecallReport, RecallReport._create_helper_columns.__name__)
     def test___get_proportion_of_alleles_found_for_each_variant___duplicated_evaluation_is_disregarded(self, *mocks):
         contents = StringIO(
-            """sample,query_probe_header,PANGENOME_VARIATION_ID,ALLELE_ID,NUMBER_OF_ALLELES,good_eval
-            S1,1,0,0,5,True
-            S1,2,0,1,5,True
-            S1,3,0,0,5,True
-            S1,4,0,0,5,True
-            S1,5,0,1,5,True
+            """sample,query_probe_header,PANGENOME_VARIATION_ID,ALLELE_ID,NUMBER_OF_ALLELES,good_eval,ALLELE_SEQUENCE_ID,NUMBER_OF_DIFFERENT_ALLELE_SEQUENCES
+            S1,1,0,0,5,True,0,0
+            S1,2,0,1,5,True,0,0
+            S1,3,0,0,5,True,0,0
+            S1,4,0,0,5,True,0,0
+            S1,5,0,1,5,True,0,0
             """)
         report = RecallReport([pd.read_csv(contents)], False)
         actual = report.get_proportion_of_alleles_found_for_each_variant()

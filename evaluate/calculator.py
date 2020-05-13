@@ -144,6 +144,26 @@ class RecallCalculator(Calculator):
 
         return recall_df
 
+
+    def get_recall_vs_nb_of_samples_report(self, list_with_nb_of_samples) -> pd.DataFrame:
+        df_with_all_nb_of_samples = self.report.get_proportion_of_allele_seqs_found_for_each_variant_with_nb_of_samples()
+        df_with_all_nb_of_samples = df_with_all_nb_of_samples.groupby(by="NB_OF_SAMPLES", as_index=False).mean() \
+            .rename(columns={"proportion_of_allele_seqs_found": "recall"})
+
+        # get a subset of df_with_all_nb_of_samples
+        recalls = []
+        for nb_of_samples in list_with_nb_of_samples:
+            if nb_of_samples in df_with_all_nb_of_samples["NB_OF_SAMPLES"].to_list():
+                recall = df_with_all_nb_of_samples[df_with_all_nb_of_samples.NB_OF_SAMPLES == nb_of_samples]["recall"].to_list()[0]
+                recalls.append(recall)
+            else:
+                recalls.append(0.0)
+
+        df = pd.DataFrame({"NB_OF_SAMPLES": list_with_nb_of_samples, "recall": recalls})
+        df = df.astype({"NB_OF_SAMPLES": int, "recall": float})
+        return df
+
+
     @staticmethod
     def _calculate_info_wrt_truth_probes(report: RecallReport) -> Tuple[float, float]:
         classifications = report.get_classifications_as_list()

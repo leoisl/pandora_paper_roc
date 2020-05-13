@@ -12,6 +12,7 @@ from evaluate.report import (
     RecallReport
 )
 from tests.common import create_precision_report_row
+from io import StringIO
 
 class TestPrecisionCalculator:
     def test_calculatePrecision_NoReportsRaisesEmptyReportError(self):
@@ -205,3 +206,63 @@ class TestRecallCalculator:
         assert recall_info_actual.recall_wrt_truth_probes == 0.5
         assert recall_info_actual.recall_wrt_variants_where_all_allele_seqs_were_found == 0.4
         assert recall_info_actual.recall_wrt_variants_found_wrt_alleles == 0.8
+
+
+    @patch.object(RecallReport, RecallReport.get_proportion_of_allele_seqs_found_for_each_variant_with_nb_of_samples.__name__,
+                  return_value=
+    pd.read_csv(StringIO(
+        """PANGENOME_VARIATION_ID,proportion_of_allele_seqs_found,NB_OF_SAMPLES
+        0,1.0,3
+        1,0.5,5
+        2,0.0,7
+        3,1.0,5
+        4,0.0,5
+        5,1.0,3
+        """
+    ), index_col="PANGENOME_VARIATION_ID"))
+    @patch.object(RecallReport, RecallReport._create_helper_columns.__name__)
+    @patch.object(RecallReport, RecallReport.assure_there_are_no_duplicated_evaluation.__name__)
+    def test___get_recall_vs_nb_of_samples_report(self, *mocks):
+        report = RecallReport([pd.DataFrame()], False)
+        calculator = RecallCalculator(report)
+        actual = calculator.get_recall_vs_nb_of_samples_report(list(range(2, 8)))
+        expected = pd.read_csv(StringIO(
+            """NB_OF_SAMPLES,recall
+            2,0.0
+            3,1.0
+            4,0.0
+            5,0.5
+            6,0.0
+            7,0.0
+            """
+        ))
+
+        assert actual.equals(expected)
+
+
+    @patch.object(RecallReport, RecallReport.get_proportion_of_allele_seqs_found_for_each_variant_with_nb_of_samples.__name__,
+                  return_value=
+    pd.read_csv(StringIO(
+        """PANGENOME_VARIATION_ID,proportion_of_allele_seqs_found,NB_OF_SAMPLES
+        0,1.0,3
+        1,0.5,5
+        2,0.0,7
+        3,1.0,5
+        4,0.0,5
+        5,1.0,3
+        """
+    ), index_col="PANGENOME_VARIATION_ID"))
+    @patch.object(RecallReport, RecallReport._create_helper_columns.__name__)
+    @patch.object(RecallReport, RecallReport.assure_there_are_no_duplicated_evaluation.__name__)
+    def test___get_recall_vs_nb_of_samples_report___return_only_the_samples_given_in_parameter(self, *mocks):
+        report = RecallReport([pd.DataFrame()], False)
+        calculator = RecallCalculator(report)
+        actual = calculator.get_recall_vs_nb_of_samples_report([2, 5])
+        expected = pd.read_csv(StringIO(
+            """NB_OF_SAMPLES,recall
+            2,0.0
+            5,0.5
+            """
+        ))
+
+        assert actual.equals(expected)
