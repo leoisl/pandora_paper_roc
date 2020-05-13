@@ -176,12 +176,12 @@ class RecallReport(Report):
 
 
     def _get_id_to_total_nb_of_objects(self, field_containing_total_nb_of_objects: str) -> pd.DataFrame:
-        id_to_nb_of_different_allele_sequences = self.report[["PANGENOME_VARIATION_ID", field_containing_total_nb_of_objects]].copy(deep=True)
-        id_to_nb_of_different_allele_sequences.drop_duplicates(inplace=True, ignore_index=True)
-        id_to_nb_of_different_allele_sequences.sort_values(by="PANGENOME_VARIATION_ID", inplace=True)
-        id_to_nb_of_different_allele_sequences.set_index("PANGENOME_VARIATION_ID", inplace=True)
-        assert len(id_to_nb_of_different_allele_sequences) == self.get_number_of_variants()
-        return id_to_nb_of_different_allele_sequences
+        id_to_total = self.report[["PANGENOME_VARIATION_ID", field_containing_total_nb_of_objects]].copy(deep=True)
+        id_to_total.drop_duplicates(inplace=True, ignore_index=True)
+        id_to_total.sort_values(by="PANGENOME_VARIATION_ID", inplace=True)
+        id_to_total.set_index("PANGENOME_VARIATION_ID", inplace=True)
+        assert len(id_to_total) == self.get_number_of_variants()
+        return id_to_total
     def _get_id_to_nb_of_different_allele_sequences(self) -> pd.DataFrame:
         return self._get_id_to_total_nb_of_objects(
             field_containing_total_nb_of_objects="NUMBER_OF_DIFFERENT_ALLELE_SEQUENCES")
