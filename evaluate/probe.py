@@ -40,20 +40,21 @@ class ProbeInterval(NamedTuple):
 
 class ProbeHeader:
     def __init__(
-        self,
-        sample: str = None,
-        chrom: str = None,
-        pos: int = None,
-        ref_length: int = None,
-        interval: ProbeInterval = None,
-        svtype: str = None,
-        gt_conf: float = None,
-        coverage: float = None,
-        pangenome_variation_id: int = None,
-        number_of_alleles: int = None,
-        allele_id: int = None,
-        number_of_different_allele_sequences : int = None,
-        allele_sequence_id : int = None,
+            self,
+            sample: str = None,
+            chrom: str = None,
+            pos: int = None,
+            ref_length: int = None,
+            interval: ProbeInterval = None,
+            svtype: str = None,
+            gt_conf: float = None,
+            coverage: float = None,
+            pangenome_variation_id: int = None,
+            number_of_alleles: int = None,
+            allele_id: int = None,
+            number_of_different_allele_sequences: int = None,
+            allele_sequence_id: int = None,
+            nb_of_samples: int = None,
     ):
         self.chrom = chrom
         self.sample = sample
@@ -68,6 +69,7 @@ class ProbeHeader:
         self.allele_id = allele_id
         self.number_of_different_allele_sequences = number_of_different_allele_sequences
         self.allele_sequence_id = allele_sequence_id
+        self.nb_of_samples = nb_of_samples
 
     def __eq__(self, other: "ProbeHeader") -> bool:
         return (
@@ -82,6 +84,7 @@ class ProbeHeader:
                 and self.pangenome_variation_id == other.pangenome_variation_id
                 and self.allele_id == other.allele_id
                 and self.allele_sequence_id == other.allele_sequence_id
+                and self.nb_of_samples == other.nb_of_samples
         )
 
     def __str__(self) -> str:
@@ -94,7 +97,7 @@ class ProbeHeader:
     @staticmethod
     def from_string(string: str) -> "ProbeHeader":
         def parse_field_from_header(
-            field: str, header: str, return_type: Type, value_to_return_if_not_found, delim: str = DELIM,
+                field: str, header: str, return_type: Type, value_to_return_if_not_found, delim: str = DELIM,
         ):
             regex = re.compile(f"{field}=(.+?){delim}")
             match = regex.search(header)
@@ -116,8 +119,10 @@ class ProbeHeader:
         pangenome_variation_id = parse_field_from_header("PANGENOME_VARIATION_ID", string, int, None)
         number_of_alleles = parse_field_from_header("NUMBER_OF_ALLELES", string, int, None)
         allele_id = parse_field_from_header("ALLELE_ID", string, int, None)
-        number_of_different_allele_sequences = parse_field_from_header("NUMBER_OF_DIFFERENT_ALLELE_SEQUENCES", string, int, None)
+        number_of_different_allele_sequences = parse_field_from_header("NUMBER_OF_DIFFERENT_ALLELE_SEQUENCES", string,
+                                                                       int, None)
         allele_sequence_id = parse_field_from_header("ALLELE_SEQUENCE_ID", string, int, None)
+        nb_of_samples = parse_field_from_header("NB_OF_SAMPLES", string, int, None)
 
         return ProbeHeader(
             sample=sample,
@@ -133,6 +138,7 @@ class ProbeHeader:
             allele_id=allele_id,
             number_of_different_allele_sequences=number_of_different_allele_sequences,
             allele_sequence_id=allele_sequence_id,
+            nb_of_samples=nb_of_samples
         )
 
 
