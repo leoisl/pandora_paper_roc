@@ -120,7 +120,7 @@ for sample, coverage, tool, coverage_threshold, strand_bias_threshold, gaps_thre
             add(f"{output_folder}/recall/reports/{sample}/{coverage}/{tool}/coverage_filter_{coverage_threshold}/strand_bias_filter_{strand_bias_threshold}/gaps_filter_{gaps_threshold}/gt_conf_percentile_0/{sample_pair}.report.tsv")
     cov_tool_and_filters_recall_per_number_of_samples[(coverage, tool, coverage_threshold, strand_bias_threshold, gaps_threshold)] = f"{output_folder}/recall/recall_per_number_of_samples/{coverage}/{tool}/coverage_filter_{coverage_threshold}/strand_bias_filter_{strand_bias_threshold}/gaps_filter_{gaps_threshold}/recall_per_number_of_samples.csv"
 
-all_recall_files.add(output_folder + "/recall/recall_per_number_of_samples/aggregated.csv")
+all_recall_files.add(output_folder + "/plot_data/recall_per_number_of_samples.csv")
 files.extend(list(all_recall_files))
 
 
