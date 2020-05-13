@@ -36,6 +36,8 @@ samples = samples.set_index(["sample_id"], drop=False)
 sample_pairs = [(sample1, sample2) for sample1, sample2 in itertools.combinations(sorted(samples["sample_id"]), r=2)]
 sample_pairs_as_str = [f"{sample1}/{sample1}_and_{sample2}" for sample1, sample2 in sample_pairs]
 gt_conf_percentiles = list(range(0, max_gt_conf_percentile, step_gt_conf_percentile))
+number_of_samples = len(samples)
+list_with_number_of_samples = list(range(2, number_of_samples+1))
 
 
 # ======================================================
@@ -109,9 +111,17 @@ all_recall_per_sample_no_gt_conf_filter = list(all_recall_per_sample_no_gt_conf_
 all_recall_per_sample_pair_no_gt_conf_filter = list(all_recall_per_sample_pair_no_gt_conf_filter)
 
 
+all_recall_reports_with_no_gt_conf_filter = set()
+all_recalls_per_number_of_samples = set()
 for sample, coverage, tool, coverage_threshold, strand_bias_threshold, gaps_threshold in sample_cov_tool_and_filters_to_recall_report_files:
     all_recall_files.add(f"{output_folder}/recall/recall_files/{coverage}/{tool}/coverage_filter_{coverage_threshold}/strand_bias_filter_{strand_bias_threshold}/gaps_filter_{gaps_threshold}/recall.tsv")
+    for sample_pair in get_sample_pairs_containing_given_sample(sample_pairs, sample):
+        all_recall_reports_with_no_gt_conf_filter.add(
+            f"{output_folder}/recall/reports/{sample}/{coverage}/{tool}/coverage_filter_{coverage_threshold}/strand_bias_filter_{strand_bias_threshold}/gaps_filter_{gaps_threshold}/gt_conf_percentile_0/{sample_pair}.report.tsv")
+    for sample_number in list_with_number_of_samples:
+        all_recalls_per_number_of_samples.add(f"{output_folder}/recall/recall_per_number_of_samples/{coverage}/{tool}/coverage_filter_{coverage_threshold}/strand_bias_filter_{strand_bias_threshold}/gaps_filter_{gaps_threshold}/recall_{number_of_samples}_samples.tsv")
 
+all_recall_files.update(all_recalls_per_number_of_samples)
 files.extend(list(all_recall_files))
 
 

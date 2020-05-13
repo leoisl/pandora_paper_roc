@@ -175,3 +175,16 @@ rule calculate_recall_per_sample_pair_no_gt_conf_filter:
         "logs/calculate_recall_per_sample_pair_no_gt_conf_filter/{sample_id}/{coverage}/{tool}/coverage_filter_{coverage_threshold}/strand_bias_filter_{strand_bias_threshold}/gaps_filter_{gaps_threshold}/{sample_pair}.recall.log"
     script:
         "../scripts/calculate_recall_per_sample_pair_no_gt_conf_filter.py"
+
+rule calculate_recall_per_number_of_samples_no_gt_conf_filter:
+    input:
+         all_recall_reports_with_no_gt_conf_filter = all_recall_reports_with_no_gt_conf_filter
+    output:
+         recalls_per_number_of_samples = expand(output_folder + "/recall/recall_per_number_of_samples/{{coverage}}/{{tool}}/coverage_filter_{{coverage_threshold}}/strand_bias_filter_{{strand_bias_threshold}}/gaps_filter_{{gaps_threshold}}/recall_{number_of_samples}_samples.tsv", number_of_samples=list_with_number_of_samples)
+    threads: 1
+    resources:
+        mem_mb = lambda wildcards, attempt: 4000 * attempt
+    log:
+        "logs/calculate_recall_per_number_of_samples_no_gt_conf_filter/{coverage}/{tool}/coverage_filter_{coverage_threshold}/strand_bias_filter_{strand_bias_threshold}/gaps_filter_{gaps_threshold}/recall_per_number_of_samples.log"
+    script:
+        "../scripts/calculate_recall_per_number_of_samples_no_gt_conf_filter.py"
