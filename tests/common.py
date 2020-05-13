@@ -292,7 +292,8 @@ def create_recall_report_row(
         "NUMBER_OF_ALLELES": None,
         "ALLELE_ID": None,
         "NUMBER_OF_DIFFERENT_ALLELE_SEQUENCES": None,
-        "ALLELE_SEQUENCE_ID": None
+        "ALLELE_SEQUENCE_ID": None,
+        "NB_OF_SAMPLES": None,
     }
     if with_gt_conf:
         data["GT_CONF"] = gt_conf

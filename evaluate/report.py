@@ -73,6 +73,8 @@ class Report:
         self._create_field_from_header("NUMBER_OF_DIFFERENT_ALLELE_SEQUENCES", probe_header, int, None)
     def _create_allele_sequence_id_column_from(self, probe_header: str) -> None:
         self._create_field_from_header("ALLELE_SEQUENCE_ID", probe_header, int, None)
+    def _create_nb_of_samples_column_from(self, probe_header: str) -> None:
+        self._create_field_from_header("NB_OF_SAMPLES", probe_header, int, None)
 
 
     def _create_good_eval_column(self) -> None:
@@ -119,6 +121,7 @@ class RecallReport(Report):
         self._create_allele_id_column_from("query_probe_header")
         self._create_number_of_different_allele_sequences_column_from("query_probe_header")
         self._create_allele_sequence_id_column_from("query_probe_header")
+        self._create_nb_of_samples_column_from("query_probe_header")
         self._create_good_eval_column()
 
 
