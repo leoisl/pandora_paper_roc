@@ -158,16 +158,16 @@ class RecallReport(Report):
 
 
     def _get_id_to_nb_of_found_objects(self, object_to_find: str) -> pd.DataFrame:
-        id_to_nb_of_allele_sequences_found = self.report[["PANGENOME_VARIATION_ID", object_to_find, "good_eval"]].copy(deep=True)
-        id_to_nb_of_allele_sequences_found.drop_duplicates(inplace=True, ignore_index=True)
+        id_to_objects_found = self.report[["PANGENOME_VARIATION_ID", object_to_find, "good_eval"]].copy(deep=True)
+        id_to_objects_found.drop_duplicates(inplace=True, ignore_index=True)
         nb_objects_found_column_name = f"NB_OF_{object_to_find}_FOUND"
-        id_to_nb_of_allele_sequences_found = id_to_nb_of_allele_sequences_found.groupby(by="PANGENOME_VARIATION_ID")\
+        id_to_objects_found = id_to_objects_found.groupby(by="PANGENOME_VARIATION_ID")\
             .sum()\
             .rename(columns={"good_eval": nb_objects_found_column_name})
-        id_to_nb_of_allele_sequences_found = id_to_nb_of_allele_sequences_found[[nb_objects_found_column_name]].copy(deep=True)
-        id_to_nb_of_allele_sequences_found = id_to_nb_of_allele_sequences_found.astype({nb_objects_found_column_name: 'int'})
-        assert len(id_to_nb_of_allele_sequences_found) == self.get_number_of_variants()
-        return id_to_nb_of_allele_sequences_found
+        id_to_objects_found = id_to_objects_found[[nb_objects_found_column_name]].copy(deep=True)
+        id_to_objects_found = id_to_objects_found.astype({nb_objects_found_column_name: 'int'})
+        assert len(id_to_objects_found) == self.get_number_of_variants()
+        return id_to_objects_found
     def _get_id_to_nb_of_allele_sequences_found(self) -> pd.DataFrame:
         return self._get_id_to_nb_of_found_objects(object_to_find="ALLELE_SEQUENCE_ID")
     def _get_id_to_nb_of_alleles_found(self) -> pd.DataFrame:
@@ -188,7 +188,6 @@ class RecallReport(Report):
     def _get_id_to_nb_of_alleles(self) -> pd.DataFrame:
         return self._get_id_to_total_nb_of_objects(
             field_containing_total_nb_of_objects="NUMBER_OF_ALLELES")
-
 
 
     def get_proportion_of_allele_seqs_found_for_each_variant(self) -> List[float]:
