@@ -10,11 +10,27 @@ logging.basicConfig(
     format="[%(asctime)s]:%(levelname)s: %(message)s",
     datefmt="%d/%m/%Y %I:%M:%S %p",
 )
+from evaluate.report import RecallReport
+from evaluate.calculator import RecallCalculator
 
 
 # setup
 all_recall_reports_with_no_gt_conf_filter = snakemake.input.all_recall_reports_with_no_gt_conf_filter
-recalls_per_number_of_samples = snakemake.output.recalls_per_number_of_samples
+recall_per_number_of_samples_filename = snakemake.output.recall_per_number_of_samples
+list_with_number_of_samples = snakemake.params.list_with_number_of_samples
 
-for recall_per_number_of_samples in recalls_per_number_of_samples:
-    Path(recall_per_number_of_samples).write_text("asd")
+
+# API usage
+logging.info(f"Loading report")
+recall_report = RecallReport.from_files(all_recall_reports_with_no_gt_conf_filter,
+                                        concatenate_dfs_one_by_one_keeping_only_best_mappings=True)
+
+logging.info(f"Creating calculator")
+recall_calculator = RecallCalculator(recall_report)
+
+logging.info(f"Calculating recall")
+recall_per_number_of_samples = recall_calculator.get_recall_vs_nb_of_samples_report(list_with_number_of_samples)
+
+
+# output
+recall_per_number_of_samples.to_csv(recall_per_number_of_samples_filename, index=False)

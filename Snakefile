@@ -111,17 +111,16 @@ all_recall_per_sample_no_gt_conf_filter = list(all_recall_per_sample_no_gt_conf_
 all_recall_per_sample_pair_no_gt_conf_filter = list(all_recall_per_sample_pair_no_gt_conf_filter)
 
 
-all_recall_reports_with_no_gt_conf_filter = set()
-all_recalls_per_number_of_samples = set()
+cov_tool_and_filters_to_recall_reports_with_no_gt_conf_filter = defaultdict(set)
+cov_tool_and_filters_recall_per_number_of_samples = {}
 for sample, coverage, tool, coverage_threshold, strand_bias_threshold, gaps_threshold in sample_cov_tool_and_filters_to_recall_report_files:
     all_recall_files.add(f"{output_folder}/recall/recall_files/{coverage}/{tool}/coverage_filter_{coverage_threshold}/strand_bias_filter_{strand_bias_threshold}/gaps_filter_{gaps_threshold}/recall.tsv")
     for sample_pair in get_sample_pairs_containing_given_sample(sample_pairs, sample):
-        all_recall_reports_with_no_gt_conf_filter.add(
-            f"{output_folder}/recall/reports/{sample}/{coverage}/{tool}/coverage_filter_{coverage_threshold}/strand_bias_filter_{strand_bias_threshold}/gaps_filter_{gaps_threshold}/gt_conf_percentile_0/{sample_pair}.report.tsv")
-    for sample_number in list_with_number_of_samples:
-        all_recalls_per_number_of_samples.add(f"{output_folder}/recall/recall_per_number_of_samples/{coverage}/{tool}/coverage_filter_{coverage_threshold}/strand_bias_filter_{strand_bias_threshold}/gaps_filter_{gaps_threshold}/recall_{number_of_samples}_samples.tsv")
+        cov_tool_and_filters_to_recall_reports_with_no_gt_conf_filter[(coverage, tool, coverage_threshold, strand_bias_threshold, gaps_threshold)].\
+            add(f"{output_folder}/recall/reports/{sample}/{coverage}/{tool}/coverage_filter_{coverage_threshold}/strand_bias_filter_{strand_bias_threshold}/gaps_filter_{gaps_threshold}/gt_conf_percentile_0/{sample_pair}.report.tsv")
+    cov_tool_and_filters_recall_per_number_of_samples[(coverage, tool, coverage_threshold, strand_bias_threshold, gaps_threshold)] = f"{output_folder}/recall/recall_per_number_of_samples/{coverage}/{tool}/coverage_filter_{coverage_threshold}/strand_bias_filter_{strand_bias_threshold}/gaps_filter_{gaps_threshold}/recall_per_number_of_samples.csv"
 
-all_recall_files.update(all_recalls_per_number_of_samples)
+all_recall_files.add(output_folder + "/recall/recall_per_number_of_samples/aggregated.csv")
 files.extend(list(all_recall_files))
 
 
