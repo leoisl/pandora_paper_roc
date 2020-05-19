@@ -2,6 +2,7 @@ from pathlib import Path
 import pandas as pd
 from typing import Iterable, List
 import logging
+import math
 
 class DelimNotFoundError(Exception):
     pass
@@ -203,7 +204,9 @@ class RecallReport(Report):
             id_to_nb_of_different_allele_sequences, left_index=True, right_index=True)
         allele_seqs_merged_data["proportion_of_allele_seqs_found"] = \
             allele_seqs_merged_data["NB_OF_ALLELE_SEQUENCE_ID_FOUND"] / allele_seqs_merged_data["NUMBER_OF_DIFFERENT_ALLELE_SEQUENCES"]
-
+        allele_seqs_merged_data["proportion_of_allele_seqs_found_binary"] = \
+            allele_seqs_merged_data["proportion_of_allele_seqs_found"].apply(
+                lambda proportion: int(math.isclose(proportion, 1.0)))
         id_to_nb_of_alleles_found = self._get_id_to_nb_of_alleles_found()
         id_to_nb_of_alleles = self._get_id_to_nb_of_alleles()
         alleles_merged_data = id_to_nb_of_alleles_found.merge(
@@ -221,13 +224,21 @@ class RecallReport(Report):
         merged_data = merged_data.merge(id_to_nb_of_samples, left_index=True, right_index=True)
         return merged_data
 
-    def get_proportion_of_allele_seqs_found_for_each_variant(self) -> List[float]:
+    def get_proportion_of_allele_seqs_found_for_each_variant(self, binary) -> List[float]:
+        """
+        :param binary: binarise the proportion_of_allele_seqs_found: everything < 1 becomes 0, and 1s keep being 1s.
+        """
         merged_data = self._get_df_with_recall_proportions()
-        return merged_data["proportion_of_allele_seqs_found"].to_list()
+        column = "proportion_of_allele_seqs_found" if not binary else "proportion_of_allele_seqs_found_binary"
+        return merged_data[column].to_list()
 
-    def get_proportion_of_allele_seqs_found_for_each_variant_with_nb_of_samples(self) -> pd.DataFrame:
+    def get_proportion_of_allele_seqs_found_for_each_variant_with_nb_of_samples(self, binary) -> pd.DataFrame:
+        """
+        :param binary: binarise the proportion_of_allele_seqs_found: everything < 1 becomes 0, and 1s keep being 1s.
+        """
         merged_data = self._get_df_with_recall_proportions_and_with_nb_of_samples()
-        return merged_data[["proportion_of_allele_seqs_found", "NB_OF_SAMPLES"]]
+        column = "proportion_of_allele_seqs_found" if not binary else "proportion_of_allele_seqs_found_binary"
+        return merged_data[[column, "NB_OF_SAMPLES"]]
 
 
     def get_proportion_of_alleles_found_for_each_variant(self) -> List[float]:

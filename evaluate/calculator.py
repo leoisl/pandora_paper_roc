@@ -146,7 +146,9 @@ class RecallCalculator(Calculator):
 
 
     def get_recall_vs_nb_of_samples_report(self, list_with_nb_of_samples) -> pd.DataFrame:
-        df_with_all_nb_of_samples = self.report.get_proportion_of_allele_seqs_found_for_each_variant_with_nb_of_samples()
+        df_with_all_nb_of_samples = self.report.get_proportion_of_allele_seqs_found_for_each_variant_with_nb_of_samples(
+            binary=True
+        )
         df_with_all_nb_of_samples = df_with_all_nb_of_samples.groupby(by="NB_OF_SAMPLES", as_index=False).mean() \
             .rename(columns={"proportion_of_allele_seqs_found": "recall"})
 
@@ -178,11 +180,8 @@ class RecallCalculator(Calculator):
 
     @staticmethod
     def _calculate_info_wrt_variants(report: RecallReport) -> Tuple[float, float, float]:
-        proportions_of_allele_seqs_found = report.get_proportion_of_allele_seqs_found_for_each_variant()
-        nb_variants_where_all_allele_seqs_were_found = sum(
-            [math.isclose(1.0, proportion_of_allele_seqs_found) \
-             for proportion_of_allele_seqs_found in proportions_of_allele_seqs_found]
-        )
+        proportions_of_allele_seqs_found = report.get_proportion_of_allele_seqs_found_for_each_variant(binary=True)
+        nb_variants_where_all_allele_seqs_were_found = sum(proportions_of_allele_seqs_found)
 
         proportions_of_alleles_found = report.get_proportion_of_alleles_found_for_each_variant()
         nb_variants_found_wrt_alleles = sum(proportions_of_alleles_found)

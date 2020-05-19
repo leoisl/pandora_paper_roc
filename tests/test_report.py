@@ -579,9 +579,15 @@ S1,16,3,0,2,False,0,0
 S1,17,3,1,2,False,0,0
 """)
         report = RecallReport([pd.read_csv(contents)], False)
-        actual = report.get_proportion_of_allele_seqs_found_for_each_variant()
-        expected = [1/1, 2/3, 4/10, 0/2]
 
+        # non binary
+        actual = report.get_proportion_of_allele_seqs_found_for_each_variant(binary=False)
+        expected = [1/1, 2/3, 4/10, 0/2]
+        assert actual == expected
+
+        # binary
+        actual = report.get_proportion_of_allele_seqs_found_for_each_variant(binary=True)
+        expected = [1, 0, 0, 0]
         assert actual == expected
 
     @patch.object(RecallReport, RecallReport._create_helper_columns.__name__)
@@ -607,7 +613,9 @@ S1,17,3,1,2,False,0,0
             S1,17,3,1,2,False,0,0,30
             """)
         report = RecallReport([pd.read_csv(contents)], False)
-        actual = report.get_proportion_of_allele_seqs_found_for_each_variant_with_nb_of_samples()
+
+        # non binary
+        actual = report.get_proportion_of_allele_seqs_found_for_each_variant_with_nb_of_samples(binary=False)
         expected = pd.read_csv(StringIO(
             """PANGENOME_VARIATION_ID,proportion_of_allele_seqs_found,NB_OF_SAMPLES
             0,1.0,1
@@ -616,7 +624,18 @@ S1,17,3,1,2,False,0,0
             3,0.0,30
             """
         ), index_col="PANGENOME_VARIATION_ID")
+        assert actual.equals(expected)
 
+        # binary
+        actual = report.get_proportion_of_allele_seqs_found_for_each_variant_with_nb_of_samples(binary=True)
+        expected = pd.read_csv(StringIO(
+            """PANGENOME_VARIATION_ID,proportion_of_allele_seqs_found_binary,NB_OF_SAMPLES
+            0,1,1
+            1,0,10
+            2,0,20
+            3,0,30
+            """
+        ), index_col="PANGENOME_VARIATION_ID")
         assert actual.equals(expected)
 
     @patch.object(RecallReport, RecallReport._create_helper_columns.__name__)
@@ -630,7 +649,7 @@ S1,17,3,1,2,False,0,0
             S1,5,0,1,5,True,0,0
             """)
         report = RecallReport([pd.read_csv(contents)], False)
-        actual = report.get_proportion_of_allele_seqs_found_for_each_variant()
+        actual = report.get_proportion_of_allele_seqs_found_for_each_variant(binary=False)
         expected = [2 / 5]
 
         assert actual == expected

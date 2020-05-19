@@ -173,7 +173,7 @@ class TestRecallCalculator:
         report = RecallReport([pd.DataFrame()], False)
         nb_variants_where_all_allele_seqs_were_found, nb_variants_found_wrt_alleles, variants_total = \
             RecallCalculator._calculate_info_wrt_variants(report)
-        assert nb_variants_where_all_allele_seqs_were_found == 4 and \
+        assert nb_variants_where_all_allele_seqs_were_found == 6.3 and \
                nb_variants_found_wrt_alleles == 4.6 and \
                variants_total == 20
 
