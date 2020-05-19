@@ -150,7 +150,7 @@ class RecallCalculator(Calculator):
             binary=True
         )
         df_with_all_nb_of_samples = df_with_all_nb_of_samples.groupby(by="NB_OF_SAMPLES", as_index=False).mean() \
-            .rename(columns={"proportion_of_allele_seqs_found": "recall"})
+            .rename(columns={"proportion_of_allele_seqs_found_binary": "recall"})
 
         # get a subset of df_with_all_nb_of_samples
         recalls = []

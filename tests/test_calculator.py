@@ -211,13 +211,14 @@ class TestRecallCalculator:
     @patch.object(RecallReport, RecallReport.get_proportion_of_allele_seqs_found_for_each_variant_with_nb_of_samples.__name__,
                   return_value=
     pd.read_csv(StringIO(
-        """PANGENOME_VARIATION_ID,proportion_of_allele_seqs_found,NB_OF_SAMPLES
-        0,1.0,3
-        1,0.5,5
-        2,0.0,7
-        3,1.0,5
-        4,0.0,5
-        5,1.0,3
+        """PANGENOME_VARIATION_ID,proportion_of_allele_seqs_found_binary,NB_OF_SAMPLES
+        0,1,3
+        1,0,5
+        2,0,7
+        3,1,5
+        4,0,5
+        5,1,3
+        6,0,5
         """
     ), index_col="PANGENOME_VARIATION_ID"))
     @patch.object(RecallReport, RecallReport._create_helper_columns.__name__)
@@ -231,7 +232,7 @@ class TestRecallCalculator:
             2,0.0
             3,1.0
             4,0.0
-            5,0.5
+            5,0.25
             6,0.0
             7,0.0
             """
@@ -243,13 +244,14 @@ class TestRecallCalculator:
     @patch.object(RecallReport, RecallReport.get_proportion_of_allele_seqs_found_for_each_variant_with_nb_of_samples.__name__,
                   return_value=
     pd.read_csv(StringIO(
-        """PANGENOME_VARIATION_ID,proportion_of_allele_seqs_found,NB_OF_SAMPLES
-        0,1.0,3
-        1,0.5,5
-        2,0.0,7
-        3,1.0,5
-        4,0.0,5
-        5,1.0,3
+        """PANGENOME_VARIATION_ID,proportion_of_allele_seqs_found_binary,NB_OF_SAMPLES
+        0,1,3
+        1,0,5
+        2,0,7
+        3,1,5
+        4,0,5
+        5,1,3
+        6,0,5
         """
     ), index_col="PANGENOME_VARIATION_ID"))
     @patch.object(RecallReport, RecallReport._create_helper_columns.__name__)
@@ -261,7 +263,7 @@ class TestRecallCalculator:
         expected = pd.read_csv(StringIO(
             """NB_OF_SAMPLES,recall
             2,0.0
-            5,0.5
+            5,0.25
             """
         ))
 
