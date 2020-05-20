@@ -169,9 +169,9 @@ localrules: make_empty_depth_file, bwa_index, gzip_vcf_file, index_gzipped_vcf_f
     concat_all_plot_data, concat_all_precision_per_sample_no_gt_conf_filter
 
 # remove these if not running in big mem cluster
-localrules: filter_vcf_for_a_single_sample_by_gt_conf_percentile_for_pandora,
-    filter_vcf_for_a_single_sample_by_gt_conf_percentile_for_snippy,
-    calculate_precision, calculate_recall, calculate_recall_per_number_of_samples_no_gt_conf_filter
+# localrules: filter_vcf_for_a_single_sample_by_gt_conf_percentile_for_pandora,
+#     filter_vcf_for_a_single_sample_by_gt_conf_percentile_for_snippy,
+#     calculate_precision, calculate_recall, calculate_recall_per_number_of_samples_no_gt_conf_filter
 
 # if we want to add this rule back
 # localrules: concat_all_recall_per_sample_pair_no_gt_conf_filter
