@@ -166,7 +166,7 @@ localrules: make_empty_depth_file, bwa_index, gzip_vcf_file, index_gzipped_vcf_f
     concat_all_nb_of_records_removed_with_mapq_sam_records_filter_files_for_precision,
     concat_all_recall_per_sample_no_gt_conf_filter,
     merge_precision_and_recall_dfs, aggregate_recall_per_number_of_samples,
-    concat_all_plot_data, concat_all_precision_per_sample_no_gt_conf_filter,
+    concat_all_plot_data, concat_all_precision_per_sample_no_gt_conf_filter
 
 # remove these if not running in big mem cluster
 localrules: filter_vcf_for_a_single_sample_by_gt_conf_percentile_for_pandora,
