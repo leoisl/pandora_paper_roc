@@ -6,7 +6,7 @@ rule bwa_index:
     threads: 1
     log: "{fasta}.bwa_index.log"
     resources:
-        mem_mb = lambda wildcards, attempt: 4000 * attempt
+        mem_mb = lambda wildcards, attempt: 2000 * attempt
     shell: "bwa index {input.fasta} > {log} 2>&1"
 
 
@@ -17,7 +17,7 @@ rule fix_pandora_vcf_for_pipeline:
          pandora_vcf_corrected = "{pandora_results_dir}/{technology}/{coverage}/{subsampling}/compare_{mode}_{genotyping_mode}_genotyping/pandora_multisample_genotyped_{genotyping_mode}.vcf.~~vcf~~fixed~~.vcf"
     threads: 1
     resources:
-        mem_mb = lambda wildcards, attempt: 4000 * attempt
+        mem_mb = lambda wildcards, attempt: 2000 * attempt
     log:
         "logs/fix_pandora_vcf_for_pipeline{pandora_results_dir}/{technology}/{coverage}/{subsampling}/compare_{mode}_{genotyping_mode}_genotyping/pandora_multisample_genotyped_{genotyping_mode}.vcf.log"
     script:
@@ -31,7 +31,7 @@ rule fix_snippy_vcf_for_pipeline:
          snippy_vcf_corrected = "{directory}/snippy_{sample}_AND_{ref}.vcf.~~vcf~~fixed~~.vcf"
     threads: 1
     resources:
-        mem_mb = lambda wildcards, attempt: 4000 * attempt
+        mem_mb = lambda wildcards, attempt: 2000 * attempt
     log:
         "logs/fix_snippy_vcf_for_pipeline{directory}/snippy_{sample}_AND_{ref}.vcf.log"
     script:
@@ -59,7 +59,7 @@ rule gzip_vcf_file:
         gzipped_vcf_file = "{filename}.vcf.gz"
     threads: 1
     resources:
-        mem_mb = lambda wildcards, attempt: 4000 * attempt
+        mem_mb = lambda wildcards, attempt: 2000 * attempt
     log:
         "logs/gzip_vcf_file{filename}.log"
     shell:
@@ -73,7 +73,7 @@ rule index_gzipped_vcf_file:
         indexed_gzipped_vcf_file = "{filename}.vcf.gz.tbi"
     threads: 1
     resources:
-        mem_mb = lambda wildcards, attempt: 4000 * attempt
+        mem_mb = lambda wildcards, attempt: 2000 * attempt
     log:
         "logs/index_gzipped_vcf_file{filename}.log"
     shell:

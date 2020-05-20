@@ -56,18 +56,18 @@ rule concat_all_recall_per_sample_no_gt_conf_filter:
 
 
 
-rule concat_all_recall_per_sample_pair_no_gt_conf_filter:
-    input:
-         all_recall_per_sample_pair_no_gt_conf_filter = all_recall_per_sample_pair_no_gt_conf_filter
-    output:
-         recall_per_sample_pair = output_folder + "/plot_data/recall_per_sample_pair.tsv"
-    threads: 1
-    resources:
-        mem_mb = lambda wildcards, attempt: 4000 * attempt
-    log:
-        "logs/concat_all_recall_per_sample_pair_no_gt_conf_filter/recall_per_sample_pair.log"
-    script:
-        "../scripts/concat_all_recall_per_sample_pair_no_gt_conf_filter.py"
+# rule concat_all_recall_per_sample_pair_no_gt_conf_filter:
+#     input:
+#          all_recall_per_sample_pair_no_gt_conf_filter = all_recall_per_sample_pair_no_gt_conf_filter
+#     output:
+#          recall_per_sample_pair = output_folder + "/plot_data/recall_per_sample_pair.tsv"
+#     threads: 1
+#     resources:
+#         mem_mb = lambda wildcards, attempt: 4000 * attempt
+#     log:
+#         "logs/concat_all_recall_per_sample_pair_no_gt_conf_filter/recall_per_sample_pair.log"
+#     script:
+#         "../scripts/concat_all_recall_per_sample_pair_no_gt_conf_filter.py"
 
 
 rule aggregate_recall_per_number_of_samples:
