@@ -186,3 +186,5 @@ interactive_plotting/ROC_data.tsv
 eda/recall_vs_nb_of_samples/recall_per_number_of_samples\.csv
 
 eda/recall_vs_nb_of_samples/id_and_number_of_samples\.csv
+
+eda/enrichment_of_FPs_per_sample/precision_per_sample\.tsv

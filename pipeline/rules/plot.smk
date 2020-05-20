@@ -97,3 +97,17 @@ rule aggregate_recall_per_number_of_samples:
             aggregated_df = pd.concat([aggregated_df, df], ignore_index=True)
 
         aggregated_df.to_csv(output.aggregated_recall_per_number_of_samples, index=False)
+
+
+rule concat_all_precision_per_sample_no_gt_conf_filter:
+    input:
+         all_precision_per_sample_no_gt_conf_filter = all_precision_per_sample_no_gt_conf_filter
+    output:
+         precision_per_sample = output_folder + "/plot_data/precision_per_sample.tsv"
+    threads: 1
+    resources:
+        mem_mb = lambda wildcards, attempt: 4000 * attempt
+    log:
+        "logs/concat_all_precision_per_sample_no_gt_conf_filter.log"
+    script:
+        "../scripts/concat_all_precision_per_sample_no_gt_conf_filter.py"

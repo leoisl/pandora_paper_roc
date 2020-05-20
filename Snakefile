@@ -68,21 +68,27 @@ files = []
 all_precision_files=[]
 
 cov_tool_and_filters_to_precision_report_files = defaultdict(list)
+sample_cov_tool_and_filters_to_precision_report_files = defaultdict(list)
 all_nb_of_records_removed_with_mapq_sam_records_filter_files_for_precision = []
 for index, row in data.iterrows():
     sample_id, coverage, tool = row["sample_id"], row["coverage"], row["tool"]
-    for coverage_threshold in get_coverage_filters(tool):
-        for strand_bias_threshold in get_strand_bias_filters(tool):
-            for gaps_threshold in get_gaps_filters(tool):
-                report_file = f"{output_folder}/precision/reports_from_probe_mappings/{sample_id}/{coverage}/{tool}/coverage_filter_{coverage_threshold}/strand_bias_filter_{strand_bias_threshold}/gaps_filter_{gaps_threshold}/variant_calls_probeset_report.tsv"
-                cov_tool_and_filters_to_precision_report_files[(coverage, tool, coverage_threshold, strand_bias_threshold, gaps_threshold)].append(report_file)
+    for coverage_threshold, strand_bias_threshold, gaps_threshold \
+    in itertools.product(get_coverage_filters(tool), get_strand_bias_filters(tool), get_gaps_filters(tool)):
+        report_file = f"{output_folder}/precision/reports_from_probe_mappings/{sample_id}/{coverage}/{tool}/coverage_filter_{coverage_threshold}/strand_bias_filter_{strand_bias_threshold}/gaps_filter_{gaps_threshold}/variant_calls_probeset_report.tsv"
+        cov_tool_and_filters_to_precision_report_files[(coverage, tool, coverage_threshold, strand_bias_threshold, gaps_threshold)].append(report_file)
+        sample_cov_tool_and_filters_to_precision_report_files[(sample_id, coverage, tool, coverage_threshold, strand_bias_threshold, gaps_threshold)].append(report_file)
 
-                nb_of_records_removed_with_mapq_sam_records_filter_file = f"{output_folder}/precision/reports_from_probe_mappings/{sample_id}/{coverage}/{tool}/coverage_filter_{coverage_threshold}/strand_bias_filter_{strand_bias_threshold}/gaps_filter_{gaps_threshold}/nb_of_records_removed_with_mapq_sam_records_filter.csv"
-                all_nb_of_records_removed_with_mapq_sam_records_filter_files_for_precision.append(nb_of_records_removed_with_mapq_sam_records_filter_file)
+        nb_of_records_removed_with_mapq_sam_records_filter_file = f"{output_folder}/precision/reports_from_probe_mappings/{sample_id}/{coverage}/{tool}/coverage_filter_{coverage_threshold}/strand_bias_filter_{strand_bias_threshold}/gaps_filter_{gaps_threshold}/nb_of_records_removed_with_mapq_sam_records_filter.csv"
+        all_nb_of_records_removed_with_mapq_sam_records_filter_files_for_precision.append(nb_of_records_removed_with_mapq_sam_records_filter_file)
 
+
+all_precision_per_sample_no_gt_conf_filter = []
 for coverage, tool, coverage_threshold, strand_bias_threshold, gaps_threshold in cov_tool_and_filters_to_precision_report_files:
     all_precision_files.append(f"{output_folder}/precision/precision_files/{coverage}/{tool}/coverage_filter_{coverage_threshold}/strand_bias_filter_{strand_bias_threshold}/gaps_filter_{gaps_threshold}/precision.tsv")
+    for sample in samples["sample_id"]:
+        all_precision_per_sample_no_gt_conf_filter.append(f"{output_folder}/precision/precision_files_per_sample/{sample}/{coverage}/{tool}/coverage_filter_{coverage_threshold}/strand_bias_filter_{strand_bias_threshold}/gaps_filter_{gaps_threshold}/precision.tsv")
 
+all_precision_files.append(all_precision_per_sample_no_gt_conf_filter)
 files.extend(all_precision_files)
 
 
@@ -130,12 +136,14 @@ all_plot_data_intermediate_files = set()
 for sample, coverage, tool, coverage_threshold, strand_bias_threshold, gaps_threshold in sample_cov_tool_and_filters_to_recall_report_files:
     all_plot_data_intermediate_files.add(f"{output_folder}/plot_data/{coverage}/{tool}/coverage_filter_{coverage_threshold}/strand_bias_filter_{strand_bias_threshold}/gaps_filter_{gaps_threshold}/ROC_data.tsv")
 final_plot_data_file = f"{output_folder}/plot_data/ROC_data.tsv"
+precision_per_sample = f"{output_folder}/plot_data/precision_per_sample.tsv"
 final_all_nb_of_records_removed_with_mapq_sam_records_filter_file = f"{output_folder}/plot_data/nb_of_records_removed_with_mapq_sam_records_filter_for_precision.csv"
 recall_per_sample_file = f"{output_folder}/plot_data/recall_per_sample.tsv"
 recall_per_sample_pair_file = f"{output_folder}/plot_data/recall_per_sample_pair.tsv"
 
 files.extend(list(all_plot_data_intermediate_files))
 files.append(final_plot_data_file)
+files.append(precision_per_sample)
 files.append(final_all_nb_of_records_removed_with_mapq_sam_records_filter_file)
 files.append(recall_per_sample_file)
 files.append(recall_per_sample_pair_file)
@@ -158,4 +166,5 @@ localrules: make_empty_depth_file, bwa_index,
     concat_all_nb_of_records_removed_with_mapq_sam_records_filter_files_for_precision,
     concat_all_recall_per_sample_no_gt_conf_filter, merge_precision_and_recall_dfs,
     concat_all_plot_data, filter_vcf_for_a_single_sample_by_gt_conf_percentile_for_pandora,
-    filter_vcf_for_a_single_sample_by_gt_conf_percentile_for_snippy
+    filter_vcf_for_a_single_sample_by_gt_conf_percentile_for_snippy,
+    concat_all_precision_per_sample_no_gt_conf_filter
