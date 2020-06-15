@@ -16,28 +16,20 @@ class FixPandoraVCF(FixVCF):
         corrected_header = "\t".join(corrected_words)
         return corrected_header
 
-    @staticmethod
-    def _null_is_called(sample_info_split: List[str]) -> bool:
-        called_gt = sample_info_split[0]
-        called_null = called_gt == "."
-        return called_null
-
-    def get_gt_confs(self, record: str) -> List[float]:
+    def get_gt_conf_percentiles(self, record: str) -> List[float]:
         record_split = record.split("\t")
-        all_gt_confs = []
+        all_gt_conf_percentiles = []
         for index, word in enumerate(record_split):
             is_sample_info_field = index >= 9
             if is_sample_info_field:
                 sample_info = word
                 sample_info_split = sample_info.split(":")
+                gt_conf_percentile = float(sample_info_split[-1])
+                all_gt_conf_percentiles.append(gt_conf_percentile)
+        return all_gt_conf_percentiles
 
-                if FixPandoraVCF._null_is_called(sample_info_split):
-                    continue
-
-                gt_conf = float(sample_info_split[-1])
-                all_gt_confs.append(gt_conf)
-        return all_gt_confs
-
+    def get_gt_confs(self, record: str) -> List[float]:
+        return self.get_gt_conf_percentiles(record)
 
     def set_gt_confs(self, record: str, gt_confs: List[float]) -> str:
         record_split = record.split("\t")
@@ -45,17 +37,24 @@ class FixPandoraVCF(FixVCF):
         for index, word in enumerate(record_split):
             is_sample_info_field = index >= 9
             if is_sample_info_field:
+                # correction
                 sample_info = word
                 sample_info_split = sample_info.split(":")
                 sample_info_split_corrected = copy.deepcopy(sample_info_split)
 
-                if not FixPandoraVCF._null_is_called(sample_info_split_corrected):
-                    sample_info_split_corrected[-1] = str(gt_confs.pop(0))
+                # assign gt_conf_percentile to gt_conf
+                sample_info_split_corrected[-2] = str(gt_confs.pop(0))
 
                 word = ":".join(sample_info_split_corrected)
             record_split_corrected.append(word)
         record_corrected = "\t".join(record_split_corrected)
         return record_corrected
+
+
+    def correct_records(self, records: List[str]) -> List[str]:
+        all_gt_conf_percentiles = self.get_all_gt_confs(records)
+        corrected_records = self.correct_gt_confs(records, all_gt_conf_percentiles)
+        return corrected_records
 
 
     def process_pandora_vcf(self, pandora_original_vcf, pandora_vcf_corrected, technology, coverage, subsampling):
