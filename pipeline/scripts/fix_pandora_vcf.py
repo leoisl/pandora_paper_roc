@@ -3,6 +3,8 @@ import sys
 sys.path.append(str(Path().absolute()))
 from typing import List
 import copy
+from collections import deque
+
 if __name__=="__main__":
     from fix_vcf_common import FixVCF
 else:
@@ -16,9 +18,9 @@ class FixPandoraVCF(FixVCF):
         corrected_header = "\t".join(corrected_words)
         return corrected_header
 
-    def get_gt_conf_percentiles(self, record: str) -> List[float]:
+    def get_gt_conf_percentiles(self, record: str) -> deque[float]:
         record_split = record.split("\t")
-        all_gt_conf_percentiles = []
+        all_gt_conf_percentiles = deque()
         for index, word in enumerate(record_split):
             is_sample_info_field = index >= 9
             if is_sample_info_field:
@@ -28,10 +30,10 @@ class FixPandoraVCF(FixVCF):
                 all_gt_conf_percentiles.append(gt_conf_percentile)
         return all_gt_conf_percentiles
 
-    def get_gt_confs(self, record: str) -> List[float]:
+    def get_gt_confs(self, record: str) -> deque[float]:
         return self.get_gt_conf_percentiles(record)
 
-    def set_gt_confs(self, record: str, gt_confs: List[float]) -> str:
+    def set_gt_confs(self, record: str, gt_confs: deque[float]) -> str:
         record_split = record.split("\t")
         record_split_corrected = []
         for index, word in enumerate(record_split):
@@ -43,7 +45,7 @@ class FixPandoraVCF(FixVCF):
                 sample_info_split_corrected = copy.deepcopy(sample_info_split)
 
                 # assign gt_conf_percentile to gt_conf
-                sample_info_split_corrected[-2] = str(gt_confs.pop(0))
+                sample_info_split_corrected[-2] = str(gt_confs.popleft())
 
                 word = ":".join(sample_info_split_corrected)
             record_split_corrected.append(word)

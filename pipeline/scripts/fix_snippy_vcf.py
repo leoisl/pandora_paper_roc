@@ -3,6 +3,7 @@ import sys
 sys.path.append(str(Path().absolute()))
 from typing import List
 import copy
+from collections import deque
 if __name__=="__main__":
     from fix_vcf_common import FixVCF
 else:
@@ -19,18 +20,18 @@ class FixSnippyVCF(FixVCF):
         return "\t".join(corrected_words)
 
 
-    def get_gt_confs(self, record: str) -> List[float]:
+    def get_gt_confs(self, record: str) -> deque[float]:
         record_split = record.split("\t")
         qual_field_index = 5
-        all_gt_confs = [ float(record_split[qual_field_index]) ]
+        all_gt_confs = deque([ float(record_split[qual_field_index]) ])
         return all_gt_confs
 
 
-    def set_gt_confs(self, record: str, gt_confs: List[float]) -> str:
+    def set_gt_confs(self, record: str, gt_confs: deque[float]) -> str:
         record_split = record.split("\t")
         record_split_corrected = copy.deepcopy(record_split)
         qual_field_index = 5
-        record_split_corrected[qual_field_index] = str(gt_confs.pop(0))
+        record_split_corrected[qual_field_index] = str(gt_confs.popleft())
         record_corrected = "\t".join(record_split_corrected)
         return record_corrected
 

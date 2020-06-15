@@ -4,6 +4,7 @@ import sys
 sys.path.append(str(Path().absolute()))
 import math
 from typing import TextIO, List, Tuple
+from collections import deque
 
 
 class FixVCF:
@@ -12,11 +13,11 @@ class FixVCF:
         pass
 
     @abstractmethod
-    def get_gt_confs(self, record: str) -> List[float]:
+    def get_gt_confs(self, record: str) -> deque[float]:
         pass
 
     @abstractmethod
-    def set_gt_confs(self, record: str, gt_confs: List[float]) -> str:
+    def set_gt_confs(self, record: str, gt_confs: deque[float]) -> str:
         pass
 
 
@@ -45,8 +46,8 @@ class FixVCF:
         return corrected_headers
 
 
-    def get_all_gt_confs(self, records: List[str]) -> List[float]:
-        all_gt_confs = []
+    def get_all_gt_confs(self, records: List[str]) -> deque[float]:
+        all_gt_confs = deque()
         for record in records:
             gt_confs_for_this_record = self.get_gt_confs(record)
             all_gt_confs.extend(gt_confs_for_this_record)
@@ -54,8 +55,8 @@ class FixVCF:
 
 
     @staticmethod
-    def get_log_gt_confs(gt_confs: List[float]) -> List[float]:
-        log_gt_confs = []
+    def get_log_gt_confs(gt_confs: deque[float]) -> deque[float]:
+        log_gt_confs = deque()
         for gt_conf in gt_confs:
             assert gt_conf >= 0.0, f"Error: gt_conf is negative: {gt_conf}"
             gt_conf += 1.0  # avoids calculating log of values between 0.0 and 1.0 (which can get exponentially small)
@@ -65,8 +66,8 @@ class FixVCF:
 
 
     @staticmethod
-    def get_normalized_gt_confs(gt_confs: List[float]) -> List[float]:
-        normalized_gt_confs = []
+    def get_normalized_gt_confs(gt_confs: deque[float]) -> deque[float]:
+        normalized_gt_confs = deque()
         min_gt_conf = min(gt_confs)
         max_gt_cont = max(gt_confs)
         for gt_conf in gt_confs:
@@ -78,18 +79,18 @@ class FixVCF:
 
 
     @staticmethod
-    def percentile_gt_confs(gt_confs: List[float]) -> List[float]:
-        return [round(gt_conf*100, 1) for gt_conf in gt_confs]
+    def percentile_gt_confs(gt_confs: deque[float]) -> deque[float]:
+        return deque([round(gt_conf*100, 1) for gt_conf in gt_confs])
 
 
-    def get_log_normalized_percentiled_gt_confs(self, gt_confs: List[float]) -> List[float]:
+    def get_log_normalized_percentiled_gt_confs(self, gt_confs: deque[float]) -> deque[float]:
         gt_confs = self.get_log_gt_confs(gt_confs)
         gt_confs = self.get_normalized_gt_confs(gt_confs)
         gt_confs = self.percentile_gt_confs(gt_confs)
         return gt_confs
 
 
-    def correct_gt_confs(self, records: List[str], corrected_gt_confs: List[float]) -> List[str]:
+    def correct_gt_confs(self, records: List[str], corrected_gt_confs: deque[float]) -> List[str]:
         records_corrected = []
         for record in records:
             corrected_record = self.set_gt_confs(record, corrected_gt_confs)
