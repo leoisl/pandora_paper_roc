@@ -1,7 +1,7 @@
 from pathlib import Path
 import sys
 sys.path.append(str(Path().absolute()))
-from typing import List
+from typing import Deque
 import copy
 from collections import deque
 if __name__=="__main__":
@@ -20,14 +20,14 @@ class FixSnippyVCF(FixVCF):
         return "\t".join(corrected_words)
 
 
-    def get_gt_confs(self, record: str) -> deque[float]:
+    def get_gt_confs(self, record: str) -> Deque[float]:
         record_split = record.split("\t")
         qual_field_index = 5
         all_gt_confs = deque([ float(record_split[qual_field_index]) ])
         return all_gt_confs
 
 
-    def set_gt_confs(self, record: str, gt_confs: deque[float]) -> str:
+    def set_gt_confs(self, record: str, gt_confs: Deque[float]) -> str:
         record_split = record.split("\t")
         record_split_corrected = copy.deepcopy(record_split)
         qual_field_index = 5

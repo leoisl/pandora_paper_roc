@@ -1,7 +1,7 @@
 from pathlib import Path
 import sys
 sys.path.append(str(Path().absolute()))
-from typing import List
+from typing import List, Deque
 import copy
 from collections import deque
 
@@ -18,7 +18,7 @@ class FixPandoraVCF(FixVCF):
         corrected_header = "\t".join(corrected_words)
         return corrected_header
 
-    def get_gt_conf_percentiles(self, record: str) -> deque[float]:
+    def get_gt_conf_percentiles(self, record: str) -> Deque[float]:
         record_split = record.split("\t")
         all_gt_conf_percentiles = deque()
         for index, word in enumerate(record_split):
@@ -30,10 +30,10 @@ class FixPandoraVCF(FixVCF):
                 all_gt_conf_percentiles.append(gt_conf_percentile)
         return all_gt_conf_percentiles
 
-    def get_gt_confs(self, record: str) -> deque[float]:
+    def get_gt_confs(self, record: str) -> Deque[float]:
         return self.get_gt_conf_percentiles(record)
 
-    def set_gt_confs(self, record: str, gt_confs: deque[float]) -> str:
+    def set_gt_confs(self, record: str, gt_confs: Deque[float]) -> str:
         record_split = record.split("\t")
         record_split_corrected = []
         for index, word in enumerate(record_split):
