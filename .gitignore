@@ -188,3 +188,6 @@ eda/recall_vs_nb_of_samples/recall_per_number_of_samples\.csv
 eda/recall_vs_nb_of_samples/id_and_number_of_samples\.csv
 
 eda/enrichment_of_FPs_per_sample/precision_per_sample\.tsv
+external_scripts/clean_pandora_output_of_FP_genes/pandora_multisample_genotyped_global\.vcf
+external_scripts/clean_pandora_output_of_FP_genes/pandora_multisample_genotyped_global\.vcf\.no_FPs\.vcf
+external_scripts/clean_pandora_output_of_FP_genes/classification_df_renamed\.csv
