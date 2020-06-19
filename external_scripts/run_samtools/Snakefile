@@ -82,6 +82,6 @@ rule call_variants_with_samtools:
     log:
         "logs/call_variants_with_samtools/{technology}.{coverage}.{subsampling}.{sample}.{reference}.log"
     shell:
-        "samtools mpileup -ugf {input.ref} {input.bam} | bcftools call --ploidy 1 -vm -O v -o {output.vcf}"
+        "samtools mpileup -ugf {input.ref} {input.bam} | bcftools call --ploidy 1 -v -m -f GQ,GP -O v -o {output.vcf}"
 
 
