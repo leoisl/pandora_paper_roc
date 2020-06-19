@@ -1,4 +1,4 @@
-output_folder: samtools_calls
+output_folder: /hps/nobackup/iqbal/leandro/samtools_analysis_pipeline
 
 sample_data_dir: /hps/nobackup/iqbal/leandro/pandora_analysis_pipeline/data_20_way/data_for_pipeline/samples
 samples: [  063_STEC,
