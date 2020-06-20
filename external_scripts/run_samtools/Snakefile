@@ -19,7 +19,8 @@ technologies = config["technologies"]
 
 rule all:
     input:
-        expand("{output_folder}/{technology}/{coverage}/{subsampling}/{sample}/samtools_{sample}_AND_{reference}.vcf", output_folder = [output_folder], technology = technologies, coverage = coverages, subsampling = subsamplings, sample = samples, reference = references_df["reference_id"])
+        expand("{output_folder}/{technology}/{coverage}/{subsampling}/{sample}/samtools_{sample}_AND_{reference}.vcf", output_folder = [output_folder], technology = technologies, coverage = coverages, subsampling = subsamplings, sample = samples, reference = references_df["reference_id"]),
+        expand("{output_folder}/{technology}/{coverage}/{subsampling}/{sample}/samtools_{sample}_AND_{reference}.ref.fa", output_folder = [output_folder], technology = technologies, coverage = coverages, subsampling = subsamplings, sample = samples, reference = references_df["reference_id"])
 
 
 
