@@ -73,15 +73,17 @@ rule call_variants_with_samtools:
     input:
         ref=lambda wildcards: get_ref_file_given_id(wildcards.reference),
         ref_index=lambda wildcards: f"{get_ref_file_given_id(wildcards.reference)}.fai",
-        bam=rules.map_reads_to_ref.output.bam
+        bam=rules.map_reads_to_ref.output.bam,
     output:
-        vcf = output_folder + "/{technology}/{coverage}/{subsampling}/{sample}/samtools_{sample}_AND_{reference}.vcf"
+        ref_for_pipeline = output_folder + "/{technology}/{coverage}/{subsampling}/{sample}/samtools_{sample}_AND_{reference}.ref.fa",
+        vcf = output_folder + "/{technology}/{coverage}/{subsampling}/{sample}/samtools_{sample}_AND_{reference}.vcf",
     threads: 1
     resources:
         mem_mb = lambda wildcards, attempt: 8000 * 2**(attempt-1)
     log:
         "logs/call_variants_with_samtools/{technology}.{coverage}.{subsampling}.{sample}.{reference}.log"
-    shell:
-        "samtools mpileup -ugf {input.ref} {input.bam} | bcftools call --ploidy 1 -v -m -f GQ,GP -O v -o {output.vcf}"
+    run:
+        shell("ln -s {input.ref} {output.ref_for_pipeline}")
+        shell("samtools mpileup -ugf {input.ref} {input.bam} | bcftools call --ploidy 1 -v -m -f GQ,GP -O v -o {output.vcf}")
 
 
