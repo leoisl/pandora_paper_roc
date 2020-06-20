@@ -59,15 +59,15 @@ class FixPandoraVCF(FixVCF):
         return corrected_records
 
 
-    def process_pandora_vcf(self, pandora_original_vcf, pandora_vcf_corrected, technology, coverage, subsampling):
+    def process_vcf(self, original_vcf, corrected_vcf, technology, coverage, subsampling):
         suffix = f".{coverage}.{subsampling}.{technology}"
-        with open(pandora_original_vcf) as pandora_original_vcf_filehandler,\
-             open(pandora_vcf_corrected, "w") as pandora_vcf_corrected_filehandler:
-            headers, records = self.get_header_and_record_lines(pandora_original_vcf_filehandler)
+        with open(original_vcf) as original_vcf_filehandler,\
+             open(corrected_vcf, "w") as corrected_vcf_filehandler:
+            headers, records = self.get_header_and_record_lines(original_vcf_filehandler)
             corrected_headers = self.correct_headers(headers, suffix)
             corrected_records = self.correct_records(records)
-            print("\n".join(corrected_headers), file=pandora_vcf_corrected_filehandler)
-            print("\n".join(corrected_records), file=pandora_vcf_corrected_filehandler)
+            print("\n".join(corrected_headers), file=corrected_vcf_filehandler)
+            print("\n".join(corrected_records), file=corrected_vcf_filehandler)
 
 
 if __name__=="__main__":
@@ -78,4 +78,4 @@ if __name__=="__main__":
     coverage = snakemake.wildcards.coverage
     subsampling = snakemake.wildcards.subsampling
     fixer = FixPandoraVCF()
-    fixer.process_pandora_vcf(pandora_original_vcf, pandora_vcf_corrected, technology, coverage, subsampling)
+    fixer.process_vcf(pandora_original_vcf, pandora_vcf_corrected, technology, coverage, subsampling)

@@ -38,6 +38,20 @@ rule fix_snippy_vcf_for_pipeline:
         "../scripts/fix_snippy_vcf.py"
 
 
+rule fix_samtools_vcf_for_pipeline:
+    input:
+         samtools_original_vcf =  "{directory}/samtools_{sample}_AND_{ref}.vcf"
+    output:
+         samtools_vcf_corrected = "{directory}/samtools_{sample}_AND_{ref}.vcf.~~vcf~~fixed~~.vcf"
+    threads: 1
+    resources:
+        mem_mb = lambda wildcards, attempt: 2000 * attempt
+    log:
+        "logs/fix_samtools_vcf_for_pipeline{directory}/samtools_{sample}_AND_{ref}.vcf.log"
+    script:
+        "../scripts/fix_samtools_vcf.py"
+
+
 rule make_empty_depth_file:
     input:
         file = "{file}"
