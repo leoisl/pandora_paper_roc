@@ -214,7 +214,7 @@ def get_graph_proportion (df, x_axis, x_axis_label, y_axis, y_axis_label,
                                                  dataset_coverage_checklist_values,
                                                  coverage_checklist_values, strand_bias_checklist_values,
                                                  gaps_checklist_values,
-                                                 xaxis_label=x_axis_label, yaxis_label=y_axis_label, set_ranges=True),
+                                                 xaxis_label=x_axis_label, yaxis_label=y_axis_label, set_ranges=False),
                      style={'height': '1000px', 'width': '1000px'})
 
 
