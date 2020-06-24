@@ -21,7 +21,7 @@ rule fix_pandora_vcf_for_pipeline:
     log:
         "logs/fix_pandora_vcf_for_pipeline{pandora_results_dir}/{technology}/{coverage}/{subsampling}/compare_{mode}_{genotyping_mode}_genotyping/pandora_multisample_genotyped_{genotyping_mode}.vcf.log"
     script:
-        "../scripts/fix_pandora_vcf.py"
+        "../scripts/fix_pandora_vcf_before_GCP.py"
 
 
 rule fix_snippy_vcf_for_pipeline:
