@@ -211,7 +211,7 @@ rule calculate_recall_per_number_of_samples_no_gt_conf_filter:
          list_with_number_of_samples = list_with_number_of_samples
     threads: 1
     resources:
-        mem_mb = lambda wildcards, attempt: 4000 * attempt
+        mem_mb = lambda wildcards, attempt: 12000 * attempt
     log:
         "logs/calculate_recall_per_number_of_samples_no_gt_conf_filter/{coverage}/{tool}/coverage_filter_{coverage_threshold}/strand_bias_filter_{strand_bias_threshold}/gaps_filter_{gaps_threshold}/recall_per_number_of_samples.log"
     script:
