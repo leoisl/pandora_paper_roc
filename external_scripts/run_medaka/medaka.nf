@@ -15,6 +15,7 @@ if (params.help){
         Required arguments:
           --reference_directory	DIRECTORY	Directory containing different references to use when calling
           --reads_directory	DIRECTORY	Directory containing read fastq[gz] to run on
+          --sample_id The sample ID
 
         Optional:
 	  --testing
@@ -66,7 +67,7 @@ process unzip_reference_assembly {
     """
 }
 
-Channel.fromPath("${reads_directory}/${params.sample_id}.*.random.nanopore.fastq").into{ nanopore_medaka }
+Channel.fromPath("${reads_directory}/${params.sample_id}.*.random.nanopore.fastq").set{ nanopore_medaka }
 
 medaka_input = nanopore_medaka.combine(reference_assemblies_medaka)
 
@@ -79,7 +80,6 @@ process medaka {
     }
     input:
     set nanopore_reads, reference_assembly from medaka_input
-    file raw_fast5s
 
     publishDir final_outdir, mode: 'copy', overwrite: true
 
