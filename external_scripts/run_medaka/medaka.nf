@@ -33,7 +33,7 @@ if (!final_outdir.exists()) {
 }
 
 if (params.reference_directory) {
-    reference_assemblies_in = Channel.fromPath("${params.reference_directory}/*.{fa,fa.gz,fasta,fasta.gz,fna,fna.gz}")
+    reference_assemblies_in = Channel.fromPath("${params.reference_directory}/*.fna.gz")
 }
 else {
     exit 1, "Reference assembly directory not provided -- aborting"
