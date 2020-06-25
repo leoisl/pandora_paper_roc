@@ -211,6 +211,40 @@ class SamtoolsVCF(VCF):
     ####################################################################################################################
 
 
+class MedakaVCF(VCF):
+    def __eq__(self, other):
+        return self.__dict__ == other.__dict__
+
+    ####################################################################################################################
+    # Overriding methods
+    @property
+    def genotype(self) -> int:
+        data_from_sample = self.variant.samples[self.sample]
+        GT = data_from_sample.get("GT")
+        first_gt = GT[0]
+        second_gt = GT[1]
+        equal_gts = first_gt == second_gt
+        if equal_gts:
+            return first_gt
+        else:
+            return None
+
+
+    @property
+    def genotype_confidence(self) -> float:
+        return float(self.variant.qual)
+
+    @property
+    def svtype(self) -> str:
+        return "NA"
+
+    @property
+    def coverage(self) -> int:
+        return 100 # unknown
+
+    ####################################################################################################################
+
+
 class VCFFactory:
     @staticmethod
     def create_Pandora_VCF_from_VariantRecord_and_Sample(variant: pysam.VariantRecord = None, sample: str = None) -> PandoraVCF:
@@ -226,4 +260,10 @@ class VCFFactory:
     def create_Samtools_VCF_from_VariantRecord_and_Sample(variant: pysam.VariantRecord = None,
                                                           sample: str = None) -> SamtoolsVCF:
         vcf = SamtoolsVCF(variant, sample)
+        return vcf
+
+    @staticmethod
+    def create_Medaka_VCF_from_VariantRecord_and_Sample(variant: pysam.VariantRecord = None,
+                                                          sample: str = None) -> MedakaVCF:
+        vcf = MedakaVCF(variant, sample)
         return vcf

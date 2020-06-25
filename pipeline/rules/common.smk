@@ -51,6 +51,20 @@ rule fix_samtools_vcf_for_pipeline:
     script:
         "../scripts/fix_samtools_vcf.py"
 
+rule fix_medaka_vcf_for_pipeline:
+    input:
+         medaka_original_vcf =  "{directory}/medaka_{sample}_AND_{ref}.vcf"
+    output:
+         medaka_vcf_corrected = "{directory}/medaka_{sample}_AND_{ref}.vcf.~~vcf~~fixed~~.vcf"
+    threads: 1
+    resources:
+        mem_mb = lambda wildcards, attempt: 2000 * attempt
+    log:
+        "logs/fix_medaka_vcf_for_pipeline{directory}/medaka_{sample}_AND_{ref}.vcf.log"
+    script:
+        "../scripts/fix_medaka_vcf.py"
+
+
 
 rule make_empty_depth_file:
     input:
