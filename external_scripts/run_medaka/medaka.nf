@@ -76,7 +76,7 @@ process medaka {
     errorStrategy {task.attempt < 1 ? 'retry' : 'ignore'}
     maxRetries 1
     container {
-        'shub://rmcolq/Singularity_recipes:medaka'
+        'shub://leoisl/Singularity_recipes:medaka'
     }
     input:
     set nanopore_reads, reference_assembly from medaka_input
