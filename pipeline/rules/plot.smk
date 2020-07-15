@@ -55,6 +55,35 @@ rule concat_all_recall_per_sample_no_gt_conf_filter:
         "../scripts/concat_all_recall_per_sample_no_gt_conf_filter.py"
 
 
+rule concat_all_recall_per_sample_per_nb_of_samples:
+    input:
+         all_recalls_per_sample_per_nb_of_samples = cov_tool_and_filters_recall_per_sample_per_number_of_samples.values()
+    output:
+         aggregated_recall_per_sample_per_nb_of_samples = output_folder + "/plot_data/recall_per_sample_per_nb_of_samples.csv"
+    threads: 1
+    resources:
+        mem_mb = lambda wildcards, attempt: 4000 * attempt
+    log:
+        "logs/concat_all_recall_per_sample_per_nb_of_samples.log"
+    run:
+        import pandas as pd
+
+        aggregated_df = pd.DataFrame(columns=["sample", "coverage", "tool", "coverage_threshold", "strand_bias_threshold",
+                                   "gaps_threshold", "NB_OF_SAMPLES", "recall"])
+
+        for (sample, coverage, tool, coverage_threshold, strand_bias_threshold, gaps_threshold), df_filepath \
+            in cov_tool_and_filters_recall_per_sample_per_number_of_samples.items():
+            df = pd.read_csv(df_filepath)
+            df["sample"] = sample
+            df["coverage"] = coverage
+            df["tool"] = tool
+            df["coverage_threshold"] = coverage_threshold
+            df["strand_bias_threshold"] = strand_bias_threshold
+            df["gaps_threshold"] = gaps_threshold
+            aggregated_df = pd.concat([aggregated_df, df], ignore_index=True)
+
+        aggregated_df.to_csv(output.aggregated_recall_per_sample_per_nb_of_samples, index=False)
+
 
 # rule concat_all_recall_per_sample_pair_no_gt_conf_filter:
 #     input:

@@ -119,14 +119,17 @@ all_recall_per_sample_pair_no_gt_conf_filter = list(all_recall_per_sample_pair_n
 
 cov_tool_and_filters_to_recall_reports_with_no_gt_conf_filter = defaultdict(set)
 cov_tool_and_filters_recall_per_number_of_samples = {}
+cov_tool_and_filters_recall_per_sample_per_number_of_samples = {}
 for sample, coverage, tool, coverage_threshold, strand_bias_threshold, gaps_threshold in sample_cov_tool_and_filters_to_recall_report_files:
     all_recall_files.add(f"{output_folder}/recall/recall_files/{coverage}/{tool}/coverage_filter_{coverage_threshold}/strand_bias_filter_{strand_bias_threshold}/gaps_filter_{gaps_threshold}/recall.tsv")
     for sample_pair in get_sample_pairs_containing_given_sample(sample_pairs, sample):
         cov_tool_and_filters_to_recall_reports_with_no_gt_conf_filter[(coverage, tool, coverage_threshold, strand_bias_threshold, gaps_threshold)].\
             add(f"{output_folder}/recall/reports/{sample}/{coverage}/{tool}/coverage_filter_{coverage_threshold}/strand_bias_filter_{strand_bias_threshold}/gaps_filter_{gaps_threshold}/gt_conf_percentile_0/{sample_pair}.report.tsv")
     cov_tool_and_filters_recall_per_number_of_samples[(coverage, tool, coverage_threshold, strand_bias_threshold, gaps_threshold)] = f"{output_folder}/recall/recall_per_number_of_samples/{coverage}/{tool}/coverage_filter_{coverage_threshold}/strand_bias_filter_{strand_bias_threshold}/gaps_filter_{gaps_threshold}/recall_per_number_of_samples.csv"
+    cov_tool_and_filters_recall_per_sample_per_number_of_samples[(sample, coverage, tool, coverage_threshold, strand_bias_threshold, gaps_threshold)] = f"{output_folder}/recall/recall_files_per_sample_vs_nb_of_samples/{sample}/{coverage}/{tool}/coverage_filter_{coverage_threshold}/strand_bias_filter_{strand_bias_threshold}/gaps_filter_{gaps_threshold}/recall_per_sample_per_number_of_samples.csv"
 
 all_recall_files.add(output_folder + "/plot_data/recall_per_number_of_samples.csv")
+all_recall_files.add(output_folder + "/plot_data/recall_per_sample_per_number_of_samples.csv")
 files.extend(list(all_recall_files))
 
 
