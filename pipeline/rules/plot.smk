@@ -59,7 +59,7 @@ rule concat_all_recall_per_sample_per_nb_of_samples:
     input:
          all_recalls_per_sample_per_nb_of_samples = cov_tool_and_filters_recall_per_sample_per_number_of_samples.values()
     output:
-         aggregated_recall_per_sample_per_nb_of_samples = output_folder + "/plot_data/recall_per_sample_per_nb_of_samples.csv"
+         aggregated_recall_per_sample_per_nb_of_samples = output_folder + "/plot_data/recall_per_sample_per_number_of_samples.csv"
     threads: 1
     resources:
         mem_mb = lambda wildcards, attempt: 4000 * attempt
