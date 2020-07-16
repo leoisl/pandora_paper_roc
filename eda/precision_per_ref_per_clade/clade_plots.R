@@ -101,7 +101,7 @@ for (current_ref in ref_ordering) {
     plot <- ggplot(data = precision_table_for_ref, aes(x=sample, y=precision, fill=sample, colour=tool)) +
         scale_fill_manual(values = sample_colouring) +
         geom_bar(stat = "identity") +
-        coord_cartesian(ylim=c(0.75, 1)) + 
+        coord_cartesian(ylim=c(0.90, 1)) + 
         geom_line(data=precision_table_for_pandora_no_denovo, aes(x=sample, y=precision, group=1), colour="black", size = 2) +
         geom_line(data=precision_table_for_pandora_with_denovo, aes(x=sample, y=precision, group=1), colour = "orange", size = 2) +
         ggtitle(current_ref) +
