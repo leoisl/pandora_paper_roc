@@ -106,6 +106,13 @@ class RecallReport(Report):
         self.assure_there_are_no_duplicated_evaluation()
 
 
+    def get_report_with_a_given_nb_of_samples(
+        self, nb_of_samples: int
+    ) -> "RecallReport":
+        report_with_a_given_nb_of_samples = self.report.query("NB_OF_SAMPLES == @nb_of_samples")
+        return self.__class__([report_with_a_given_nb_of_samples])
+
+
     # TODO: should this be added to the PrecisionReport also?
     def assure_there_are_no_duplicated_evaluation(self):
         no_duplicated_evaluation = len(self.report) == self.get_number_of_truth_probes()

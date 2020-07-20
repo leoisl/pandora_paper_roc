@@ -144,6 +144,40 @@ class RecallCalculator(Calculator):
 
         return recall_df
 
+    # Note: not tested, this is a method called to build a specific plot
+    def get_recall_report_wrt_truth_probes_for_those_present_in_a_given_nb_of_samples(self, list_of_nb_of_samples) -> pd.DataFrame:
+        recalls_wrt_truth_probes = []
+        nbs_of_truth_probes_found = []
+        nbs_of_truth_probes_in_total = []
+        for nb_of_samples in list_of_nb_of_samples:
+            try:
+                report_for_the_given_nb_of_samples = self.report.get_report_with_a_given_nb_of_samples(nb_of_samples)
+
+                truth_probes_true_positives, truth_probes_total = self._calculate_info_wrt_truth_probes(
+                    report_for_the_given_nb_of_samples)
+
+                recall_wrt_truth_probes = truth_probes_true_positives / truth_probes_total
+
+                recalls_wrt_truth_probes.append(recall_wrt_truth_probes)
+                nbs_of_truth_probes_found.append(truth_probes_true_positives)
+                nbs_of_truth_probes_in_total.append(truth_probes_total)
+
+            except ZeroDivisionError:
+                pass
+
+        recall_df = pd.DataFrame(
+            data={
+                "GT": [0.0] * len(list_of_nb_of_samples),
+                "step_GT": [0] * len(list_of_nb_of_samples),
+                "nb_of_samples": list_of_nb_of_samples,
+                "recalls_wrt_truth_probes": recalls_wrt_truth_probes,
+                "nbs_of_truth_probes_found": nbs_of_truth_probes_found,
+                "nbs_of_truth_probes_in_total": nbs_of_truth_probes_in_total,
+
+            }
+        )
+
+        return recall_df
 
     def get_recall_vs_nb_of_samples_report(self, list_with_nb_of_samples) -> pd.DataFrame:
         df_with_all_nb_of_samples = self.report.get_proportion_of_allele_seqs_found_for_each_variant_with_nb_of_samples(
