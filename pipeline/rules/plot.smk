@@ -67,19 +67,13 @@ rule concat_all_recall_per_sample_per_nb_of_samples:
         "logs/concat_all_recall_per_sample_per_nb_of_samples.log"
     run:
         import pandas as pd
-
         aggregated_df = pd.DataFrame(columns=["sample", "coverage", "tool", "coverage_threshold", "strand_bias_threshold",
-                                   "gaps_threshold", "NB_OF_SAMPLES", "recall"])
+                                   "gaps_threshold", "nb_of_samples", "recalls_wrt_truth_probes",
+                                   "nbs_of_truth_probes_found", "nbs_of_truth_probes_in_total"])
 
         for (sample, coverage, tool, coverage_threshold, strand_bias_threshold, gaps_threshold), df_filepath \
             in cov_tool_and_filters_recall_per_sample_per_number_of_samples.items():
             df = pd.read_csv(df_filepath)
-            df["sample"] = sample
-            df["coverage"] = coverage
-            df["tool"] = tool
-            df["coverage_threshold"] = coverage_threshold
-            df["strand_bias_threshold"] = strand_bias_threshold
-            df["gaps_threshold"] = gaps_threshold
             aggregated_df = pd.concat([aggregated_df, df], ignore_index=True)
 
         aggregated_df.to_csv(output.aggregated_recall_per_sample_per_nb_of_samples, index=False)
