@@ -87,18 +87,22 @@ process medaka {
     set(file("medaka_*.vcf"), file("medaka_*.ref.fa")) into medaka_vcf
 
     """
+    # Following ARTIC pipeline from https://github.com/nanoporetech/medaka/issues/173#issuecomment-642566213 :
     medaka --version
     minimap2 -ax map-ont ${reference_assembly} ${nanopore_reads} | samtools view -b - > nanopore.bam
     samtools sort nanopore.bam > nanopore.sorted.bam
     samtools index nanopore.sorted.bam
-    medaka_variant -f ${reference_assembly} -i nanopore.sorted.bam -o medaka -m r941_min_fast_g303
+    medaka consensus --model r941_min_high_g344 nanopore.sorted.bam medaka_consensus_out.hdf
+    medaka variant --verbose ${reference_assembly} medaka_consensus_out.hdf medaka_variants.vcf
+    # medaka tools annotate medaka_variants.vcf ${reference_assembly} nanopore.sorted.bam medaka_variants.annotated.vcf # this is commented out because we have a bug (see https://github.com/iqbal-lab/pandora1_paper/issues/121#issuecomment-661879246 )
+
     v=\$(head -n1 ${reference_assembly})
     ref_id=\${v:1:\${#v}}
     covg=${nanopore_reads}
     covg=\${covg##*/}
     covg=\${covg%.random*}
     covg=\${covg##*.}
-    cp medaka/round_1.vcf medaka_\$covg.\$ref_id.vcf
+    cp medaka_variants.vcf medaka_\$covg.\$ref_id.vcf
     cp ${reference_assembly} medaka_\$covg.\$ref_id.ref.fa
     """
 }
