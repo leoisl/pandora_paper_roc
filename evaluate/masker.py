@@ -52,7 +52,7 @@ class PrecisionMasker(Masker):
 
         aligned_pairs = record.get_aligned_pairs(with_seq=True)
         query_interval = aligned_pairs.get_index_of_query_interval(
-            Interval(*record.query_probe.interval)
+            Interval(*record.query_probe.get_interval_or_default_interval_if_none())
         )
         ref_positions = aligned_pairs.get_ref_positions(
             transform_Nones_into_halfway_positions=True

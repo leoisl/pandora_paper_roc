@@ -124,3 +124,6 @@ Werkzeug==0.16.1
 widgetsnbextension==3.5.1
 wrapt==1.11.2
 zipp==2.1.0
+
+networkx==2.4
+setuptools==41.2.0

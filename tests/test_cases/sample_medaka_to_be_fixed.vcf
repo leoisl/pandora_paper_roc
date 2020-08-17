@@ -1,0 +1,14 @@
+##fileformat=VCFv4.1
+##contig=<ID=CN928163.2>
+##INFO=<ID=pos1,Number=.,Type=Integer,Description="POS of incorporated variants from haplotype 1">
+##INFO=<ID=q1,Number=1,Type=Float,Description="Combined qual score for haplotype 1">
+##INFO=<ID=pos2,Number=.,Type=Integer,Description="POS of incorporated variants from haplotype 2">
+##INFO=<ID=q2,Number=1,Type=Float,Description="Combined qual score for haplotype 2">
+##FORMAT=<ID=GT,Number=G,Type=String,Description="Genotype">
+##FORMAT=<ID=GQ,Number=G,Type=Float,Description="Genotype quality score">
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	SAMPLE
+CN928163.2	260	.	CT	C	9.491	PASS	pos1=260;pos2=260;q1=6.507;q2=12.475	GT:GQ	1|1:9.491
+CN928163.2	383	.	A	AG	6.324	PASS	pos1=383;q1=6.324	GT:GQ	1|0:6.324
+CN928163.2	396	.	C	G	62.7315	PASS	pos1=396;pos2=396;q1=62.247;q2=63.216	GT:GQ	1|1:62.7315
+CN928163.2	423	.	C	T	54.1685	PASS	pos1=423;pos2=423;q1=58.445;q2=49.892	GT:GQ	1|1:54.1685
+CN928163.2	432	.	C	T	57.336	PASS	pos1=432;pos2=432;q1=58.445;q2=56.227	GT:GQ	1|1:57.336

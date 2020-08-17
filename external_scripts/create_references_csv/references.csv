@@ -1,0 +1,4 @@
+reference_id,compressed_file,uncompressed_file
+REF1,/home/leandro/git/pandora1_paper/external_scripts/create_references_csv/references_subset/ref1.fna.gz,/home/leandro/git/pandora1_paper/external_scripts/create_references_csv/references_subset/ref1.fna
+REF2,/home/leandro/git/pandora1_paper/external_scripts/create_references_csv/references_subset/ref2.fna.gz,/home/leandro/git/pandora1_paper/external_scripts/create_references_csv/references_subset/ref2.fna
+REF3,/home/leandro/git/pandora1_paper/external_scripts/create_references_csv/references_subset/ref3.fna.gz,/home/leandro/git/pandora1_paper/external_scripts/create_references_csv/references_subset/ref3.fna

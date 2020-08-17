@@ -48,26 +48,26 @@ class TestInterval:
     def test_isNull_nonNullIntervalReturnsFalse(self):
         assert not ProbeInterval(0, -1).is_null()
 
-    def test_fromString_emptyStringReturnsNullInterval(self):
+    def test_fromString_emptyStringReturnsNone(self):
         string = ""
 
         actual = ProbeInterval.from_string(string)
 
-        assert actual.is_null()
+        assert actual is None
 
-    def test_fromString_invalidStringReturnsNullInterval(self):
+    def test_fromString_invalidStringReturnsNone(self):
         string = "[10,20]"
 
         actual = ProbeInterval.from_string(string)
 
-        assert actual.is_null()
+        assert actual is None
 
-    def test_fromString_validStringWithSpaceAfterCommaReturnsNullInterval(self):
+    def test_fromString_validStringWithSpaceAfterCommaReturnsNone(self):
         string = "[10, 20)"
 
         actual = ProbeInterval.from_string(string)
 
-        assert actual.is_null()
+        assert actual is None
 
     def test_fromString_validStringReturnsInterval(self):
         string = "[10,20)"
@@ -100,16 +100,26 @@ class TestProbeHeader:
         assert actual == expected
 
     def test_fromString_allFieldsInStringReturnsProbeHeaderWithAllFields(self):
-        string = ">CHROM=1;SAMPLE=CFT073;POS=1;INTERVAL=[0,72);SVTYPE=INDEL;MEAN_FWD_COVG=2;MEAN_REV_COVG=3;GT_CONF=10.9922;"
+        string = ">CHROM=1;SAMPLE=CFT073;POS=1;REF_LENGTH=25;INTERVAL=[0,72);SVTYPE=INDEL;MEAN_FWD_COVG=2;MEAN_REV_COVG=3;GT_CONF=10.9922;" \
+                 "COVERAGE=13;PANGENOME_VARIATION_ID=42;NUMBER_OF_ALLELES=3;ALLELE_ID=1;" \
+                 "NUMBER_OF_DIFFERENT_ALLELE_SEQUENCES=10;ALLELE_SEQUENCE_ID=4;NB_OF_SAMPLES=7;"
 
         actual = ProbeHeader.from_string(string)
         expected = ProbeHeader(
             sample="CFT073",
             chrom="1",
             pos=1,
+            ref_length=25,
             interval=ProbeInterval(0, 72),
             svtype="INDEL",
             gt_conf=10.9922,
+            coverage=13,
+            pangenome_variation_id=42,
+            number_of_alleles=3,
+            allele_id=1,
+            number_of_different_allele_sequences=10,
+            allele_sequence_id=4,
+            nb_of_samples=7,
         )
 
         assert actual == expected
@@ -128,7 +138,7 @@ class TestProbeHeader:
         assert actual == expected
 
     def test_fromString_stringWithInvalidFieldReturnsProbeHeaderWithOnlyValidFields(
-        self
+            self
     ):
         string = ">CHROM=1;SAMPLE=CFT073;SVTYPE=INDEL;MEAN_FWD_COVG=2;INVALID=foo;MEAN_REV_COVG=3;GT_CONF=10.9922;"
 
@@ -160,16 +170,26 @@ class TestProbeHeader:
 
     def test_str_allFieldsInProbeHeaderReturnsStringWithAllFields(self):
         header = ProbeHeader(
-            pos=3,
-            gt_conf=2.2,
-            chrom="4",
-            sample="foo",
-            interval=ProbeInterval(5, 6),
-            svtype="SNP",
+            sample="CFT073",
+            chrom="1",
+            pos=1,
+            ref_length=25,
+            interval=ProbeInterval(0, 72),
+            svtype="INDEL",
+            gt_conf=10.9922,
+            coverage=13,
+            pangenome_variation_id=42,
+            number_of_alleles=3,
+            allele_id=1,
+            number_of_different_allele_sequences=10,
+            allele_sequence_id=4,
+            nb_of_samples=7,
         )
 
         actual = str(header)
-        expected = ">CHROM=4;SAMPLE=foo;POS=3;INTERVAL=[5,6);SVTYPE=SNP;GT_CONF=2.2;"
+        expected = ">CHROM=1;SAMPLE=CFT073;POS=1;REF_LENGTH=25;INTERVAL=[0,72);SVTYPE=INDEL;GT_CONF=10.9922;" \
+                   "COVERAGE=13;PANGENOME_VARIATION_ID=42;NUMBER_OF_ALLELES=3;ALLELE_ID=1;" \
+                   "NUMBER_OF_DIFFERENT_ALLELE_SEQUENCES=10;ALLELE_SEQUENCE_ID=4;NB_OF_SAMPLES=7;"
 
         assert actual == expected
 
@@ -335,7 +355,7 @@ class TestProbe:
         assert actual == expected
 
     def test_getCoreSequence_intervalForSingleBaseAtStartOfSequenceReturnsSingleBase(
-        self
+            self
     ):
         header = ProbeHeader(interval=ProbeInterval(0, 1))
         full_sequence = "abcdefg"
@@ -347,7 +367,7 @@ class TestProbe:
         assert actual == expected
 
     def test_getCoreSequence_intervalForSingleBaseAtEndOfSequenceReturnsSingleBase(
-        self
+            self
     ):
         header = ProbeHeader(interval=ProbeInterval(6, 7))
         full_sequence = "abcdefg"
@@ -395,7 +415,7 @@ class TestProbe:
         assert actual == expected
 
     def test_fromString_headerAndEmptySequenceInStringReturnsProbeWithNoFullSequence(
-        self
+            self
     ):
         string = ">CHROM=1;INTERVAL=[3,5);\n"
 
@@ -444,5 +464,21 @@ class TestProbe:
 
         actual = probe.interval
         expected = ProbeInterval(4, 6)
+
+        assert actual == expected
+
+    def test___get_interval_or_default_interval_if_none___valid_interval(self):
+        probe = Probe(header=ProbeHeader(interval=ProbeInterval(4, 6)))
+
+        actual = probe.get_interval_or_default_interval_if_none()
+        expected = ProbeInterval(4, 6)
+
+        assert actual == expected
+
+    def test___get_interval_or_default_interval_if_none___none_interval(self):
+        probe = Probe()
+
+        actual = probe.get_interval_or_default_interval_if_none()
+        expected = ProbeInterval()
 
         assert actual == expected

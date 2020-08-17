@@ -22,7 +22,7 @@ rule map_variant_call_probeset_to_reference_assembly:
         reference_assembly_index = lambda wildcards: data.xs((wildcards.sample_id, wildcards.coverage, wildcards.tool))["reference_assembly"]+".amb"
     output:
           variant_call_probeset_mapped_to_ref = output_folder + "/precision/variant_calls_probesets_mapped_to_refs/{sample_id}/{coverage}/{tool}/coverage_filter_{coverage_threshold}/strand_bias_filter_{strand_bias_threshold}/gaps_filter_{gaps_threshold}/variant_calls_probeset_mapped.sam"
-    threads: 4
+    threads: 1
     resources:
         mem_mb = lambda wildcards, attempt: 4000 * attempt
     log:
@@ -61,3 +61,17 @@ rule calculate_precision:
         "logs/calculate_precision/{coverage}/{tool}/coverage_filter_{coverage_threshold}/strand_bias_filter_{strand_bias_threshold}/gaps_filter_{gaps_threshold}/precision.log"
     script:
         "../scripts/calculate_precision.py"
+
+
+rule calculate_precision_per_sample_no_gt_conf:
+    input:
+         precision_report_files_for_one_sample = lambda wildcards: sample_cov_tool_and_filters_to_precision_report_files[wildcards.sample, wildcards.coverage, wildcards.tool, wildcards.coverage_threshold, wildcards.strand_bias_threshold, wildcards.gaps_threshold]
+    output:
+         precision_file_for_one_sample = output_folder + "/precision/precision_files_per_sample/{sample}/{coverage}/{tool}/coverage_filter_{coverage_threshold}/strand_bias_filter_{strand_bias_threshold}/gaps_filter_{gaps_threshold}/precision.tsv"
+    threads: 1
+    resources:
+        mem_mb = lambda wildcards, attempt: 4000 * attempt
+    log:
+        "logs/calculate_precision_per_sample/{sample}/{coverage}/{tool}/coverage_filter_{coverage_threshold}/strand_bias_filter_{strand_bias_threshold}/gaps_filter_{gaps_threshold}/precision.log"
+    script:
+        "../scripts/calculate_precision_per_sample_no_gt_conf.py"

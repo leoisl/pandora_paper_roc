@@ -21,6 +21,13 @@ def update_tool_checklist(df):
         if snippy_was_run(tools):
             tools = remove_snippy(tools)
             tools.append("snippy_all")
+        if samtools_was_run(tools):
+            tools = remove_samtools(tools)
+            tools.append("samtools_all")
+        if medaka_was_run(tools):
+            tools = remove_medaka(tools)
+            tools.append("medaka_all")
+
         return get_options_for_filters(tools), tools
 
 def update_dataset_checklist(df):
@@ -59,64 +66,90 @@ def update_gaps_checklist(df):
 ###################################################################################
 # update graph functions
 ###################################################################################
-def get_highest_error_rate_after_given_recall(df, recall):
-    return df.query(f"recall >= {recall}")["error_rate"].max()
+def get_highest_error_rate_after_given_recall(df, recall_column, recall_lower_bound):
+    return df.query(f"{recall_column} >= {recall_lower_bound}")["error_rate"].max()
 
-def get_snippy_trace_data_for_given_ref(df, snippy_ref):
-    trace_name = f"Tool: {snippy_ref}"
-    config = (snippy_ref, )
-    df_for_snippy = df.query(f"tool==\"{snippy_ref}\"")
+def get_snippy_or_samtools_or_medaka_trace_data_for_given_ref(df, tool_name):
+    trace_name = f"Tool: {tool_name}"
+    config = (tool_name,)
+    trace_df = df.query(f"tool==\"{tool_name}\"")
     trace_data = {
         "trace_name": trace_name,
         "config": config,
-        "df_for_snippy": df_for_snippy
+        "trace_df": trace_df
     }
     return trace_data
+
+def populate_config_to_trace_for_snippy_or_samtools_or_medaka(tool_prefix, color_vector, config_to_trace, df, x_label, y_label):
+    tool_refs_tools = [tool_ref_tool for tool_ref_tool in df["tool"].unique() if
+                         tool_ref_tool.startswith(tool_prefix)]
+    for tool_index, tool_ref in enumerate(tool_refs_tools):
+        tool_trace_data = get_snippy_or_samtools_or_medaka_trace_data_for_given_ref(df, tool_ref)
+
+        trace_name = tool_trace_data["trace_name"]
+        config = tool_trace_data["config"]
+        df_for_label = tool_trace_data["trace_df"]
+
+        highest_error_rate_after_20_percent_recall = get_highest_error_rate_after_given_recall(df_for_label, y_label,
+                                                                                               0.2)
+
+        trace = go.Scatter(x=df_for_label[x_label], y=df_for_label[y_label], name=trace_name,
+                           mode='lines',
+                           marker={'size': 8, "opacity": 0.6, "line": {'width': 0.5}},
+                           marker_color=color_vector[tool_index % len(color_vector)])
+
+        config_to_trace[config] = {
+            "trace": trace,
+            "highest_error_rate": highest_error_rate_after_20_percent_recall
+        }
+
+
+def populate_config_to_trace_for_snippy(config_to_trace, df, x_label, y_label):
+    # color_vector = ["red", "green", "blue", "black", "yellow", "orange", "brown", "grey"]
+    color_vector = ["red"]
+    populate_config_to_trace_for_snippy_or_samtools_or_medaka("snippy", color_vector, config_to_trace, df, x_label, y_label)
+
+def populate_config_to_trace_for_samtools(config_to_trace, df, x_label, y_label):
+    color_vector = ["green"]
+    populate_config_to_trace_for_snippy_or_samtools_or_medaka("samtools", color_vector, config_to_trace, df, x_label, y_label)
+
+def populate_config_to_trace_for_medaka(config_to_trace, df, x_label, y_label):
+    color_vector = ["purple"]
+    populate_config_to_trace_for_snippy_or_samtools_or_medaka("medaka", color_vector, config_to_trace, df, x_label, y_label)
+
+
+def populate_config_to_trace_for_pandora(config_to_trace, df, tool, dataset_coverages, coverage_filters, strand_bias_filters, gaps_filters, x_label, y_label):
+    for dataset_coverage, coverage_threshold, strand_bias_threshold, gaps_threshold in \
+            itertools.product(dataset_coverages, coverage_filters, strand_bias_filters, gaps_filters):
+        df_for_label = df.query(
+            f"tool==\"{tool}\" & coverage==\"{dataset_coverage}\" & coverage_threshold==\"{coverage_threshold}\" & strand_bias_threshold==\"{strand_bias_threshold}\" & gaps_threshold==\"{gaps_threshold}\"")
+
+        trace_name = f"Tool: {tool}, Coverage: {dataset_coverage}, Coverage threshold: {coverage_threshold}, Strand bias threshold: {strand_bias_threshold}, Gaps threshold: {gaps_threshold}"
+        highest_error_rate_after_20_percent_recall = get_highest_error_rate_after_given_recall(df_for_label, y_label,
+                                                                                               0.2)
+
+        trace = go.Scatter(x=df_for_label[x_label], y=df_for_label[y_label], name=trace_name,
+                           mode='lines',
+                           marker={'size': 8, "opacity": 0.6, "line": {'width': 0.5}})
+
+        config_to_trace[(tool, dataset_coverage, coverage_threshold, strand_bias_threshold, gaps_threshold)] = {
+            "trace": trace,
+            "highest_error_rate": highest_error_rate_after_20_percent_recall
+        }
+
 
 def compute_traces_in_product_of_args(df, tools, dataset_coverages, coverage_filters, strand_bias_filters, gaps_filters,
                                       x_label, y_label):
     config_to_trace = {}
     for tool in tools:
         if tool == "snippy_all":
-            color_vector = ["red", "green", "blue", "black", "yellow", "orange", "brown", "grey"]
-            snippy_refs_tools = [snippy_ref_tool for snippy_ref_tool in df["tool"].unique() if snippy_ref_tool.startswith("snippy")]
-            for snippy_index, snippy_ref in enumerate(snippy_refs_tools):
-                snippy_trace_data = get_snippy_trace_data_for_given_ref(df, snippy_ref)
-
-                trace_name = snippy_trace_data["trace_name"]
-                config = snippy_trace_data["config"]
-                df_for_label = snippy_trace_data["df_for_snippy"]
-
-                highest_error_rate_after_20_percent_recall = get_highest_error_rate_after_given_recall(df_for_label, 0.2)
-
-                trace = go.Scatter(x=df_for_label[x_label], y=df_for_label[y_label], name=trace_name,
-                                   mode='lines',
-                                   marker={'size': 8, "opacity": 0.6, "line": {'width': 0.5}},
-                                   marker_color=color_vector[snippy_index % len(color_vector)])
-
-                config_to_trace[config] = {
-                    "trace": trace,
-                    "highest_error_rate": highest_error_rate_after_20_percent_recall
-                }
+            populate_config_to_trace_for_snippy(config_to_trace, df, x_label, y_label)
+        elif tool == "samtools_all":
+            populate_config_to_trace_for_samtools(config_to_trace, df, x_label, y_label)
+        elif tool == "medaka_all":
+            populate_config_to_trace_for_medaka(config_to_trace, df, x_label, y_label)
         else:
-            for dataset_coverage, coverage_threshold, strand_bias_threshold, gaps_threshold in \
-                itertools.product(dataset_coverages, coverage_filters, strand_bias_filters, gaps_filters):
-                df_for_label = df.query(
-                    f"tool==\"{tool}\" & coverage==\"{dataset_coverage}\" & coverage_threshold==\"{coverage_threshold}\" & strand_bias_threshold==\"{strand_bias_threshold}\" & gaps_threshold==\"{gaps_threshold}\"")
-
-                trace_name = f"Tool: {tool}, Coverage: {dataset_coverage}, Coverage threshold: {coverage_threshold}, Strand bias threshold: {strand_bias_threshold}, Gaps threshold: {gaps_threshold}"
-                highest_error_rate_after_20_percent_recall = get_highest_error_rate_after_given_recall(df_for_label, 0.2)
-
-                trace = go.Scatter(x=df_for_label[x_label], y=df_for_label[y_label], name=trace_name,
-                                        mode='lines',
-                                        marker={'size': 8, "opacity": 0.6, "line": {'width': 0.5}})
-
-
-                config_to_trace[(tool, dataset_coverage, coverage_threshold, strand_bias_threshold, gaps_threshold)] = {
-                    "trace": trace,
-                    "highest_error_rate": highest_error_rate_after_20_percent_recall
-                }
-
+            populate_config_to_trace_for_pandora(config_to_trace, df, tool, dataset_coverages, coverage_filters, strand_bias_filters, gaps_filters, x_label, y_label)
     return config_to_trace
 
 
@@ -130,6 +163,18 @@ def get_figure_for_graph(config_to_all_traces, tool_checklist_values, dataset_co
         if tool == "snippy_all":
             for config, trace in config_to_all_traces.items():
                 if config[0].startswith("snippy"):
+                    trace = config_to_all_traces[config]
+                    traces.append(trace["trace"])
+                    highest_error_rate = max(highest_error_rate, trace["highest_error_rate"])
+        elif tool == "samtools_all":
+            for config, trace in config_to_all_traces.items():
+                if config[0].startswith("samtools"):
+                    trace = config_to_all_traces[config]
+                    traces.append(trace["trace"])
+                    highest_error_rate = max(highest_error_rate, trace["highest_error_rate"])
+        elif tool == "medaka_all":
+            for config, trace in config_to_all_traces.items():
+                if config[0].startswith("medaka"):
                     trace = config_to_all_traces[config]
                     traces.append(trace["trace"])
                     highest_error_rate = max(highest_error_rate, trace["highest_error_rate"])
@@ -170,38 +215,40 @@ def get_df_and_check_args_for_graph(button_value, plots_value, tool_checklist_va
 
 
 
-def get_graph_proportion (df, button_value, plots_value, tool_checklist_values, dataset_coverage_checklist_values, coverage_checklist_values,
-                             strand_bias_checklist_values, gaps_checklist_values):
+def get_graph_proportion (df, x_axis, x_axis_label, y_axis, y_axis_label,
+                          button_value, plots_value, tool_checklist_values, dataset_coverage_checklist_values,
+                          coverage_checklist_values, strand_bias_checklist_values, gaps_checklist_values):
     config_to_all_traces_proportion = compute_traces_in_product_of_args(df,
                                                                         tool_checklist_values,
                                                                         dataset_coverage_checklist_values,
                                                                         coverage_checklist_values,
                                                                         strand_bias_checklist_values,
                                                                         gaps_checklist_values,
-                                                                        x_label="error_rate", y_label="recall")
+                                                                        x_label=x_axis, y_label=y_axis)
     return dcc.Graph(figure=get_figure_for_graph(config_to_all_traces_proportion, tool_checklist_values,
                                                  dataset_coverage_checklist_values,
                                                  coverage_checklist_values, strand_bias_checklist_values,
                                                  gaps_checklist_values,
-                                                 xaxis_label="Error rate", yaxis_label="Recall", set_ranges=True),
+                                                 xaxis_label=x_axis_label, yaxis_label=y_axis_label, set_ranges=False),
                      style={'height': '1000px', 'width': '1000px'})
 
 
 
-def get_graph_raw (df, button_value, plots_value, tool_checklist_values, dataset_coverage_checklist_values, coverage_checklist_values,
-                             strand_bias_checklist_values, gaps_checklist_values):
+def get_graph_raw (df, x_axis, x_axis_label, y_axis, y_axis_label,
+                   button_value, plots_value, tool_checklist_values, dataset_coverage_checklist_values,
+                   coverage_checklist_values, strand_bias_checklist_values, gaps_checklist_values):
     config_to_all_traces_raw = compute_traces_in_product_of_args(df,
                                                                         tool_checklist_values,
                                                                         dataset_coverage_checklist_values,
                                                                         coverage_checklist_values,
                                                                         strand_bias_checklist_values,
                                                                         gaps_checklist_values,
-                                                                        x_label="nb_of_correct_calls", y_label="nb_of_truth_probes_found")
+                                                                        x_label=x_axis, y_label=y_axis)
     return dcc.Graph(figure=get_figure_for_graph(config_to_all_traces_raw, tool_checklist_values,
                                                  dataset_coverage_checklist_values,
                                                  coverage_checklist_values, strand_bias_checklist_values,
                                                  gaps_checklist_values,
-                                                 xaxis_label="Nb of correct calls", yaxis_label="Nb of truth variants found", set_ranges=False),
+                                                 xaxis_label=x_axis_label, yaxis_label=y_axis_label, set_ranges=False),
                      style={'height': '1000px', 'width': '1000px'})
 
 
@@ -246,13 +293,25 @@ def remove_value_from_list(array, value):
 
 def remove_snippy(tools):
     return [tool for tool in tools if "snippy" not in tool]
+def remove_samtools(tools):
+    return [tool for tool in tools if "samtools" not in tool]
+def remove_medaka(tools):
+    return [tool for tool in tools if "medaka" not in tool]
 
 
-def snippy_was_run(tools):
-    for tool in tools:
-        if "snippy" in tool:
+
+def tool_was_run(queried_tool, tools_that_were_run):
+    for tool in tools_that_were_run:
+        if queried_tool in tool:
             return True
     return False
+def snippy_was_run(tools):
+    return tool_was_run("snippy", tools)
+def samtools_was_run(tools):
+    return tool_was_run("samtools", tools)
+def medaka_was_run(tools):
+    return tool_was_run("medaka", tools)
+
 
 def get_first_elem_of_list_as_list_itself (the_list):
     if len(the_list) >= 1:

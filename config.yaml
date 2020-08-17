@@ -6,7 +6,7 @@ gaps_filters:                             [1.0]
 samples:                                  metadata/samples.csv
 variant_calls:                            metadata/variant_calls.csv
 variant_calls_flank_length_for_precision: 150
-truth_probes_flank_length_for_recall:     100
+deduplicated_variants_output_folder:      /home/leandro/git/pangenome_variations/analysis_output
 
 max_gt_conf_percentile:                   11
 step_gt_conf_percentile:                  5

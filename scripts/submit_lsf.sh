@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
-MEMORY=32000
-LOCAL_CORES=20
+MEMORY=8000
+LOCAL_CORES=10
 
 PROFILE="lsf"
 LOG_DIR=logs/
