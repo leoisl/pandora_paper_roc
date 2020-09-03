@@ -214,3 +214,5 @@ eda/recall_per_ref_per_clade/*.png
 eda/recall_per_ref_per_nb_of_samples_per_clade/*.csv
 eda/recall_per_ref_per_nb_of_samples_per_clade/*.png
 eda/recall_per_ref_per_nb_of_samples_per_clade/*.gif
+
+sample_data.zip
