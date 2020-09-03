@@ -134,3 +134,16 @@ rule concat_all_precision_per_sample_no_gt_conf_filter:
         "logs/concat_all_precision_per_sample_no_gt_conf_filter.log"
     script:
         "../scripts/concat_all_precision_per_sample_no_gt_conf_filter.py"
+
+
+rule make_enrichment_of_FPs_per_sample_plot:
+    input:
+        precision_per_sample = rules.concat_all_precision_per_sample_no_gt_conf_filter.output.precision_per_sample
+    output:
+        csv_data = output_folder + "/plot_data/enrichment_of_FPs/enrichment_of_FPs.csv",
+        plot = output_folder + "/plot_data/enrichment_of_FPs/enrichment_of_FPs.png",
+    threads: 1
+    resources:
+        mem_mb=lambda wildcards, attempt: 4000 * attempt
+    notebook:
+        "../../eda/enrichment_of_FPs_per_sample/enrichment_of_FPs_per_sample.ipynb"
