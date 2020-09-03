@@ -2,12 +2,12 @@ library("ggplot2")
 library("gridExtra")
 library("tidyverse")
 
+args <- commandArgs(trailingOnly=TRUE)
+
 ###############################################################################################
 # configs
-tool = "samtools_pandora"
-
-plot_name = paste("precision_per_ref_per_clade_histogram", tool, "png", sep=".")
-
+csv_file <- args[1]
+plot_name <- args[2]
 
 ref_colouring <- c(
   # A
@@ -45,7 +45,7 @@ ref_colouring <- c(
   "SMS-3-5 (NC_010498.1)" = "#ff00002b",
   "CE10 (NC_017646.1)" = "#ff00002b"
 )
-ref_ordering = names(ref_colouring)
+ref_ordering <- names(ref_colouring)
 
 sample_colouring <- c(
                 # A
@@ -76,27 +76,27 @@ sample_colouring <- c(
                 "Escherichia_coli_MINF_9A" = "#FF0000",
                 "Escherichia_coli_MSB1_8B" = "#FF0000"
 )
-sample_ordering = names(sample_colouring)
+sample_ordering <- names(sample_colouring)
 ###############################################################################################
 
 
 ###############################################################################################
 # input
-precision_table = read.csv(paste("precision_per_ref_per_clade", tool, "csv", sep="."), header=TRUE)
-precision_table_for_pandora_no_denovo = precision_table %>% filter(tool == "Pandora illumina no denovo")
-precision_table_for_pandora_with_denovo = precision_table %>% filter(tool == "Pandora illumina with denovo")
+precision_table <- read.csv(csv_file, header=TRUE)
+precision_table_for_pandora_no_denovo <- precision_table %>% filter(tool == "Pandora illumina no denovo")
+precision_table_for_pandora_with_denovo <- precision_table %>% filter(tool == "Pandora illumina with denovo")
 ###############################################################################################
 
 ###############################################################################################
 # processing
 png(plot_name, width = 2000, height = 2000)
-index = 1
+index <- 1
 plots <- list()
 for (current_ref in ref_ordering) {
   if (!identical(current_ref, "PRG")) {
-    precision_table_for_ref = precision_table %>% filter(ref == current_ref)
-    precision_table_for_ref$sample = factor(precision_table_for_ref$sample, levels=sample_ordering)
-    ref_color = ref_colouring[[current_ref]]
+    precision_table_for_ref <- precision_table %>% filter(ref == current_ref)
+    precision_table_for_ref$sample <- factor(precision_table_for_ref$sample, levels=sample_ordering)
+    ref_color <- ref_colouring[[current_ref]]
     
     plot <- ggplot(data = precision_table_for_ref, aes(x=sample, y=precision, fill=sample, colour=tool)) +
         scale_fill_manual(values = sample_colouring) +
@@ -117,11 +117,11 @@ for (current_ref in ref_ordering) {
           legend.position = "none"
         )
     plots[[index]] <- plot
-    index = index + 1
+    index <- index + 1
   }
 }
 
-
-grid.arrange(grobs=plots, ncol = 5, nrow = 5)
+print(length(plots))
+grid.arrange(grobs=plots, ncol = 5)
 
 dev.off()

@@ -147,3 +147,29 @@ rule make_enrichment_of_FPs_per_sample_plot:
         mem_mb=lambda wildcards, attempt: 4000 * attempt
     notebook:
         "../../eda/enrichment_of_FPs_per_sample/enrichment_of_FPs_per_sample.ipynb"
+
+
+
+rule make_precision_per_ref_per_clade_csv:
+    input:
+        precision_per_sample = rules.concat_all_precision_per_sample_no_gt_conf_filter.output.precision_per_sample
+    output:
+        csv_data = output_folder + "/plot_data/precision_per_ref_per_clade/precision_per_ref_per_clade_{tools_to_keep}.csv"
+    threads: 1
+    resources:
+        mem_mb=lambda wildcards, attempt: 8000 * attempt
+    notebook:
+        "../../eda/precision_per_ref_per_clade/precision_per_ref_per_clade.ipynb"
+
+rule make_precision_per_ref_per_clade_plot:
+    input:
+        csv_data = rules.make_precision_per_ref_per_clade_csv.output.csv_data
+    output:
+        plot = output_folder + "/plot_data/precision_per_ref_per_clade/precision_per_ref_per_clade_{tools_to_keep}.png"
+    threads: 1
+    resources:
+        mem_mb=lambda wildcards, attempt: 4000 * attempt
+    singularity:
+        "docker://leandroishilima/pandora1_paper_r:pandora_paper_tag1"
+    shell:
+        "Rscript eda/precision_per_ref_per_clade/clade_plots.R {input.csv_data} {output.plot}"

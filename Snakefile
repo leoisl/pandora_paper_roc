@@ -31,6 +31,10 @@ def update_to_absolute_path(df, columns):
         df[column] = update_to_absolute_path_core(df[column])
     return df
 
+def get_set_of_tools_that_were_run(variant_calls):
+    return set([tool.split("_")[0] for tool in variant_calls["tool"]])
+
+
 
 # ======================================================
 # Config files
@@ -69,7 +73,8 @@ step_gt_conf_percentile = int(config['step_gt_conf_percentile'])
 gt_conf_percentiles = list(range(0, max_gt_conf_percentile, step_gt_conf_percentile))
 number_of_samples = len(samples)
 list_with_number_of_samples = list(range(2, number_of_samples+1))
-
+set_of_tools_that_were_run = get_set_of_tools_that_were_run(variant_calls)
+data_from_paper = bool(config["data_from_paper"])
 
 # ======================================================
 # Pipeline files
@@ -165,6 +170,16 @@ files.append(recall_per_sample_file)
 
 files.append(output_folder + "/plot_data/enrichment_of_FPs/enrichment_of_FPs.csv")
 files.append(output_folder + "/plot_data/enrichment_of_FPs/enrichment_of_FPs.png")
+for tool in set_of_tools_that_were_run:
+    if tool != "pandora":
+        files.append(f"{output_folder}/plot_data/precision_per_ref_per_clade/precision_per_ref_per_clade_{tool}_pandora.csv")
+
+
+if data_from_paper:
+    # rules that just works with data from paper (TODO: improve this)?
+    for tool in set_of_tools_that_were_run:
+        if tool != "pandora":
+            files.append(f"{output_folder}/plot_data/precision_per_ref_per_clade/precision_per_ref_per_clade_{tool}_pandora.png")
 
 
 
