@@ -1,12 +1,12 @@
-output_folder:                            analysis_output
+output_folder:                            analysis_output_small
 coverage_filters:                         [0]
 strand_bias_filters:                      [0.0]
 gaps_filters:                             [1.0]
 
-samples:                                  metadata/samples.csv
-variant_calls:                            metadata/variant_calls.csv
-variant_calls_flank_length_for_precision: 150
-deduplicated_variants_output_folder:      /home/leandro/git/pangenome_variations/analysis_output
+samples:                                  metadata/samples_small.csv
+variant_calls:                            metadata/variant_calls_small.csv
+deduplicated_variants_output_folder:      sample_data/pangenome_variations/output_pangenome_variations_small
 
+variant_calls_flank_length_for_precision: 150
 max_gt_conf_percentile:                   11
 step_gt_conf_percentile:                  5

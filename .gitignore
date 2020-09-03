@@ -161,6 +161,7 @@ cluster/
 cluster_old/
 
 analysis_output/
+analysis_output_small/
 
 interactive_plotting/ROC_data_gt_min_0\.0_step_1\.0_max_1000000000\.0\.tsv
 
