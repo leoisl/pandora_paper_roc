@@ -63,6 +63,7 @@ sample_pairs = [(sample1, sample2) for sample1, sample2 in itertools.combination
 sample_pairs_as_str = [f"{sample1}/{sample1}_and_{sample2}" for sample1, sample2 in sample_pairs]
 output_folder = config['output_folder']
 deduplicated_variants_output_folder = config['deduplicated_variants_output_folder']
+deduplicated_variants_output_folder = str(Path(deduplicated_variants_output_folder).absolute())
 max_gt_conf_percentile = int(config['max_gt_conf_percentile'])
 step_gt_conf_percentile = int(config['step_gt_conf_percentile'])
 gt_conf_percentiles = list(range(0, max_gt_conf_percentile, step_gt_conf_percentile))
