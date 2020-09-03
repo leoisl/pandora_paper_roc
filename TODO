@@ -1,5 +1,0 @@
--improving 4-way:
-    - instead of counting alleles in recall, we could count variants;
-        - to find a variant, we need to make sure we find both alleles of the variants;
-    - we could map truth probes to the genotyped ref to have another recall measurement - thus we would not penalize if no calls are made if ref == samples
-        - but precision will hurt a lot, since now we are making many more calls tjem (one for each position in the genotyped ref)?
