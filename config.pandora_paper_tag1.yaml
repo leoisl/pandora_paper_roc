@@ -8,5 +8,5 @@ variant_calls:                            metadata/variant_calls_pandora_paper_t
 deduplicated_variants_output_folder:      ../pangenome_variations/output_pangenome_variations_pandora_paper_tag1
 
 variant_calls_flank_length_for_precision: 150
-max_gt_conf_percentile:                   11
+max_gt_conf_percentile:                   51
 step_gt_conf_percentile:                  5
