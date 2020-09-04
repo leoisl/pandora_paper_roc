@@ -158,6 +158,8 @@ rule make_precision_per_ref_per_clade_csv:
     threads: 1
     resources:
         mem_mb=lambda wildcards, attempt: 8000 * attempt
+    log:
+        notebook="logs/make_precision_per_ref_per_clade_csv/{tools_to_keep}.ipynb"
     notebook:
         "../../eda/precision_per_ref_per_clade/precision_per_ref_per_clade.ipynb"
 
