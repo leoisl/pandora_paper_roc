@@ -2,10 +2,9 @@ library("ggplot2")
 library("gridExtra")
 library("tidyverse")
 
-args <- commandArgs(trailingOnly=TRUE)
-
 ###############################################################################################
-# configs
+# args
+args <- commandArgs(trailingOnly=TRUE)
 csv_file <- args[1]
 plot_name <- args[2]
 
