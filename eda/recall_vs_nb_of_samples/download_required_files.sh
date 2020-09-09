@@ -1,2 +1,0 @@
-scp yoda-ext:/hps/nobackup/iqbal/leandro/pandora1_paper/analysis_output_20_way_illumina_100x/plot_data/recall_per_number_of_samples.csv .
-scp yoda-ext:/hps/nobackup/iqbal/leandro/pangenome_variations/deduplicated_variants_20_way/stats_csvs/id_and_number_of_samples.csv .

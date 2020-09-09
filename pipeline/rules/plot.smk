@@ -59,7 +59,7 @@ rule concat_all_recall_per_sample_per_nb_of_samples:
     input:
          all_recalls_per_sample_per_nb_of_samples = cov_tool_and_filters_recall_per_sample_per_number_of_samples.values()
     output:
-         aggregated_recall_per_sample_per_nb_of_samples = output_folder + "/plot_data/recall_per_sample_per_number_of_samples.tsv"
+         aggregated_recall_per_sample_per_nb_of_samples = output_folder + "/plot_data/recall_per_sample_per_number_of_samples/recall_per_sample_per_number_of_samples.tsv"
     threads: 1
     resources:
         mem_mb = lambda wildcards, attempt: 4000 * attempt
@@ -83,7 +83,7 @@ rule aggregate_recall_per_number_of_samples:
     input:
          all_recalls_per_number_of_samples = cov_tool_and_filters_recall_per_number_of_samples.values()
     output:
-         aggregated_recall_per_number_of_samples = output_folder + "/plot_data/recall_per_number_of_samples.tsv"
+         aggregated_recall_per_number_of_samples = output_folder + "/plot_data/recall_per_nb_of_samples/recall_per_nb_of_samples.tsv"
     threads: 1
     resources:
         mem_mb = lambda wildcards, attempt: 4000 * attempt
@@ -236,3 +236,20 @@ rule make_recall_per_sample_plot:
         notebook="logs/make_recall_per_sample_plot/{tools_to_keep}.ipynb"
     notebook:
         "../../eda/recall_per_sample/recall_per_sample.ipynb"
+
+rule make_recall_per_number_of_samples_plot:
+    input:
+         aggregated_recall_per_number_of_samples = rules.aggregate_recall_per_number_of_samples.output.aggregated_recall_per_number_of_samples,
+         id_and_number_of_samples = deduplicated_variants_output_folder + "/stats_csvs/id_and_number_of_samples.csv",
+    output:
+         plot_data = output_folder + "/plot_data/recall_per_nb_of_samples/recall_per_nb_of_samples.plot_data.csv",
+         proportion_plot = output_folder + "/plot_data/recall_per_nb_of_samples/recall_per_nb_of_samples.proportion.png",
+         absolute_plot = output_folder + "/plot_data/recall_per_nb_of_samples/recall_per_nb_of_samples.absolute.png",
+         absolute_cumulative_plot = output_folder + "/plot_data/recall_per_nb_of_samples/recall_per_nb_of_samples.absolute_cumulative.png",
+    threads: 1
+    resources:
+        mem_mb=lambda wildcards, attempt: 8000 * attempt
+    log:
+        notebook="logs/make_recall_per_number_of_samples_plot/make_recall_per_number_of_samples_plot.ipynb"
+    notebook:
+        "../../eda/recall_per_nb_of_samples/recall_per_nb_of_samples.ipynb"

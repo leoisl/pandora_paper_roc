@@ -145,8 +145,12 @@ for sample, coverage, tool, coverage_threshold, strand_bias_threshold, gaps_thre
     cov_tool_and_filters_recall_per_number_of_samples[(coverage, tool, coverage_threshold, strand_bias_threshold, gaps_threshold)] = f"{output_folder}/recall/recall_per_number_of_samples/{coverage}/{tool}/coverage_filter_{coverage_threshold}/strand_bias_filter_{strand_bias_threshold}/gaps_filter_{gaps_threshold}/recall_per_number_of_samples.csv"
     cov_tool_and_filters_recall_per_sample_per_number_of_samples[(sample, coverage, tool, coverage_threshold, strand_bias_threshold, gaps_threshold)] = f"{output_folder}/recall/recall_files_per_sample_vs_nb_of_samples/{sample}/{coverage}/{tool}/coverage_filter_{coverage_threshold}/strand_bias_filter_{strand_bias_threshold}/gaps_filter_{gaps_threshold}/recall_per_sample_per_number_of_samples.csv"
 
-all_recall_files.add(output_folder + "/plot_data/recall_per_number_of_samples.tsv")
-all_recall_files.add(output_folder + "/plot_data/recall_per_sample_per_number_of_samples.tsv")
+all_recall_files.add(output_folder + "/plot_data/recall_per_nb_of_samples/recall_per_nb_of_samples.tsv")
+all_recall_files.add(output_folder + "/plot_data/recall_per_nb_of_samples/recall_per_nb_of_samples.plot_data.csv")
+all_recall_files.add(output_folder + "/plot_data/recall_per_nb_of_samples/recall_per_nb_of_samples.proportion.png")
+all_recall_files.add(output_folder + "/plot_data/recall_per_nb_of_samples/recall_per_nb_of_samples.absolute.png")
+all_recall_files.add(output_folder + "/plot_data/recall_per_nb_of_samples/recall_per_nb_of_samples.absolute_cumulative.png")
+all_recall_files.add(output_folder + "/plot_data/recall_per_sample_per_number_of_samples/recall_per_sample_per_number_of_samples.tsv")
 files.extend(list(all_recall_files))
 
 
