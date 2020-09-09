@@ -145,8 +145,8 @@ for sample, coverage, tool, coverage_threshold, strand_bias_threshold, gaps_thre
     cov_tool_and_filters_recall_per_number_of_samples[(coverage, tool, coverage_threshold, strand_bias_threshold, gaps_threshold)] = f"{output_folder}/recall/recall_per_number_of_samples/{coverage}/{tool}/coverage_filter_{coverage_threshold}/strand_bias_filter_{strand_bias_threshold}/gaps_filter_{gaps_threshold}/recall_per_number_of_samples.csv"
     cov_tool_and_filters_recall_per_sample_per_number_of_samples[(sample, coverage, tool, coverage_threshold, strand_bias_threshold, gaps_threshold)] = f"{output_folder}/recall/recall_files_per_sample_vs_nb_of_samples/{sample}/{coverage}/{tool}/coverage_filter_{coverage_threshold}/strand_bias_filter_{strand_bias_threshold}/gaps_filter_{gaps_threshold}/recall_per_sample_per_number_of_samples.csv"
 
-all_recall_files.add(output_folder + "/plot_data/recall_per_number_of_samples.csv")
-all_recall_files.add(output_folder + "/plot_data/recall_per_sample_per_number_of_samples.csv")
+all_recall_files.add(output_folder + "/plot_data/recall_per_number_of_samples.tsv")
+all_recall_files.add(output_folder + "/plot_data/recall_per_sample_per_number_of_samples.tsv")
 files.extend(list(all_recall_files))
 
 
@@ -174,6 +174,8 @@ for tool in set_of_tools_that_were_run:
     if tool != "pandora":
         files.append(f"{output_folder}/plot_data/precision_per_ref_per_clade/precision_per_ref_per_clade_{tool}_pandora.csv")
         files.append(f"{output_folder}/plot_data/recall_per_ref_per_clade/recall_per_ref_per_clade_{tool}_pandora.csv")
+        for nb_of_samples in list_with_number_of_samples:
+            files.append(f"{output_folder}/plot_data/recall_per_ref_per_nb_of_samples_per_clade/recall_per_ref_per_nb_of_samples_per_clade.{tool}_pandora.nb_of_samples_{nb_of_samples}.csv")
 
 
 if data_from_paper:
@@ -182,6 +184,9 @@ if data_from_paper:
         if tool != "pandora":
             files.append(f"{output_folder}/plot_data/precision_per_ref_per_clade/precision_per_ref_per_clade_{tool}_pandora.png")
             files.append(f"{output_folder}/plot_data/recall_per_ref_per_clade/recall_per_ref_per_clade_{tool}_pandora.png")
+            files.append(f"{output_folder}/plot_data/recall_per_ref_per_nb_of_samples_per_clade/recall_per_ref_per_nb_of_samples_per_clade.{tool}_pandora.gif")
+            for nb_of_samples in list_with_number_of_samples:
+                files.append(f"{output_folder}/plot_data/recall_per_ref_per_nb_of_samples_per_clade/recall_per_ref_per_nb_of_samples_per_clade.{tool}_pandora.nb_of_samples_{nb_of_samples}.png")
 
 
 
