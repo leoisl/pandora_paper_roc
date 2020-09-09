@@ -160,7 +160,7 @@ all_plot_data_intermediate_files = set()
 for sample, coverage, tool, coverage_threshold, strand_bias_threshold, gaps_threshold in sample_cov_tool_and_filters_to_recall_report_files:
     all_plot_data_intermediate_files.add(f"{output_folder}/plot_data/{coverage}/{tool}/coverage_filter_{coverage_threshold}/strand_bias_filter_{strand_bias_threshold}/gaps_filter_{gaps_threshold}/ROC_data.tsv")
 final_plot_data_file = f"{output_folder}/plot_data/ROC_data.tsv"
-precision_per_sample = f"{output_folder}/plot_data/precision_per_sample.tsv"
+precision_per_sample = f"{output_folder}/plot_data/precision_per_sample/precision_per_sample.tsv"
 final_all_nb_of_records_removed_with_mapq_sam_records_filter_file = f"{output_folder}/plot_data/nb_of_records_removed_with_mapq_sam_records_filter_for_precision.csv"
 recall_per_sample_file = f"{output_folder}/plot_data/recall_per_sample/recall_per_sample.tsv"
 
@@ -182,6 +182,8 @@ for tool in set_of_tools_that_were_run:
             files.append(f"{output_folder}/plot_data/recall_per_ref_per_nb_of_samples_per_clade/recall_per_ref_per_nb_of_samples_per_clade.{tool}_pandora.nb_of_samples_{nb_of_samples}.csv")
         files.append(f"{output_folder}/plot_data/recall_per_sample/recall_per_sample_{tool}_pandora.lineplot.png")
         files.append(f"{output_folder}/plot_data/recall_per_sample/recall_per_sample_{tool}_pandora.boxplot.png")
+        files.append(f"{output_folder}/plot_data/precision_per_sample/precision_per_sample_{tool}_pandora.lineplot.png")
+        files.append(f"{output_folder}/plot_data/precision_per_sample/precision_per_sample_{tool}_pandora.boxplot.png")
 
 
 if data_from_paper:

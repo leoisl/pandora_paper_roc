@@ -112,7 +112,7 @@ rule concat_all_precision_per_sample_no_gt_conf_filter:
     input:
          all_precision_per_sample_no_gt_conf_filter = all_precision_per_sample_no_gt_conf_filter
     output:
-         precision_per_sample = output_folder + "/plot_data/precision_per_sample.tsv"
+         precision_per_sample = output_folder + "/plot_data/precision_per_sample/precision_per_sample.tsv"
     threads: 1
     resources:
         mem_mb = lambda wildcards, attempt: 4000 * attempt
@@ -236,6 +236,22 @@ rule make_recall_per_sample_plot:
         notebook="logs/make_recall_per_sample_plot/{tools_to_keep}.ipynb"
     notebook:
         "../../eda/recall_per_sample/recall_per_sample.ipynb"
+
+
+rule make_precision_per_sample_plot:
+    input:
+         precision_per_sample = rules.concat_all_precision_per_sample_no_gt_conf_filter.output.precision_per_sample
+    output:
+         lineplot = output_folder + "/plot_data/precision_per_sample/precision_per_sample_{tools_to_keep}.lineplot.png",
+         boxplot = output_folder + "/plot_data/precision_per_sample/precision_per_sample_{tools_to_keep}.boxplot.png",
+    threads: 1
+    resources:
+        mem_mb=lambda wildcards, attempt: 4000 * attempt
+    log:
+        notebook="logs/make_precision_per_sample_plot/{tools_to_keep}.ipynb"
+    notebook:
+        "../../eda/precision_per_sample/precision_per_sample.ipynb"
+
 
 rule make_recall_per_number_of_samples_plot:
     input:
