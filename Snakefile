@@ -173,6 +173,7 @@ files.append(output_folder + "/plot_data/enrichment_of_FPs/enrichment_of_FPs.png
 for tool in set_of_tools_that_were_run:
     if tool != "pandora":
         files.append(f"{output_folder}/plot_data/precision_per_ref_per_clade/precision_per_ref_per_clade_{tool}_pandora.csv")
+        files.append(f"{output_folder}/plot_data/recall_per_ref_per_clade/recall_per_ref_per_clade_{tool}_pandora.csv")
 
 
 if data_from_paper:
@@ -180,6 +181,7 @@ if data_from_paper:
     for tool in set_of_tools_that_were_run:
         if tool != "pandora":
             files.append(f"{output_folder}/plot_data/precision_per_ref_per_clade/precision_per_ref_per_clade_{tool}_pandora.png")
+            files.append(f"{output_folder}/plot_data/recall_per_ref_per_clade/recall_per_ref_per_clade_{tool}_pandora.png")
 
 
 

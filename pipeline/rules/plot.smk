@@ -175,3 +175,30 @@ rule make_precision_per_ref_per_clade_plot:
         "docker://leandroishilima/pandora1_paper_r:pandora_paper_tag1"
     shell:
         "Rscript eda/precision_per_ref_per_clade/clade_plots.R {input.csv_data} {output.plot}"
+
+
+rule make_recall_per_ref_per_clade_csv:
+    input:
+        recall_per_sample = rules.concat_all_recall_per_sample_no_gt_conf_filter.output.recall_per_sample
+    output:
+        csv_data = output_folder + "/plot_data/recall_per_ref_per_clade/recall_per_ref_per_clade_{tools_to_keep}.csv"
+    threads: 1
+    resources:
+        mem_mb=lambda wildcards, attempt: 8000 * attempt
+    log:
+        notebook="logs/make_recall_per_ref_per_clade_csv/{tools_to_keep}.ipynb"
+    notebook:
+        "../../eda/recall_per_ref_per_clade/recall_per_ref_per_clade.ipynb"
+
+rule make_recall_per_ref_per_clade_plot:
+    input:
+        csv_data = rules.make_recall_per_ref_per_clade_csv.output.csv_data
+    output:
+        plot = output_folder + "/plot_data/recall_per_ref_per_clade/recall_per_ref_per_clade_{tools_to_keep}.png"
+    threads: 1
+    resources:
+        mem_mb=lambda wildcards, attempt: 4000 * attempt
+    singularity:
+        "docker://leandroishilima/pandora1_paper_r:pandora_paper_tag1"
+    shell:
+        "Rscript eda/recall_per_ref_per_clade/clade_plots.R {input.csv_data} {output.plot}"
