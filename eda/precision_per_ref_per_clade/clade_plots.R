@@ -6,7 +6,8 @@ library("tidyverse")
 # args
 args <- commandArgs(trailingOnly=TRUE)
 csv_file <- args[1]
-plot_name <- args[2]
+plot_title <- args[2]
+output_file <- args[3]
 
 ref_colouring <- c(
   # A
@@ -88,7 +89,7 @@ precision_table_for_pandora_with_denovo <- precision_table %>% filter(tool == "P
 
 ###############################################################################################
 # processing
-png(plot_name, width = 2000, height = 2000)
+png(output_file, width = 2000, height = 2000)
 index <- 1
 plots <- list()
 for (current_ref in ref_ordering) {
@@ -121,6 +122,6 @@ for (current_ref in ref_ordering) {
 }
 
 print(length(plots))
-grid.arrange(grobs=plots, ncol = 5)
+grid.arrange(grobs=plots, ncol = 5, nrow = 5, top = textGrob(plot_title,gp=gpar(fontsize=60,font=3)))
 
 dev.off()
