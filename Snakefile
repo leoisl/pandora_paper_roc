@@ -158,8 +158,8 @@ for sample, coverage, tool, coverage_threshold, strand_bias_threshold, gaps_thre
 final_plot_data_file = f"{output_folder}/plot_data/ROC_data.tsv"
 precision_per_sample = f"{output_folder}/plot_data/precision_per_sample.tsv"
 final_all_nb_of_records_removed_with_mapq_sam_records_filter_file = f"{output_folder}/plot_data/nb_of_records_removed_with_mapq_sam_records_filter_for_precision.csv"
-recall_per_sample_file = f"{output_folder}/plot_data/recall_per_sample.tsv"
-# recall_per_sample_pair_file = f"{output_folder}/plot_data/recall_per_sample_pair.tsv"
+recall_per_sample_file = f"{output_folder}/plot_data/recall_per_sample/recall_per_sample.tsv"
+
 
 files.extend(list(all_plot_data_intermediate_files))
 files.append(final_plot_data_file)
@@ -176,6 +176,8 @@ for tool in set_of_tools_that_were_run:
         files.append(f"{output_folder}/plot_data/recall_per_ref_per_clade/recall_per_ref_per_clade_{tool}_pandora.csv")
         for nb_of_samples in list_with_number_of_samples:
             files.append(f"{output_folder}/plot_data/recall_per_ref_per_nb_of_samples_per_clade/recall_per_ref_per_nb_of_samples_per_clade.{tool}_pandora.nb_of_samples_{nb_of_samples}.csv")
+        files.append(f"{output_folder}/plot_data/recall_per_sample/recall_per_sample_{tool}_pandora.lineplot.png")
+        files.append(f"{output_folder}/plot_data/recall_per_sample/recall_per_sample_{tool}_pandora.boxplot.png")
 
 
 if data_from_paper:
@@ -207,11 +209,3 @@ localrules: make_empty_depth_file, bwa_index, gzip_vcf_file, index_gzipped_vcf_f
     concat_all_recall_per_sample_no_gt_conf_filter,
     merge_precision_and_recall_dfs, aggregate_recall_per_number_of_samples,
     concat_all_plot_data, concat_all_precision_per_sample_no_gt_conf_filter
-
-# remove these if not running in big mem cluster
-# localrules: filter_vcf_for_a_single_sample_by_gt_conf_percentile_for_pandora,
-#     filter_vcf_for_a_single_sample_by_gt_conf_percentile_for_snippy,
-#     calculate_precision, calculate_recall, calculate_recall_per_number_of_samples_no_gt_conf_filter
-
-# if we want to add this rule back
-# localrules: concat_all_recall_per_sample_pair_no_gt_conf_filter

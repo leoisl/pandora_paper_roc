@@ -45,7 +45,7 @@ rule concat_all_recall_per_sample_no_gt_conf_filter:
     input:
          all_recall_per_sample_no_gt_conf_filter = all_recall_per_sample_no_gt_conf_filter
     output:
-         recall_per_sample = output_folder + "/plot_data/recall_per_sample.tsv"
+         recall_per_sample = output_folder + "/plot_data/recall_per_sample/recall_per_sample.tsv"
     threads: 1
     resources:
         mem_mb = lambda wildcards, attempt: 4000 * attempt
@@ -77,20 +77,6 @@ rule concat_all_recall_per_sample_per_nb_of_samples:
             aggregated_df = pd.concat([aggregated_df, df], ignore_index=True)
 
         aggregated_df.to_csv(output.aggregated_recall_per_sample_per_nb_of_samples, index=False, sep="\t")
-
-
-# rule concat_all_recall_per_sample_pair_no_gt_conf_filter:
-#     input:
-#          all_recall_per_sample_pair_no_gt_conf_filter = all_recall_per_sample_pair_no_gt_conf_filter
-#     output:
-#          recall_per_sample_pair = output_folder + "/plot_data/recall_per_sample_pair.tsv"
-#     threads: 1
-#     resources:
-#         mem_mb = lambda wildcards, attempt: 4000 * attempt
-#     log:
-#         "logs/concat_all_recall_per_sample_pair_no_gt_conf_filter/recall_per_sample_pair.log"
-#     script:
-#         "../scripts/concat_all_recall_per_sample_pair_no_gt_conf_filter.py"
 
 
 rule aggregate_recall_per_number_of_samples:
@@ -235,3 +221,18 @@ rule make_recall_per_ref_per_nb_of_samples_per_clade_plot:
         "docker://leandroishilima/pandora1_paper_r:pandora_paper_tag1"
     script:
         "../scripts/make_recall_per_ref_per_nb_of_samples_per_clade_plot.py"
+
+
+rule make_recall_per_sample_plot:
+    input:
+         recall_per_sample = rules.concat_all_recall_per_sample_no_gt_conf_filter.output.recall_per_sample
+    output:
+         lineplot = output_folder + "/plot_data/recall_per_sample/recall_per_sample_{tools_to_keep}.lineplot.png",
+         boxplot = output_folder + "/plot_data/recall_per_sample/recall_per_sample_{tools_to_keep}.boxplot.png",
+    threads: 1
+    resources:
+        mem_mb=lambda wildcards, attempt: 4000 * attempt
+    log:
+        notebook="logs/make_recall_per_sample_plot/{tools_to_keep}.ipynb"
+    notebook:
+        "../../eda/recall_per_sample/recall_per_sample.ipynb"
