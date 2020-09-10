@@ -170,7 +170,7 @@ files.append(final_plot_data_file)
 files.append(precision_per_sample)
 files.append(final_all_nb_of_records_removed_with_mapq_sam_records_filter_file)
 files.append(recall_per_sample_file)
-# files.append(recall_per_sample_pair_file)
+
 
 files.append(output_folder + "/plot_data/enrichment_of_FPs/enrichment_of_FPs.csv")
 files.append(output_folder + "/plot_data/enrichment_of_FPs/enrichment_of_FPs.png")
