@@ -2,7 +2,7 @@
 samples:                                  metadata/samples_pandora_paper_tag1.csv
 variant_calls:                            metadata/variant_calls_pandora_paper_tag1.csv
 deduplicated_variants_output_folder:      ../pangenome_variations/output_pangenome_variations_pandora_paper_tag1
-data_from_paper: True
+data_from_paper:                          True
 
 
 # output configs
