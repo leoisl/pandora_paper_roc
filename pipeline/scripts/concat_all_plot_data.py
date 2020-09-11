@@ -13,10 +13,5 @@ all_dfs = get_concatenated_df(all_plot_data_intermediate_files,separator="\t",
                                               "recalls_wrt_variants_where_all_allele_seqs_were_found", "recalls_wrt_variants_found_wrt_alleles",
                                               "nbs_variants_where_all_allele_seqs_were_found", "nbs_variants_found_wrt_alleles", "nbs_variants_total"])
 
-
-# some sanity checks
-all_nbs_of_truth_probes_in_total = all_dfs.nbs_of_truth_probes_in_total.unique()
-assert len(all_nbs_of_truth_probes_in_total) == 1
-
 # output
 all_dfs.to_csv(output_file, sep="\t")
