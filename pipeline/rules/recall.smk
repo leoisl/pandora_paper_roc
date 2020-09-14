@@ -117,6 +117,8 @@ rule make_mutated_vcf_ref_for_recall:
     output:
           mutated_vcf_refs = expand(output_folder + "/recall/mutated_refs/{{sample_id}}/{{coverage}}/{{tool}}/coverage_filter_{{coverage_threshold}}/strand_bias_filter_{{strand_bias_threshold}}/gaps_filter_{{gaps_threshold}}/gt_conf_percentile_{gt_conf_percentile}/mutated_ref.fa", gt_conf_percentile=gt_conf_percentiles),
           indexes = expand(output_folder + "/recall/mutated_refs/{{sample_id}}/{{coverage}}/{{tool}}/coverage_filter_{{coverage_threshold}}/strand_bias_filter_{{strand_bias_threshold}}/gaps_filter_{{gaps_threshold}}/gt_conf_percentile_{gt_conf_percentile}/mutated_ref.fa.amb", gt_conf_percentile=gt_conf_percentiles)
+    params:
+        gt_conf_percentiles = gt_conf_percentiles
     threads: 1
     resources:
         mem_mb = lambda wildcards, attempt: 4000 * attempt
@@ -124,11 +126,8 @@ rule make_mutated_vcf_ref_for_recall:
         "logs/make_mutated_vcf_ref_for_recall/{sample_id}/{coverage}/{tool}/coverage_filter_{coverage_threshold}/strand_bias_filter_{strand_bias_threshold}/gaps_filter_{gaps_threshold}/mutated_ref.log"
     singularity:
         "docker://leandroishilima/pandora1_paper_basic_tools:pandora_paper_tag1"
-    run:
-        for gt_conf_percentile, input_file, output_file in zip(gt_conf_percentiles, input.singlesample_vcf_files_gt_conf_percentile_filtered, output.mutated_vcf_refs):
-            run_command(f"python vcf_consensus_builder/cli.py -v {input_file} -r {input.vcf_ref} -d {input.empty_depth_file} "
-                        f"-o {output_file} --low-coverage 0 --no-coverage 0 -V")
-            run_command(f"bwa index {output_file}")
+    script:
+        "../scripts/make_mutated_vcf_ref_for_recall.py"
 
 
 rule map_recall_truth_probeset_to_mutated_vcf_ref:
