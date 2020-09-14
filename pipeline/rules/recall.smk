@@ -1,8 +1,4 @@
-import subprocess
 from pipeline.scripts.utils import get_sample_pairs_containing_given_sample
-
-def run_command(command):
-    subprocess.check_call(command, shell=True)
 
 rule make_vcf_for_a_single_sample:
     input:
@@ -29,6 +25,9 @@ rule filter_vcf_for_a_single_sample_by_gt_conf_percentile_for_pandora:
         singlesample_vcf_files_gt_conf_percentile_filtered = expand("{{filename}}.vcf.sample_{{sample_id}}.gt_conf_percentile_{gt_conf_percentile}.vcf", gt_conf_percentile=gt_conf_percentiles)
     wildcard_constraints:
         filename=".*/pandora_multisample_genotyped_.*\.vcf\.\~\~vcf\~\~fixed\~\~"
+    params:
+        gt_conf_percentiles = gt_conf_percentiles,
+        filter_script = "pipeline/scripts/filter_vcf_for_a_single_sample_by_gt_conf_percentile_for_pandora.sh"
     threads: 1
     resources:
         mem_mb = lambda wildcards, attempt: 2000 * attempt
@@ -36,12 +35,8 @@ rule filter_vcf_for_a_single_sample_by_gt_conf_percentile_for_pandora:
         "logs/filter_vcf_for_a_single_sample_by_gt_conf_percentile_for_pandora{filename}_sample_{sample_id}.log"
     singularity:
         "docker://leandroishilima/pandora1_paper_basic_tools:pandora_paper_tag1"
-    run:
-        for gt_conf_percentile, output_file in zip(gt_conf_percentiles, output.singlesample_vcf_files_gt_conf_percentile_filtered):
-            run_command(f"bash pipeline/scripts/filter_vcf_for_a_single_sample_by_gt_conf_percentile_for_pandora.sh "
-                        f"{input.gzipped_singlesample_vcf_file} "
-                        f"{gt_conf_percentile} "
-                        f"{output_file}")
+    script:
+        "../scripts/filter_vcf_for_a_single_sample_by_gt_conf_percentile.py"
 ruleorder: filter_vcf_for_a_single_sample_by_gt_conf_percentile_for_pandora > make_vcf_for_a_single_sample
 
 
@@ -53,6 +48,9 @@ rule filter_vcf_for_a_single_sample_by_gt_conf_percentile_for_snippy:
         singlesample_vcf_files_gt_conf_percentile_filtered = expand("{{filename}}.vcf.sample_{{sample_id}}.gt_conf_percentile_{gt_conf_percentile}.vcf", gt_conf_percentile=gt_conf_percentiles)
     wildcard_constraints:
         filename=".*/snippy_[^/]+\.vcf\.\~\~vcf\~\~fixed\~\~"
+    params:
+        gt_conf_percentiles = gt_conf_percentiles,
+        filter_script = "pipeline/scripts/filter_vcf_for_a_single_sample_by_gt_conf_percentile_for_snippy.sh"
     threads: 1
     resources:
         mem_mb = lambda wildcards, attempt: 2000 * attempt
@@ -60,12 +58,8 @@ rule filter_vcf_for_a_single_sample_by_gt_conf_percentile_for_snippy:
         "logs/filter_vcf_for_a_single_sample_by_gt_conf_percentile_for_snippy{filename}_sample_{sample_id}.log"
     singularity:
         "docker://leandroishilima/pandora1_paper_basic_tools:pandora_paper_tag1"
-    run:
-        for gt_conf_percentile, output_file in zip(gt_conf_percentiles, output.singlesample_vcf_files_gt_conf_percentile_filtered):
-            run_command(f"bash pipeline/scripts/filter_vcf_for_a_single_sample_by_gt_conf_percentile_for_snippy.sh "
-                        f"{input.gzipped_singlesample_vcf_file} "
-                        f"{gt_conf_percentile} "
-                        f"{output_file}")
+    script:
+        "../scripts/filter_vcf_for_a_single_sample_by_gt_conf_percentile.py"
 ruleorder: filter_vcf_for_a_single_sample_by_gt_conf_percentile_for_snippy > make_vcf_for_a_single_sample
 
 
@@ -77,6 +71,9 @@ rule filter_vcf_for_a_single_sample_by_gt_conf_percentile_for_samtools:
         singlesample_vcf_files_gt_conf_percentile_filtered = expand("{{filename}}.vcf.sample_{{sample_id}}.gt_conf_percentile_{gt_conf_percentile}.vcf", gt_conf_percentile=gt_conf_percentiles)
     wildcard_constraints:
         filename=".*/samtools_[^/]+\.vcf\.\~\~vcf\~\~fixed\~\~"
+    params:
+        gt_conf_percentiles = gt_conf_percentiles,
+        filter_script = "pipeline/scripts/filter_vcf_for_a_single_sample_by_gt_conf_percentile_for_samtools.sh"
     threads: 1
     resources:
         mem_mb = lambda wildcards, attempt: 2000 * attempt
@@ -84,12 +81,8 @@ rule filter_vcf_for_a_single_sample_by_gt_conf_percentile_for_samtools:
         "logs/filter_vcf_for_a_single_sample_by_gt_conf_percentile_for_samtools{filename}_sample_{sample_id}.log"
     singularity:
         "docker://leandroishilima/pandora1_paper_basic_tools:pandora_paper_tag1"
-    run:
-        for gt_conf_percentile, output_file in zip(gt_conf_percentiles, output.singlesample_vcf_files_gt_conf_percentile_filtered):
-            run_command(f"bash pipeline/scripts/filter_vcf_for_a_single_sample_by_gt_conf_percentile_for_samtools.sh "
-                        f"{input.gzipped_singlesample_vcf_file} "
-                        f"{gt_conf_percentile} "
-                        f"{output_file}")
+    script:
+        "../scripts/filter_vcf_for_a_single_sample_by_gt_conf_percentile.py"
 ruleorder: filter_vcf_for_a_single_sample_by_gt_conf_percentile_for_samtools > make_vcf_for_a_single_sample
 
 
@@ -101,6 +94,9 @@ rule filter_vcf_for_a_single_sample_by_gt_conf_percentile_for_medaka:
         singlesample_vcf_files_gt_conf_percentile_filtered = expand("{{filename}}.vcf.sample_{{sample_id}}.gt_conf_percentile_{gt_conf_percentile}.vcf", gt_conf_percentile=gt_conf_percentiles)
     wildcard_constraints:
         filename=".*/medaka_[^/]+\.vcf\.\~\~vcf\~\~fixed\~\~"
+    params:
+        gt_conf_percentiles = gt_conf_percentiles,
+        filter_script = "pipeline/scripts/filter_vcf_for_a_single_sample_by_gt_conf_percentile_for_medaka.sh"
     threads: 1
     resources:
         mem_mb = lambda wildcards, attempt: 2000 * attempt
@@ -108,12 +104,8 @@ rule filter_vcf_for_a_single_sample_by_gt_conf_percentile_for_medaka:
         "logs/filter_vcf_for_a_single_sample_by_gt_conf_percentile_for_medaka{filename}_sample_{sample_id}.log"
     singularity:
         "docker://leandroishilima/pandora1_paper_basic_tools:pandora_paper_tag1"
-    run:
-        for gt_conf_percentile, output_file in zip(gt_conf_percentiles, output.singlesample_vcf_files_gt_conf_percentile_filtered):
-            run_command(f"bash pipeline/scripts/filter_vcf_for_a_single_sample_by_gt_conf_percentile_for_medaka.sh "
-                        f"{input.gzipped_singlesample_vcf_file} "
-                        f"{gt_conf_percentile} "
-                        f"{output_file}")
+    script:
+        "../scripts/filter_vcf_for_a_single_sample_by_gt_conf_percentile.py"
 ruleorder: filter_vcf_for_a_single_sample_by_gt_conf_percentile_for_medaka > make_vcf_for_a_single_sample
 
 
