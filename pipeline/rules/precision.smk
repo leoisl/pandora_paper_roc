@@ -27,6 +27,8 @@ rule map_variant_call_probeset_to_reference_assembly:
         mem_mb = lambda wildcards, attempt: 4000 * attempt
     log:
         "logs/map_variant_call_probeset_to_reference_assembly/{sample_id}/{coverage}/{tool}/coverage_filter_{coverage_threshold}/strand_bias_filter_{strand_bias_threshold}/gaps_filter_{gaps_threshold}/variant_calls_probeset_mapped.log"
+    singularity:
+        "docker://leandroishilima/pandora1_paper_basic_tools:pandora_paper_tag1"
     script:
         "../scripts/map_variant_call_probeset_to_reference_assembly.py"
 

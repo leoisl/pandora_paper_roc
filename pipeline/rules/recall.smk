@@ -141,6 +141,8 @@ rule map_recall_truth_probeset_to_mutated_vcf_ref:
         mem_mb = 4000
     log:
         "logs/map_recall_truth_probeset_to_mutated_vcf_ref/{sample_id}/{coverage}/{tool}/coverage_filter_{coverage_threshold}/strand_bias_filter_{strand_bias_threshold}/gaps_filter_{gaps_threshold}/{sample_pair}.log"
+    singularity:
+            "docker://leandroishilima/pandora1_paper_basic_tools:pandora_paper_tag1"
     script:
         "../scripts/map_recall_truth_variants_to_mutated_vcf_ref.py"
 
