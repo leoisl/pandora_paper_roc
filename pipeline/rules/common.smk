@@ -7,6 +7,8 @@ rule bwa_index:
     log: "{fasta}.bwa_index.log"
     resources:
         mem_mb = lambda wildcards, attempt: 2000 * attempt
+    singularity:
+        "docker://leandroishilima/pandora1_paper_basic_tools:pandora_paper_tag1"
     shell: "bwa index {input.fasta} > {log} 2>&1"
 
 
@@ -90,6 +92,8 @@ rule gzip_vcf_file:
         mem_mb = lambda wildcards, attempt: 2000 * attempt
     log:
         "logs/gzip_vcf_file{filename}.log"
+    singularity:
+        "docker://leandroishilima/pandora1_paper_basic_tools:pandora_paper_tag1"
     shell:
         "bgzip -c {input.vcf_file} > {output.gzipped_vcf_file}"
 
@@ -104,5 +108,7 @@ rule index_gzipped_vcf_file:
         mem_mb = lambda wildcards, attempt: 2000 * attempt
     log:
         "logs/index_gzipped_vcf_file{filename}.log"
+    singularity:
+        "docker://leandroishilima/pandora1_paper_basic_tools:pandora_paper_tag1"
     shell:
         "tabix -p vcf {input.gzipped_vcf_file}"

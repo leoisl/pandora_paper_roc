@@ -15,6 +15,8 @@ rule make_vcf_for_a_single_sample:
         mem_mb = lambda wildcards, attempt: 2000 * attempt
     log:
         "logs/make_vcf_for_a_single_sample{filename}_sample_{sample_id}.log"
+    singularity:
+        "docker://leandroishilima/pandora1_paper_basic_tools:pandora_paper_tag1"
     shell:
         "bcftools view -s {wildcards.sample_id} {input.gzipped_multisample_vcf_file} > {output.singlesample_vcf_file}"
 
@@ -32,6 +34,8 @@ rule filter_vcf_for_a_single_sample_by_gt_conf_percentile_for_pandora:
         mem_mb = lambda wildcards, attempt: 2000 * attempt
     log:
         "logs/filter_vcf_for_a_single_sample_by_gt_conf_percentile_for_pandora{filename}_sample_{sample_id}.log"
+    singularity:
+        "docker://leandroishilima/pandora1_paper_basic_tools:pandora_paper_tag1"
     run:
         for gt_conf_percentile, output_file in zip(gt_conf_percentiles, output.singlesample_vcf_files_gt_conf_percentile_filtered):
             run_command(f"bash pipeline/scripts/filter_vcf_for_a_single_sample_by_gt_conf_percentile_for_pandora.sh "
@@ -54,6 +58,8 @@ rule filter_vcf_for_a_single_sample_by_gt_conf_percentile_for_snippy:
         mem_mb = lambda wildcards, attempt: 2000 * attempt
     log:
         "logs/filter_vcf_for_a_single_sample_by_gt_conf_percentile_for_snippy{filename}_sample_{sample_id}.log"
+    singularity:
+        "docker://leandroishilima/pandora1_paper_basic_tools:pandora_paper_tag1"
     run:
         for gt_conf_percentile, output_file in zip(gt_conf_percentiles, output.singlesample_vcf_files_gt_conf_percentile_filtered):
             run_command(f"bash pipeline/scripts/filter_vcf_for_a_single_sample_by_gt_conf_percentile_for_snippy.sh "
@@ -76,6 +82,8 @@ rule filter_vcf_for_a_single_sample_by_gt_conf_percentile_for_samtools:
         mem_mb = lambda wildcards, attempt: 2000 * attempt
     log:
         "logs/filter_vcf_for_a_single_sample_by_gt_conf_percentile_for_samtools{filename}_sample_{sample_id}.log"
+    singularity:
+        "docker://leandroishilima/pandora1_paper_basic_tools:pandora_paper_tag1"
     run:
         for gt_conf_percentile, output_file in zip(gt_conf_percentiles, output.singlesample_vcf_files_gt_conf_percentile_filtered):
             run_command(f"bash pipeline/scripts/filter_vcf_for_a_single_sample_by_gt_conf_percentile_for_samtools.sh "
@@ -98,6 +106,8 @@ rule filter_vcf_for_a_single_sample_by_gt_conf_percentile_for_medaka:
         mem_mb = lambda wildcards, attempt: 2000 * attempt
     log:
         "logs/filter_vcf_for_a_single_sample_by_gt_conf_percentile_for_medaka{filename}_sample_{sample_id}.log"
+    singularity:
+        "docker://leandroishilima/pandora1_paper_basic_tools:pandora_paper_tag1"
     run:
         for gt_conf_percentile, output_file in zip(gt_conf_percentiles, output.singlesample_vcf_files_gt_conf_percentile_filtered):
             run_command(f"bash pipeline/scripts/filter_vcf_for_a_single_sample_by_gt_conf_percentile_for_medaka.sh "
@@ -120,6 +130,8 @@ rule make_mutated_vcf_ref_for_recall:
         mem_mb = lambda wildcards, attempt: 4000 * attempt
     log:
         "logs/make_mutated_vcf_ref_for_recall/{sample_id}/{coverage}/{tool}/coverage_filter_{coverage_threshold}/strand_bias_filter_{strand_bias_threshold}/gaps_filter_{gaps_threshold}/mutated_ref.log"
+    singularity:
+        "docker://leandroishilima/pandora1_paper_basic_tools:pandora_paper_tag1"
     run:
         for gt_conf_percentile, input_file, output_file in zip(gt_conf_percentiles, input.singlesample_vcf_files_gt_conf_percentile_filtered, output.mutated_vcf_refs):
             run_command(f"python vcf_consensus_builder/cli.py -v {input_file} -r {input.vcf_ref} -d {input.empty_depth_file} "
