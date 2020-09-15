@@ -17,7 +17,7 @@ class Test_MedakaVCF:
         medaka_vcf = VCFFactory.create_Medaka_VCF_from_VariantRecord_and_Sample(medaka_variant_record, "SAMPLE")
 
         assert medaka_vcf.genotype == 1
-        assert math.isclose(medaka_vcf.genotype_confidence, 9.491, abs_tol=0.0001)
+        assert math.isclose(medaka_vcf.genotype_confidence, 41.857, abs_tol=0.0001)
         assert medaka_vcf.svtype == "NA"
         assert medaka_vcf.coverage == 100
 
@@ -26,7 +26,7 @@ class Test_MedakaVCF:
         medaka_vcf = VCFFactory.create_Medaka_VCF_from_VariantRecord_and_Sample(medaka_variant_record, "SAMPLE")
 
         assert medaka_vcf.genotype == 1
-        assert math.isclose(medaka_vcf.genotype_confidence, 57.336, abs_tol=0.0001)
+        assert math.isclose(medaka_vcf.genotype_confidence, 40.78, abs_tol=0.0001)
         assert medaka_vcf.svtype == "NA"
         assert medaka_vcf.coverage == 100
 
@@ -34,22 +34,17 @@ class Test_MedakaVCF:
         medaka_variant_record = retrieve_medaka_entry_from_test_vcf(2)
         medaka_vcf = VCFFactory.create_Medaka_VCF_from_VariantRecord_and_Sample(medaka_variant_record, "SAMPLE")
 
-        assert medaka_vcf.genotype == 0
-        assert math.isclose(medaka_vcf.genotype_confidence, 2.246, abs_tol=0.0001)
+        assert medaka_vcf.genotype == 1
+        assert math.isclose(medaka_vcf.genotype_confidence, 53.109, abs_tol=0.0001)
         assert medaka_vcf.svtype == "NA"
         assert medaka_vcf.coverage == 100
 
-    def test___medaka_fourth_to_ninth_record___all_inconsistent_gts___thus_null_calls(self):
-        for vcf_record_index in range(3, 9):
-            with pytest.raises(NullVCFError):
-                medaka_variant_record = retrieve_medaka_entry_from_test_vcf(vcf_record_index)
-                VCFFactory.create_Medaka_VCF_from_VariantRecord_and_Sample(medaka_variant_record, "SAMPLE")
-
-    def test___medaka_tenth_record(self):
-        medaka_variant_record = retrieve_medaka_entry_from_test_vcf(9)
+    @pytest.mark.xfail(strict=True)
+    def test___medaka_fourth_record___gt_0___fails(self):
+        medaka_variant_record = retrieve_medaka_entry_from_test_vcf(3)
         medaka_vcf = VCFFactory.create_Medaka_VCF_from_VariantRecord_and_Sample(medaka_variant_record, "SAMPLE")
 
-        assert medaka_vcf.genotype == 2
-        assert math.isclose(medaka_vcf.genotype_confidence, 2428.6575000000003, abs_tol=0.0001)
-        assert medaka_vcf.svtype == "NA"
-        assert medaka_vcf.coverage == 100
+    @pytest.mark.xfail(strict=True)
+    def test___medaka_fifth_record___gt_2___fails(self):
+        medaka_variant_record = retrieve_medaka_entry_from_test_vcf(3)
+        medaka_vcf = VCFFactory.create_Medaka_VCF_from_VariantRecord_and_Sample(medaka_variant_record, "SAMPLE")

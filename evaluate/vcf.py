@@ -221,14 +221,8 @@ class MedakaVCF(VCF):
     def genotype(self) -> int:
         data_from_sample = self.variant.samples[self.sample]
         GT = data_from_sample.get("GT")
-        first_gt = GT[0]
-        second_gt = GT[1]
-        equal_gts = first_gt == second_gt
-        if equal_gts:
-            return first_gt
-        else:
-            return None
-
+        assert GT == (1,)
+        return 1
 
     @property
     def genotype_confidence(self) -> float:

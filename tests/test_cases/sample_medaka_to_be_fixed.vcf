@@ -1,14 +1,19 @@
 ##fileformat=VCFv4.1
-##contig=<ID=CN928163.2>
-##INFO=<ID=pos1,Number=.,Type=Integer,Description="POS of incorporated variants from haplotype 1">
-##INFO=<ID=q1,Number=1,Type=Float,Description="Combined qual score for haplotype 1">
-##INFO=<ID=pos2,Number=.,Type=Integer,Description="POS of incorporated variants from haplotype 2">
-##INFO=<ID=q2,Number=1,Type=Float,Description="Combined qual score for haplotype 2">
-##FORMAT=<ID=GT,Number=G,Type=String,Description="Genotype">
-##FORMAT=<ID=GQ,Number=G,Type=Float,Description="Genotype quality score">
+##medaka_version=1.0.3
+##contig=<ID=NZ_LT632320.1>
+##contig=<ID=NZ_LT632321.1>
+##INFO=<ID=ref_seq,Number=1,Type=String,Description="Medaka reference sequence">
+##INFO=<ID=pred_seq,Number=1,Type=String,Description="Medaka predicted sequence">
+##INFO=<ID=ref_qs,Number=.,Type=Float,Description="Medaka quality score for reference">
+##INFO=<ID=pred_qs,Number=.,Type=Float,Description="Medaka quality score for prediction">
+##INFO=<ID=ref_q,Number=1,Type=Float,Description="Medaka per position quality score for reference">
+##INFO=<ID=pred_q,Number=1,Type=Float,Description="Medaka per position quality score for prediction">
+##INFO=<ID=n_cols,Number=1,Type=Integer,Description="Number of medaka pileup columns in variant call">
+##FORMAT=<ID=GT,Number=1,Type=String,Description="Medaka genotype.">
+##FORMAT=<ID=GQ,Number=1,Type=Integer,Description="Medaka genotype quality score">
 #CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	SAMPLE
-CN928163.2	260	.	CT	C	9.491	PASS	pos1=260;pos2=260;q1=6.507;q2=12.475	GT:GQ	1|1:9.491
-CN928163.2	383	.	A	AG	6.324	PASS	pos1=383;q1=6.324	GT:GQ	1|0:6.324
-CN928163.2	396	.	C	G	62.7315	PASS	pos1=396;pos2=396;q1=62.247;q2=63.216	GT:GQ	1|1:62.7315
-CN928163.2	423	.	C	T	54.1685	PASS	pos1=423;pos2=423;q1=58.445;q2=49.892	GT:GQ	1|1:54.1685
-CN928163.2	432	.	C	T	57.336	PASS	pos1=432;pos2=432;q1=58.445;q2=56.227	GT:GQ	1|1:57.336
+NZ_LT632320.1	14367	.	C	A	9.491	PASS	n_cols=1;pred_q=41.857;pred_qs=41.857;pred_seq=A;ref_q=0.000;ref_qs=0.000;ref_seq=C	GT:GQ	1:42
+NZ_LT632320.1	14369	.	G	GC	6.324	PASS	n_cols=2;pred_q=77.142;pred_qs=36.362,40.780;pred_seq=GC;ref_q=36.362;ref_qs=36.362,0.000;ref_seq=G*	GT:GQ	1:41
+NZ_LT632320.1	14386	.	G	T	62.7315	PASS	n_cols=1;pred_q=53.109;pred_qs=53.109;pred_seq=T;ref_q=0.000;ref_qs=0.000;ref_seq=G	GT:GQ	1:53
+NZ_LT632320.1	14398	.	G	T	54.1685	PASS	n_cols=1;pred_q=70.000;pred_qs=70.000;pred_seq=T;ref_q=0.000;ref_qs=0.000;ref_seq=G	GT:GQ	0:70
+NZ_LT632320.1	14398	.	G	T	57.336	PASS	n_cols=1;pred_q=70.000;pred_qs=70.000;pred_seq=T;ref_q=0.000;ref_qs=0.000;ref_seq=G	GT:GQ	2:70
