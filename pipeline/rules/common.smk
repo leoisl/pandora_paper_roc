@@ -19,7 +19,7 @@ rule fix_pandora_vcf_for_pipeline:
          pandora_vcf_corrected = "{pandora_results_dir}/{technology}/{coverage}/{subsampling}/compare_{mode}_{genotyping_mode}_genotyping/pandora_multisample_genotyped_{genotyping_mode}.vcf.~~vcf~~fixed~~.vcf"
     threads: 1
     resources:
-        mem_mb = lambda wildcards, attempt: 2000 * attempt
+        mem_mb = lambda wildcards, attempt: 4000 * attempt
     log:
         "logs/fix_pandora_vcf_for_pipeline{pandora_results_dir}/{technology}/{coverage}/{subsampling}/compare_{mode}_{genotyping_mode}_genotyping/pandora_multisample_genotyped_{genotyping_mode}.vcf.log"
     script:
