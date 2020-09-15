@@ -50,6 +50,13 @@ class TestFilteredVCFFile:
         filter_records_mock.assert_called_once_with(TestFilteredVCFFile.sample_to_gene_to_VCFs_mock, filters_mock)
 
 
+    def test___constructor___empty_medaka_file(self):
+        import pysam
+        from evaluate.vcf import VCFFactory
+        with pysam.VariantFile("tests/test_cases/sample_medaka_empty_vcf.expected.vcf") as pysam_variant_file:
+            filtered_vcf_file = FilteredVCFFile(pysam_variant_file=pysam_variant_file, filters=[],
+                                                VCF_creator_method=VCFFactory.create_Medaka_VCF_from_VariantRecord_and_Sample)
+        assert filtered_vcf_file._sample_to_gene_to_VCFs == {}
 
 
     def test_filter_records_noFiltersReturnsAllRecords(self, sample_to_gene_to_VCFs_all_records):

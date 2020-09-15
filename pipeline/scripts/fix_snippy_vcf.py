@@ -41,9 +41,11 @@ class FixSnippyVCF(FixVCF):
              open(corrected_vcf, "w") as corrected_vcf_filehandler:
             headers, records = self.get_header_and_record_lines(original_vcf_filehandler)
             corrected_headers = self.correct_headers(headers, sample)
-            corrected_records = self.correct_records(records)
             print("\n".join(corrected_headers), file=corrected_vcf_filehandler)
-            print("\n".join(corrected_records), file=corrected_vcf_filehandler)
+
+            if len(records) > 0:
+                corrected_records = self.correct_records(records)
+                print("\n".join(corrected_records), file=corrected_vcf_filehandler)
 
 
 if __name__=="__main__":
