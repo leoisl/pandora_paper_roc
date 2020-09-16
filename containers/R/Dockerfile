@@ -7,3 +7,4 @@ FROM rocker/tidyverse:4.0.0
 
 ARG extra_packages="c(\"gridExtra\")"
 RUN echo "install.packages($extra_packages, repos=\"https://cran.rstudio.com\")" | R --no-save
+RUN cp /usr/bin/python3 /usr/bin/python
