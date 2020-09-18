@@ -33,7 +33,6 @@ ref_colouring <- c(
   "S88 (NC_011742.1)" = "#d4f7ffff",
   "NGF1 (NZ_CP016007.1)" = "#d4f7ffff",
   "LF82 (NC_011993.1)" = "#d4f7ffff",
-  "CFT073 (NC_004431.1)" = "#d4f7ffff",
   "JJ1886 (NC_022648.1)" = "#d4f7ffff",
   "NCTC_13441 (NZ_LT632320.1)" = "#d4f7ffff",
   "EC958 (NZ_HG941718.1)" = "#d4f7ffff",
