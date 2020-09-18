@@ -160,7 +160,7 @@ class Test_PandoraVCF:
         vcf = build_PandoraVCF_bypassing_check(entry, sample)
 
         actual = vcf._mean_coverage_forward
-        expected = 24
+        expected = 25
 
         assert actual == expected
 

@@ -329,7 +329,7 @@ class TestQuery:
             interval=ProbeInterval(0, 30),
             svtype="COMPLEX",
             gt_conf=262.757,
-            coverage=54
+            coverage=55
         )
 
         assert actual == expected

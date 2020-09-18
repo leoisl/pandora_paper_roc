@@ -1,8 +1,11 @@
 from unittest.mock import Mock, patch, PropertyMock
 from evaluate.filtered_vcf_file import FilteredVCFFile
 from evaluate.vcf_filters import VCF_Filters
-from evaluate.vcf_file import VCFFile
+from evaluate.vcf_file import VCFFile, VCFFactory
 import pytest
+import pysam
+from io import StringIO
+from evaluate.coverage_filter import CoverageFilter
 
 @pytest.fixture
 def remove_record_filter_mock():
@@ -124,3 +127,44 @@ class TestFilteredVCFFile:
         }
 
         assert actual == expected
+
+    def test___write(self):
+        vcf_filepath = "tests/test_cases/test.vcf"
+        with pysam.VariantFile(vcf_filepath) as pysam_variant_file:
+            vcf_file = FilteredVCFFile(pysam_variant_file=pysam_variant_file,
+                                       filters=VCF_Filters([CoverageFilter(55)]),
+                                       VCF_creator_method=VCFFactory.create_Pandora_VCF_from_VariantRecord_and_Sample)
+
+        filehandler = StringIO()
+        vcf_file.write(filehandler)
+        actual_vcf = filehandler.getvalue()
+        filehandler.close()
+
+        expected_vcf="""##fileformat=VCFv4.3
+##FILTER=<ID=PASS,Description="All filters passed">
+##fileDate==26/04/19
+##ALT=<ID=SNP,Description="SNP">
+##ALT=<ID=PH_SNPs,Description="Phased SNPs">
+##ALT=<ID=INDEL,Description="Insertion-deletion">
+##ALT=<ID=COMPLEX,Description="Complex variant, collection of SNPs and indels">
+##INFO=<ID=SVTYPE,Number=1,Type=String,Description="Type of variant">
+##ALT=<ID=SIMPLE,Description="Graph bubble is simple">
+##ALT=<ID=NESTED,Description="Variation site was a nested feature in the graph">
+##ALT=<ID=TOO_MANY_ALTS,Description="Variation site was a multinested feature with too many alts to include all in the VCF">
+##INFO=<ID=GRAPHTYPE,Number=1,Type=String,Description="Type of graph feature">
+##contig=<ID=GC00000001_155>
+##FORMAT=<ID=GT,Number=1,Type=String,Description="Dummy">
+##FORMAT=<ID=MEAN_FWD_COVG,Number=1,Type=String,Description="Dummy">
+##FORMAT=<ID=MEAN_REV_COVG,Number=1,Type=String,Description="Dummy">
+##FORMAT=<ID=MED_FWD_COVG,Number=1,Type=String,Description="Dummy">
+##FORMAT=<ID=MED_REV_COVG,Number=1,Type=String,Description="Dummy">
+##FORMAT=<ID=SUM_FWD_COVG,Number=1,Type=String,Description="Dummy">
+##FORMAT=<ID=SUM_REV_COVG,Number=1,Type=String,Description="Dummy">
+##FORMAT=<ID=GAPS,Number=1,Type=String,Description="Dummy">
+##FORMAT=<ID=LIKELIHOOD,Number=1,Type=String,Description="Dummy">
+##FORMAT=<ID=GT_CONF,Number=1,Type=String,Description="Dummy">
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	sample
+GC00000001_155	1	.	ACGT	TTGGGGGAAGGCTCTGCACTGCCCGTTGGC,TTGGGGGAAGGCTCTGCACTGCCTGTTGGT	.	.	SVTYPE=COMPLEX;GRAPHTYPE=NESTED	GT:MEAN_FWD_COVG:MEAN_REV_COVG:MED_FWD_COVG:MED_REV_COVG:SUM_FWD_COVG:SUM_REV_COVG:GAPS:LIKELIHOOD:GT_CONF	1:6,25,0:7,30,0:0,24,0:0,30,0:24,24,0:30,30,0:0.75,0,1:-326.079,-63.3221,-432.546:262.757
+"""
+
+        assert actual_vcf == expected_vcf
