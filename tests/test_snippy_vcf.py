@@ -19,7 +19,7 @@ class Test_SnippyVCF:
         assert snippy_vcf.genotype == 1
         assert math.isclose(snippy_vcf.genotype_confidence, 2546.69, abs_tol=0.0001)
         assert snippy_vcf.svtype == "snp"
-        assert snippy_vcf.coverage == 75
+        assert snippy_vcf.coverage == 1000
 
     def test___snippy_second_real_record(self):
         snippy_variant_record = retrieve_snippy_entry_from_test_vcf(1)
@@ -28,7 +28,7 @@ class Test_SnippyVCF:
         assert snippy_vcf.genotype == 1
         assert math.isclose(snippy_vcf.genotype_confidence, 1843.76, abs_tol=0.0001)
         assert snippy_vcf.svtype == "snp"
-        assert snippy_vcf.coverage == 56
+        assert snippy_vcf.coverage == 1000
 
     def test___snippy_third_real_record(self):
         snippy_variant_record = retrieve_snippy_entry_from_test_vcf(2)
@@ -37,7 +37,7 @@ class Test_SnippyVCF:
         assert snippy_vcf.genotype == 1
         assert math.isclose(snippy_vcf.genotype_confidence, 1957.94, abs_tol=0.0001)
         assert snippy_vcf.svtype == "complex"
-        assert snippy_vcf.coverage == 60
+        assert snippy_vcf.coverage == 1000
 
     @pytest.mark.xfail(strict=True)
     def test___snippy_fails_with_genotype_1_0(self):
