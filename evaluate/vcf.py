@@ -177,7 +177,8 @@ class SnippyVCF(VCF):
 
     @property
     def coverage(self) -> int:
-        return int(self.variant.info["AO"][0])
+        # return int(self.variant.info["AO"][0])
+        return 1000  # mocking snippy coverage, as we don't want to filter it by coverage
 
     ####################################################################################################################
 
@@ -237,7 +238,7 @@ class MedakaVCF(VCF):
 
     @property
     def coverage(self) -> int:
-        return 100 # unknown
+        return 1000 # unknown
 
     ####################################################################################################################
 
