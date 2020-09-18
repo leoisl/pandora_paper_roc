@@ -115,6 +115,7 @@ rule make_mutated_vcf_ref_for_recall:
          vcf_ref = lambda wildcards: data.xs((wildcards.sample_id, wildcards.coverage, wildcards.tool))['vcf_reference'],
          empty_depth_file = lambda wildcards: f"{data.xs((wildcards.sample_id, wildcards.coverage, wildcards.tool))['vcf_reference']}.depth",
     output:
+          filtered_vcf_files = expand(output_folder + "/recall/mutated_refs/{{sample_id}}/{{coverage}}/{{tool}}/coverage_filter_{{coverage_threshold}}/strand_bias_filter_{{strand_bias_threshold}}/gaps_filter_{{gaps_threshold}}/gt_conf_percentile_{gt_conf_percentile}/filtered_vcf.vcf", gt_conf_percentile=gt_conf_percentiles),
           mutated_vcf_refs = expand(output_folder + "/recall/mutated_refs/{{sample_id}}/{{coverage}}/{{tool}}/coverage_filter_{{coverage_threshold}}/strand_bias_filter_{{strand_bias_threshold}}/gaps_filter_{{gaps_threshold}}/gt_conf_percentile_{gt_conf_percentile}/mutated_ref.fa", gt_conf_percentile=gt_conf_percentiles),
           indexes = expand(output_folder + "/recall/mutated_refs/{{sample_id}}/{{coverage}}/{{tool}}/coverage_filter_{{coverage_threshold}}/strand_bias_filter_{{strand_bias_threshold}}/gaps_filter_{{gaps_threshold}}/gt_conf_percentile_{gt_conf_percentile}/mutated_ref.fa.amb", gt_conf_percentile=gt_conf_percentiles)
     params:
