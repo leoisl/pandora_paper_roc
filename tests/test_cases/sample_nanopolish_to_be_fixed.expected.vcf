@@ -1,0 +1,18 @@
+##fileformat=VCFv4.2
+##nanopolish_window=NZ_LM995446.1:0-50200
+##INFO=<ID=TotalReads,Number=1,Type=Integer,Description="The number of event-space reads used to call the variant">
+##INFO=<ID=SupportFraction,Number=1,Type=Float,Description="The fraction of event-space reads that support the variant">
+##INFO=<ID=SupportFractionByStrand,Number=2,Type=Float,Description="Fraction of event-space reads that support the variant for each strand">
+##INFO=<ID=BaseCalledReadsWithVariant,Number=1,Type=Integer,Description="The number of base-space reads that support the variant">
+##INFO=<ID=BaseCalledFraction,Number=1,Type=Float,Description="The fraction of base-space reads that support the variant">
+##INFO=<ID=AlleleCount,Number=1,Type=Integer,Description="The inferred number of copies of the allele">
+##INFO=<ID=StrandSupport,Number=4,Type=Integer,Description="Number of reads supporting the REF and ALT allele, by strand">
+##INFO=<ID=StrandFisherTest,Number=1,Type=Integer,Description="Strand bias fisher test">
+##INFO=<ID=SOR,Number=1,Type=Float,Description="StrandOddsRatio test from GATK">
+##INFO=<ID=RefContext,Number=1,Type=String,Description="The reference sequence context surrounding the variant call">
+##FORMAT=<ID=GT,Number=1,Type=String,Description="Genotype">
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	sample_name
+NZ_LM995446.1	301	.	CTTTT	C	16.6	PASS	BaseCalledReadsWithVariant=26;BaseCalledFraction=0.27957;TotalReads=89;AlleleCount=1;SupportFraction=0.662127;SupportFractionByStrand=0.743187,0.562829;StrandSupport=13,17,36,23;StrandFisherTest=10;SOR=1.12236;RefContext=GCGGGCTTTTTTTTT	GT	1
+NZ_LM995446.1	393	.	T	G	0.0	PASS	BaseCalledReadsWithVariant=63;BaseCalledFraction=0.677419;TotalReads=87;AlleleCount=1;SupportFraction=0.78334;SupportFractionByStrand=0.789075,0.775591;StrandSupport=11,8,39,29;StrandFisherTest=0;SOR=0.790585;RefContext=CTGCGTGTTGC	GT	1
+NZ_LM995446.1	438	.	C	G	100.0	PASS	BaseCalledReadsWithVariant=81;BaseCalledFraction=0.880435;TotalReads=89;AlleleCount=1;SupportFraction=0.743735;SupportFractionByStrand=0.766541,0.711683;StrandSupport=12,11,40,26;StrandFisherTest=1;SOR=1.01601;RefContext=GTGGCCACCGT	GT	1
+NZ_LM995446.1	465	.	C	T	93.3	PASS	BaseCalledReadsWithVariant=65;BaseCalledFraction=0.698925;TotalReads=89;AlleleCount=1;SupportFraction=0.734111;SupportFractionByStrand=0.732697,0.736098;StrandSupport=14,10,38,27;StrandFisherTest=0;SOR=0.69359;RefContext=AAAATCACCAA	GT	1
