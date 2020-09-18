@@ -67,6 +67,20 @@ rule fix_medaka_vcf_for_pipeline:
         "../scripts/fix_medaka_vcf.py"
 
 
+rule fix_nanopolish_vcf_for_pipeline:
+    input:
+         nanopolish_original_vcf =  "{directory}/nanopolish_{sample}_AND_{ref}.vcf"
+    output:
+         nanopolish_vcf_corrected = "{directory}/nanopolish_{sample}_AND_{ref}.vcf.~~vcf~~fixed~~.vcf"
+    threads: 1
+    resources:
+        mem_mb = lambda wildcards, attempt: 2000 * attempt
+    log:
+        "logs/fix_nanopolish_vcf_for_pipeline{directory}/nanopolish_{sample}_AND_{ref}.vcf.log"
+    script:
+        "../scripts/fix_nanopolish_vcf.py"
+
+
 
 rule make_empty_depth_file:
     input:

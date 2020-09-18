@@ -109,6 +109,29 @@ rule filter_vcf_for_a_single_sample_by_gt_conf_percentile_for_medaka:
 ruleorder: filter_vcf_for_a_single_sample_by_gt_conf_percentile_for_medaka > make_vcf_for_a_single_sample
 
 
+rule filter_vcf_for_a_single_sample_by_gt_conf_percentile_for_nanopolish:
+    input:
+        gzipped_singlesample_vcf_file = "{filename}.vcf.sample_{sample_id}.vcf.gz",
+        indexed_gzipped_singlesample_vcf_file = "{filename}.vcf.sample_{sample_id}.vcf.gz.tbi"
+    output:
+        singlesample_vcf_files_gt_conf_percentile_filtered = expand("{{filename}}.vcf.sample_{{sample_id}}.gt_conf_percentile_{gt_conf_percentile}.vcf", gt_conf_percentile=gt_conf_percentiles)
+    wildcard_constraints:
+        filename=".*/nanopolish_[^/]+\.vcf\.\~\~vcf\~\~fixed\~\~"
+    params:
+        gt_conf_percentiles = gt_conf_percentiles,
+        filter_script = "pipeline/scripts/filter_vcf_for_a_single_sample_by_gt_conf_percentile_for_nanopolish.sh"
+    threads: 1
+    resources:
+        mem_mb = lambda wildcards, attempt: 2000 * attempt
+    log:
+        "logs/filter_vcf_for_a_single_sample_by_gt_conf_percentile_for_nanopolish{filename}_sample_{sample_id}.log"
+    singularity:
+        "docker://leandroishilima/pandora1_paper_basic_tools:pandora_paper_tag1"
+    script:
+        "../scripts/filter_vcf_for_a_single_sample_by_gt_conf_percentile.py"
+ruleorder: filter_vcf_for_a_single_sample_by_gt_conf_percentile_for_nanopolish > make_vcf_for_a_single_sample
+
+
 rule make_mutated_vcf_ref_for_recall:
     input:
          singlesample_vcf_files_gt_conf_percentile_filtered = lambda wildcards: expand(f"{data.xs((wildcards.sample_id, wildcards.coverage, wildcards.tool))['vcf']}.sample_{wildcards.sample_id}.gt_conf_percentile_{{gt_conf_percentile}}.vcf", gt_conf_percentile=gt_conf_percentiles),

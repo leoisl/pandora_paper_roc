@@ -45,8 +45,10 @@ elif tool.startswith("samtools"):
     VCF_creator_method = VCFFactory.create_Samtools_VCF_from_VariantRecord_and_Sample
 elif tool.startswith("medaka"):
     VCF_creator_method = VCFFactory.create_Medaka_VCF_from_VariantRecord_and_Sample
+elif tool.startswith("nanopolish"):
+    VCF_creator_method = VCFFactory.create_Nanopolish_VCF_from_VariantRecord_and_Sample
 else:
-    raise RuntimeError("VCFs should be from either pandora or snippy or samtools or medaka (should start with either these values)")
+    raise RuntimeError("VCFs should be from either pandora or snippy or samtools or medaka or nanopolish (should start with either these values)")
 
 for gt_conf_percentile, vcf_filepath, filtered_vcf_filepath, mutated_vcf_ref in \
         zip(gt_conf_percentiles, singlesample_vcf_files_gt_conf_percentile_filtered, filtered_vcf_filepaths, mutated_vcf_refs):
