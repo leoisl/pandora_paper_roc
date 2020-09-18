@@ -84,6 +84,9 @@ class VCF(ABC):
     def chrom(self) -> str:
         return self.variant.chrom
 
+    def __str__(self) -> str:
+        return str(self.variant)
+
 
 
 

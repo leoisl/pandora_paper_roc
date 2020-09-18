@@ -228,3 +228,22 @@ class Test_PandoraVCF:
         expected = 0.75
 
         assert actual == expected
+
+
+    def test___str___from_PandoraVCF_file(self):
+        entry = retrieve_entry_from_test_vcf(1)
+        sample = "sample"
+        vcf = PandoraVCF(entry, sample)
+        expected_str = "GC00000001_155	1	.	CTGCCCGTTGGC	TTGGGGGAAGGCTCTGCACTGCCCGTTGGC,TTGGGGGAAGGCTCTGCACTGCCTGTTGGT	.	.	SVTYPE=COMPLEX;GRAPHTYPE=NESTED	GT:MEAN_FWD_COVG:MEAN_REV_COVG:MED_FWD_COVG:MED_REV_COVG:SUM_FWD_COVG:SUM_REV_COVG:GAPS:LIKELIHOOD:GT_CONF	1:24,6,0:30,7,0:24,0,0:30,0,0:24,24,0:30,30,0:0,0.75,1:-63.3221,-326.079,-432.546:262.757"
+        actual_str = str(vcf).strip()
+        assert expected_str == actual_str
+
+
+    def test___str___from_PandoraVCF_file___second(self):
+        entry = retrieve_entry_from_test_vcf(3)
+        sample = "sample"
+        vcf = PandoraVCF(entry, sample)
+        expected_str = "GC00000001_155	1	.	CTGCCCGTTGGC	TTGGGGGAAGGCTCTGCACTGCCCGTTGGC,TTGGGGGAAGGCTCTGCACTGCCTGTTGGT	.	.	SVTYPE=COMPLEX;GRAPHTYPE=NESTED	GT:MEAN_FWD_COVG:MEAN_REV_COVG:MED_FWD_COVG:MED_REV_COVG:SUM_FWD_COVG:SUM_REV_COVG:GAPS:LIKELIHOOD:GT_CONF	0:24,6,0:30,7,0:24,0,0:30,0,0:24,24,0:30,30,0:0,0.75,1:-63.3221,-326.079,-432.546:262.757"
+        actual_str = str(vcf).strip()
+        assert expected_str == actual_str
+
