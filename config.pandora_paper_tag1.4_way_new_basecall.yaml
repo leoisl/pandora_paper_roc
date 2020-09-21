@@ -1,0 +1,18 @@
+# input configs
+samples:                                  metadata/samples.pandora_paper_tag1.4way_new_basecall.csv
+variant_calls:                            metadata/variant_calls_pandora_paper_tag1.4way_new_basecall.csv
+deduplicated_variants_output_folder:      ../pangenome_variations/output_pangenome_variations_pandora_paper_tag1_4way_new_basecall
+data_from_paper:                          False
+
+
+# output configs
+output_folder:                            analysis_output_pandora_paper_tag1_4way_new_basecall
+variant_calls_flank_length_for_precision: 150
+max_gt_conf_percentile:                   51
+step_gt_conf_percentile:                  5
+
+
+# filtering configs
+coverage_filters:                         [0]
+strand_bias_filters:                      [0.0]
+gaps_filters:                             [1.0]
