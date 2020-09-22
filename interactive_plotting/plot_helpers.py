@@ -27,6 +27,10 @@ def update_tool_checklist(df):
         if medaka_was_run(tools):
             tools = remove_medaka(tools)
             tools.append("medaka_all")
+        if nanopolish_was_run(tools):
+            tools = remove_nanopolish(tools)
+            tools.append("nanopolish_all")
+
 
         return get_options_for_filters(tools), tools
 
@@ -69,7 +73,7 @@ def update_gaps_checklist(df):
 def get_highest_error_rate_after_given_recall(df, recall_column, recall_lower_bound):
     return df.query(f"{recall_column} >= {recall_lower_bound}")["error_rate"].max()
 
-def get_snippy_or_samtools_or_medaka_trace_data_for_given_ref(df, tool_name):
+def get_snippy_or_samtools_or_medaka_or_nanopolish_trace_data_for_given_ref(df, tool_name):
     trace_name = f"Tool: {tool_name}"
     config = (tool_name,)
     trace_df = df.query(f"tool==\"{tool_name}\"")
@@ -80,11 +84,11 @@ def get_snippy_or_samtools_or_medaka_trace_data_for_given_ref(df, tool_name):
     }
     return trace_data
 
-def populate_config_to_trace_for_snippy_or_samtools_or_medaka(tool_prefix, color_vector, config_to_trace, df, x_label, y_label):
+def populate_config_to_trace_for_snippy_or_samtools_or_medaka_or_nanopolish(tool_prefix, color_vector, config_to_trace, df, x_label, y_label):
     tool_refs_tools = [tool_ref_tool for tool_ref_tool in df["tool"].unique() if
                          tool_ref_tool.startswith(tool_prefix)]
     for tool_index, tool_ref in enumerate(tool_refs_tools):
-        tool_trace_data = get_snippy_or_samtools_or_medaka_trace_data_for_given_ref(df, tool_ref)
+        tool_trace_data = get_snippy_or_samtools_or_medaka_or_nanopolish_trace_data_for_given_ref(df, tool_ref)
 
         trace_name = tool_trace_data["trace_name"]
         config = tool_trace_data["config"]
@@ -107,15 +111,20 @@ def populate_config_to_trace_for_snippy_or_samtools_or_medaka(tool_prefix, color
 def populate_config_to_trace_for_snippy(config_to_trace, df, x_label, y_label):
     # color_vector = ["red", "green", "blue", "black", "yellow", "orange", "brown", "grey"]
     color_vector = ["red"]
-    populate_config_to_trace_for_snippy_or_samtools_or_medaka("snippy", color_vector, config_to_trace, df, x_label, y_label)
+    populate_config_to_trace_for_snippy_or_samtools_or_medaka_or_nanopolish("snippy", color_vector, config_to_trace, df, x_label, y_label)
 
 def populate_config_to_trace_for_samtools(config_to_trace, df, x_label, y_label):
     color_vector = ["green"]
-    populate_config_to_trace_for_snippy_or_samtools_or_medaka("samtools", color_vector, config_to_trace, df, x_label, y_label)
+    populate_config_to_trace_for_snippy_or_samtools_or_medaka_or_nanopolish("samtools", color_vector, config_to_trace, df, x_label, y_label)
 
 def populate_config_to_trace_for_medaka(config_to_trace, df, x_label, y_label):
     color_vector = ["purple"]
-    populate_config_to_trace_for_snippy_or_samtools_or_medaka("medaka", color_vector, config_to_trace, df, x_label, y_label)
+    populate_config_to_trace_for_snippy_or_samtools_or_medaka_or_nanopolish("medaka", color_vector, config_to_trace, df, x_label, y_label)
+
+def populate_config_to_trace_for_nanopolish(config_to_trace, df, x_label, y_label):
+    color_vector = ["brown"]
+    populate_config_to_trace_for_snippy_or_samtools_or_medaka_or_nanopolish("nanopolish", color_vector, config_to_trace, df, x_label, y_label)
+
 
 
 def populate_config_to_trace_for_pandora(config_to_trace, df, tool, dataset_coverages, coverage_filters, strand_bias_filters, gaps_filters, x_label, y_label):
@@ -148,6 +157,8 @@ def compute_traces_in_product_of_args(df, tools, dataset_coverages, coverage_fil
             populate_config_to_trace_for_samtools(config_to_trace, df, x_label, y_label)
         elif tool == "medaka_all":
             populate_config_to_trace_for_medaka(config_to_trace, df, x_label, y_label)
+        elif tool == "nanopolish_all":
+            populate_config_to_trace_for_nanopolish(config_to_trace, df, x_label, y_label)
         else:
             populate_config_to_trace_for_pandora(config_to_trace, df, tool, dataset_coverages, coverage_filters, strand_bias_filters, gaps_filters, x_label, y_label)
     return config_to_trace
@@ -175,6 +186,12 @@ def get_figure_for_graph(config_to_all_traces, tool_checklist_values, dataset_co
         elif tool == "medaka_all":
             for config, trace in config_to_all_traces.items():
                 if config[0].startswith("medaka"):
+                    trace = config_to_all_traces[config]
+                    traces.append(trace["trace"])
+                    highest_error_rate = max(highest_error_rate, trace["highest_error_rate"])
+        elif tool == "nanopolish_all":
+            for config, trace in config_to_all_traces.items():
+                if config[0].startswith("nanopolish"):
                     trace = config_to_all_traces[config]
                     traces.append(trace["trace"])
                     highest_error_rate = max(highest_error_rate, trace["highest_error_rate"])
@@ -297,6 +314,8 @@ def remove_samtools(tools):
     return [tool for tool in tools if "samtools" not in tool]
 def remove_medaka(tools):
     return [tool for tool in tools if "medaka" not in tool]
+def remove_nanopolish(tools):
+    return [tool for tool in tools if "nanopolish" not in tool]
 
 
 
@@ -311,6 +330,8 @@ def samtools_was_run(tools):
     return tool_was_run("samtools", tools)
 def medaka_was_run(tools):
     return tool_was_run("medaka", tools)
+def nanopolish_was_run(tools):
+    return tool_was_run("nanopolish", tools)
 
 
 def get_first_elem_of_list_as_list_itself (the_list):
