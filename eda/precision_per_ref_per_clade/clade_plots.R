@@ -84,7 +84,14 @@ sample_ordering <- names(sample_colouring)
 # input
 precision_table <- read.csv(csv_file, header=TRUE)
 precision_table_for_pandora_no_denovo <- precision_table %>% filter(tool == "Pandora illumina no denovo")
+if(nrow(precision_table_for_pandora_no_denovo) == 0){
+  precision_table_for_pandora_no_denovo <- precision_table %>% filter(tool == "Pandora nanopore no denovo")
+}
+
 precision_table_for_pandora_with_denovo <- precision_table %>% filter(tool == "Pandora illumina with denovo")
+if(nrow(precision_table_for_pandora_with_denovo) == 0){
+  precision_table_for_pandora_with_denovo <- precision_table %>% filter(tool == "Pandora nanopore with denovo")
+}
 ###############################################################################################
 
 ###############################################################################################

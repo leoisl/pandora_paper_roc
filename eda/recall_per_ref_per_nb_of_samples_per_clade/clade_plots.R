@@ -88,7 +88,14 @@ sample_ordering <- names(sample_colouring)
 # input
 recall_table <- read.csv(input_csv, header=TRUE)
 recall_table_for_pandora_no_denovo <- recall_table %>% filter(tool == "Pandora illumina no denovo")
+if(nrow(recall_table_for_pandora_no_denovo) == 0){
+  recall_table_for_pandora_no_denovo <- recall_table %>% filter(tool == "Pandora nanopore no denovo")
+}
+
 recall_table_for_pandora_with_denovo <- recall_table %>% filter(tool == "Pandora illumina with denovo")
+if(nrow(recall_table_for_pandora_with_denovo) == 0){
+  recall_table_for_pandora_with_denovo <- recall_table %>% filter(tool == "Pandora nanopore with denovo")
+}
 ###############################################################################################
 
 ###############################################################################################
