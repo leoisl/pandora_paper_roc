@@ -79,21 +79,35 @@ rule concat_all_recall_per_sample_per_nb_of_samples:
         aggregated_df.to_csv(output.aggregated_recall_per_sample_per_nb_of_samples, index=False, sep="\t")
 
 
+def get_correct_cov_tool_and_filters_recall_per_number_of_samples(recall_mode):
+    assert recall_mode in ["pvr", "avgar"]
+    if recall_mode == "pvr":
+        return cov_tool_and_filters_recall_per_number_of_samples_pvr
+    if recall_mode == "avgar":
+        return cov_tool_and_filters_recall_per_number_of_samples_avgar
+
+def get_aggregate_recall_per_number_of_samples_input(wildcards):
+    recall_mode = wildcards.recall_mode
+    cov_tool_and_filters_recall_per_number_of_samples = get_correct_cov_tool_and_filters_recall_per_number_of_samples(recall_mode)
+    return cov_tool_and_filters_recall_per_number_of_samples.values()
+
+
 rule aggregate_recall_per_number_of_samples:
     input:
-         all_recalls_per_number_of_samples = cov_tool_and_filters_recall_per_number_of_samples.values()
+         all_recalls_per_number_of_samples = get_aggregate_recall_per_number_of_samples_input
     output:
-         aggregated_recall_per_number_of_samples = output_folder + "/plot_data/recall_per_nb_of_samples/recall_per_nb_of_samples.tsv"
+         aggregated_recall_per_number_of_samples = output_folder + "/plot_data/recall_per_nb_of_samples/recall_per_nb_of_samples_{recall_mode}.tsv"
     threads: 1
     resources:
         mem_mb = lambda wildcards, attempt: 4000 * attempt
     log:
-        "logs/aggregate_recall_per_number_of_samples.log"
+        "logs/aggregate_recall_per_number_of_samples_{recall_mode}.log"
     run:
         import pandas as pd
 
         aggregated_df = pd.DataFrame(columns=["coverage", "tool", "coverage_threshold", "strand_bias_threshold",
                                    "gaps_threshold", "NB_OF_SAMPLES", "recall"])
+        cov_tool_and_filters_recall_per_number_of_samples = get_correct_cov_tool_and_filters_recall_per_number_of_samples(wildcards.recall_mode)
 
         for (coverage, tool, coverage_threshold, strand_bias_threshold, gaps_threshold), df_filepath \
             in cov_tool_and_filters_recall_per_number_of_samples.items():
@@ -253,19 +267,40 @@ rule make_precision_per_sample_plot:
         "../../eda/precision_per_sample/precision_per_sample.ipynb"
 
 
-rule make_recall_per_number_of_samples_plot:
+rule make_recall_per_number_of_samples_plot_pvr:
     input:
          aggregated_recall_per_number_of_samples = rules.aggregate_recall_per_number_of_samples.output.aggregated_recall_per_number_of_samples,
          id_and_number_of_samples = deduplicated_variants_output_folder + "/stats_csvs/id_and_number_of_samples.csv",
     output:
-         plot_data = output_folder + "/plot_data/recall_per_nb_of_samples/recall_per_nb_of_samples.plot_data.csv",
-         proportion_plot = output_folder + "/plot_data/recall_per_nb_of_samples/recall_per_nb_of_samples.proportion.png",
-         absolute_plot = output_folder + "/plot_data/recall_per_nb_of_samples/recall_per_nb_of_samples.absolute.png",
-         absolute_cumulative_plot = output_folder + "/plot_data/recall_per_nb_of_samples/recall_per_nb_of_samples.absolute_cumulative.png",
+         plot_data = output_folder + "/plot_data/recall_per_nb_of_samples/recall_per_nb_of_samples_{recall_mode}.plot_data.csv",
+         proportion_plot = output_folder + "/plot_data/recall_per_nb_of_samples/recall_per_nb_of_samples_{recall_mode}.proportion.png",
+         absolute_plot = output_folder + "/plot_data/recall_per_nb_of_samples/recall_per_nb_of_samples_{recall_mode}.absolute.png",
+         absolute_cumulative_plot = output_folder + "/plot_data/recall_per_nb_of_samples/recall_per_nb_of_samples_{recall_mode}.absolute_cumulative.png",
+    wildcard_constraints:
+        recall_mode="pvr"
     threads: 1
     resources:
         mem_mb=lambda wildcards, attempt: 8000 * attempt
     log:
-        notebook="logs/make_recall_per_number_of_samples_plot/make_recall_per_number_of_samples_plot.ipynb"
+        notebook="logs/make_recall_per_number_of_samples_plot/make_recall_per_number_of_samples_plot_{recall_mode}.ipynb"
+    notebook:
+        "../../eda/recall_per_nb_of_samples/recall_per_nb_of_samples.ipynb"
+
+
+
+rule make_recall_per_number_of_samples_plot_avgar:
+    input:
+         aggregated_recall_per_number_of_samples = rules.aggregate_recall_per_number_of_samples.output.aggregated_recall_per_number_of_samples,
+         id_and_number_of_samples = deduplicated_variants_output_folder + "/stats_csvs/id_and_number_of_samples.csv",
+    output:
+         plot_data = output_folder + "/plot_data/recall_per_nb_of_samples/recall_per_nb_of_samples_{recall_mode}.plot_data.csv",
+         proportion_plot = output_folder + "/plot_data/recall_per_nb_of_samples/recall_per_nb_of_samples_{recall_mode}.proportion.png",
+    wildcard_constraints:
+        recall_mode="avgar"
+    threads: 1
+    resources:
+        mem_mb=lambda wildcards, attempt: 8000 * attempt
+    log:
+        notebook="logs/make_recall_per_number_of_samples_plot/make_recall_per_number_of_samples_plot_{recall_mode}.ipynb"
     notebook:
         "../../eda/recall_per_nb_of_samples/recall_per_nb_of_samples.ipynb"

@@ -29,7 +29,7 @@ logging.info(f"Creating calculator")
 recall_calculator = RecallCalculator(recall_report)
 
 logging.info(f"Calculating recall")
-recall_per_number_of_samples = recall_calculator.get_recall_vs_nb_of_samples_report(list_with_number_of_samples)
+recall_per_number_of_samples = recall_calculator.get_recall_allele_seqs_vs_nb_of_samples_report(list_with_number_of_samples)
 
 
 # output

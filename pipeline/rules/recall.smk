@@ -251,20 +251,37 @@ rule calculate_recall_per_sample_vs_nb_of_samples:
         "../scripts/calculate_recall_per_sample_vs_nb_of_samples.py"
 
 
-rule calculate_recall_per_number_of_samples_no_gt_conf_filter:
+rule calculate_recall_per_number_of_samples_no_gt_conf_filter_pvr:
     input:
          all_recall_reports_with_no_gt_conf_filter = lambda wildcards: cov_tool_and_filters_to_recall_reports_with_no_gt_conf_filter[(
              wildcards.coverage, wildcards.tool, wildcards.coverage_threshold, wildcards.strand_bias_threshold, wildcards.gaps_threshold
          )]
     output:
-         recall_per_number_of_samples = output_folder + "/recall/recall_per_number_of_samples/{coverage}/{tool}/coverage_filter_{coverage_threshold}/strand_bias_filter_{strand_bias_threshold}/gaps_filter_{gaps_threshold}/recall_per_number_of_samples.csv"
+         recall_per_number_of_samples = output_folder + "/recall/recall_per_number_of_samples/{coverage}/{tool}/coverage_filter_{coverage_threshold}/strand_bias_filter_{strand_bias_threshold}/gaps_filter_{gaps_threshold}/recall_per_number_of_samples_pvr.csv"
     params:
          list_with_number_of_samples = list_with_number_of_samples
     threads: 1
     resources:
         mem_mb = lambda wildcards, attempt: 12000 * attempt
     log:
-        "logs/calculate_recall_per_number_of_samples_no_gt_conf_filter/{coverage}/{tool}/coverage_filter_{coverage_threshold}/strand_bias_filter_{strand_bias_threshold}/gaps_filter_{gaps_threshold}/recall_per_number_of_samples.log"
+        "logs/calculate_recall_per_number_of_samples_no_gt_conf_filter/{coverage}/{tool}/coverage_filter_{coverage_threshold}/strand_bias_filter_{strand_bias_threshold}/gaps_filter_{gaps_threshold}/recall_per_number_of_samples_pvr.log"
     script:
-        "../scripts/calculate_recall_per_number_of_samples_no_gt_conf_filter.py"
+        "../scripts/calculate_recall_per_number_of_samples_no_gt_conf_filter_pvr.py"
 
+
+rule calculate_recall_per_number_of_samples_no_gt_conf_filter_avgar:
+    input:
+         all_recall_reports_with_no_gt_conf_filter = lambda wildcards: cov_tool_and_filters_to_recall_reports_with_no_gt_conf_filter[(
+             wildcards.coverage, wildcards.tool, wildcards.coverage_threshold, wildcards.strand_bias_threshold, wildcards.gaps_threshold
+         )]
+    output:
+         recall_per_number_of_samples = output_folder + "/recall/recall_per_number_of_samples/{coverage}/{tool}/coverage_filter_{coverage_threshold}/strand_bias_filter_{strand_bias_threshold}/gaps_filter_{gaps_threshold}/recall_per_number_of_samples_avgar.csv"
+    params:
+         list_with_number_of_samples = list_with_number_of_samples
+    threads: 1
+    resources:
+        mem_mb = lambda wildcards, attempt: 12000 * attempt
+    log:
+        "logs/calculate_recall_per_number_of_samples_no_gt_conf_filter/{coverage}/{tool}/coverage_filter_{coverage_threshold}/strand_bias_filter_{strand_bias_threshold}/gaps_filter_{gaps_threshold}/recall_per_number_of_samples_avgar.log"
+    script:
+        "../scripts/calculate_recall_per_number_of_samples_no_gt_conf_filter_avgar.py"

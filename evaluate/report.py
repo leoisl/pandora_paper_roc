@@ -252,3 +252,8 @@ class RecallReport(Report):
         merged_data = self._get_df_with_recall_proportions()
         return merged_data["proportion_of_alleles_found"].to_list()
 
+
+    def get_proportion_of_alleles_found_for_each_variant_with_nb_of_samples(self) -> pd.DataFrame:
+        merged_data = self._get_df_with_recall_proportions_and_with_nb_of_samples()
+        return merged_data[["proportion_of_alleles_found", "NB_OF_SAMPLES"]]
+
