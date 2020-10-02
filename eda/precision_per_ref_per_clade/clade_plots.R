@@ -99,16 +99,22 @@ if(nrow(precision_table_for_pandora_with_denovo) == 0){
 png(output_file, width = 2000, height = 2000)
 index <- 1
 plots <- list()
+
+min_ylim = 0.90
+if (plot_title == "medaka_pandora") {
+	min_ylim = 0.50
+}
+
 for (current_ref in ref_ordering) {
   if (!identical(current_ref, "PRG")) {
     precision_table_for_ref <- precision_table %>% filter(ref == current_ref)
     precision_table_for_ref$sample <- factor(precision_table_for_ref$sample, levels=sample_ordering)
     ref_color <- ref_colouring[[current_ref]]
-    
+
     plot <- ggplot(data = precision_table_for_ref, aes(x=sample, y=precision, fill=sample, colour=tool)) +
         scale_fill_manual(values = sample_colouring) +
         geom_bar(stat = "identity") +
-        coord_cartesian(ylim=c(0.90, 1)) + 
+        coord_cartesian(ylim=c(min_ylim, 1)) +
         geom_line(data=precision_table_for_pandora_no_denovo, aes(x=sample, y=precision, group=1), colour="black", size = 2) +
         geom_line(data=precision_table_for_pandora_with_denovo, aes(x=sample, y=precision, group=1), colour = "orange", size = 2) +
         ggtitle(current_ref) +
