@@ -83,6 +83,12 @@ sample_ordering <- names(sample_colouring)
 ###############################################################################################
 # input
 precision_table <- read.csv(csv_file, header=TRUE)
+
+# bugfix for medaka sample Escherichia_coli_MSB1_7A, reference NZ_CP011134.1
+if (plot_title == "precision_medaka_pandora") {
+	precision_table[nrow(precision_table) + 1,] = list("Medaka", "Escherichia_coli_MSB1_7A", 0.0, "VR50 (NZ_CP011134.1)", "Medaka / VR50 (NZ_CP011134.1)")
+}
+
 precision_table_for_pandora_no_denovo <- precision_table %>% filter(tool == "Pandora illumina no denovo")
 if(nrow(precision_table_for_pandora_no_denovo) == 0){
   precision_table_for_pandora_no_denovo <- precision_table %>% filter(tool == "Pandora nanopore no denovo")
