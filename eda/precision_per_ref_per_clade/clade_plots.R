@@ -96,13 +96,13 @@ if(nrow(precision_table_for_pandora_with_denovo) == 0){
 
 ###############################################################################################
 # processing
-png(output_file, width = 2000, height = 2000)
+png(output_file, width = 2500, height = 2000)
 index <- 1
 plots <- list()
 
-min_ylim = 0.90
-if (plot_title == "medaka_pandora") {
-	min_ylim = 0.50
+min_ylim <- 0.90
+if (plot_title == "precision_medaka_pandora") {
+	min_ylim <- 0.50
 }
 
 for (current_ref in ref_ordering) {

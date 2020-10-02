@@ -174,7 +174,7 @@ rule make_precision_per_ref_per_clade_plot:
     singularity:
         "docker://leandroishilima/pandora1_paper_r:pandora_paper_tag1"
     shell:
-        "Rscript eda/precision_per_ref_per_clade/clade_plots.R {input.csv_data} {wildcards.tools_to_keep} {output.plot}"
+        "Rscript eda/precision_per_ref_per_clade/clade_plots.R {input.csv_data} precision_{wildcards.tools_to_keep} {output.plot}"
 
 
 rule make_recall_per_ref_per_clade_csv:
@@ -201,7 +201,7 @@ rule make_recall_per_ref_per_clade_plot:
     singularity:
         "docker://leandroishilima/pandora1_paper_r:pandora_paper_tag1"
     shell:
-        "Rscript eda/recall_per_ref_per_clade/clade_plots.R {input.csv_data} 0.75 {wildcards.tools_to_keep} {output.plot}"
+        "Rscript eda/recall_per_ref_per_clade/clade_plots.R {input.csv_data} 0.75 recall_{wildcards.tools_to_keep} {output.plot}"
 
 
 rule make_recall_per_ref_per_nb_of_samples_per_clade_csv:

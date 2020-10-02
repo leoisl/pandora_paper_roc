@@ -21,7 +21,7 @@ list_with_number_of_samples = snakemake.params.list_with_number_of_samples
 
 # call R to generate the several plots
 for input_csv, output_plot, nb_of_samples in zip(csv_data, plots, list_with_number_of_samples):
-    args = f"{input_csv} 0.0 Number_of_samples=={nb_of_samples} {output_plot}"
+    args = f"{input_csv} 0.0 recall_number_of_samples={nb_of_samples} {output_plot}"
     shell(f"Rscript eda/recall_per_ref_per_nb_of_samples_per_clade/clade_plots.R {args}")
 
 # generate the gif

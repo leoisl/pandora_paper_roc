@@ -100,7 +100,7 @@ if(nrow(recall_table_for_pandora_with_denovo) == 0){
 
 ###############################################################################################
 # processing
-png(output_file, width = 2000, height = 2000)
+png(output_file, width = 2500, height = 2000)
 index <- 1
 plots <- list()
 for (current_ref in ref_ordering) {
