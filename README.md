@@ -43,12 +43,12 @@ Use the `config.pandora_paper_tag1.illumina.yaml` or the `config.pandora_paper_t
 ### Exploring pandora filters
 
 Config files `config.pandora_paper_tag1.illumina.filters.yaml` and `config.pandora_paper_tag1.nanopore.filters.yaml` 
-contains the configuration to explore how filters change `pandora` and other tools results.
+contain the configuration to explore how filters change `pandora` and other tools results.
 
 ### Exploring the effect of methylation-aware guppy basecalling
 
 Config files `config.pandora_paper_tag1.4_way_new_basecall.yaml` and `config.pandora_paper_tag1.4_way_old_basecall.yaml`
-contains the configuration to run `pandora` with new and old basecalled ONT reads. 
+contain the configuration to run `pandora` with new (methylation-aware guppy) and old (normal guppy) basecalled ONT reads. 
 
 # Troubleshooting
 
