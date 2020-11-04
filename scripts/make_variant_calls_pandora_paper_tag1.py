@@ -3,7 +3,7 @@
 pandora_technologies = ["illumina", "nanopore"]
 pandora_modes = ["nodenovo", "withdenovo"]
 pandora_genotyping = ["global"]  # "local" can also be included
-pandora_base_path="../pandora_analysis_pipeline/pandora_output_pandora_paper_tag1"
+pandora_base_path="../pandora_workflow/pandora_output_pandora_paper_tag1"
 
 # other tools configs
 tools=["snippy", "samtools", "medaka", "nanopolish"]
