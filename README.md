@@ -1,8 +1,7 @@
-# pandora1_paper
+# pandora_paper_roc
 
-A snakemake pipeline that receives as input variant calls from several tools and build several plots for the pandora paper.
-
-It depends on four other pipelines (see https://github.com/leoisl/pandora1_paper_full_pipeline).
+A snakemake pipeline that receives as input variant calls from several tools and build several data and plots for the
+pandora paper, the main one being the ROC plot. See the pandora paper for more details.
 
 The version used in the pandora paper has tag `pandora_paper_tag1`.
 
@@ -21,7 +20,7 @@ The version used in the pandora paper has tag `pandora_paper_tag1`.
 
 ## Running on the sample example:
 ```
-unzip sample_data.zip
+unzip sample_data.zip (TODO: add link)
 source venv/bin/activate
 bash scripts/run_pipeline_local.sh -j8
 ```
@@ -37,9 +36,19 @@ bash scripts/run_pipeline_local.sh -j8
 ### If you want to run on an LSF cluster:
 3. `bash scripts/submit_lsf.sh --configfile config.pandora_paper_tag1.yaml`
 
+### If you want to run just on illumina or nanopore data
+
+Use the `config.pandora_paper_tag1.illumina.yaml` or the `config.pandora_paper_tag1.nanopore.yaml` config files.
+
 ### Exploring pandora filters
 
-Config file `config.pandora_filters.pandora_paper_tag1.yaml` contains the configuration to explore how filters change `pandora` results.
+Config files `config.pandora_paper_tag1.illumina.filters.yaml` and `config.pandora_paper_tag1.nanopore.filters.yaml` 
+contains the configuration to explore how filters change `pandora` and other tools results.
+
+### Exploring the effect of methylation-aware guppy basecalling
+
+Config files `config.pandora_paper_tag1.4_way_new_basecall.yaml` and `config.pandora_paper_tag1.4_way_old_basecall.yaml`
+contains the configuration to run `pandora` with new and old basecalled ONT reads. 
 
 # Troubleshooting
 
