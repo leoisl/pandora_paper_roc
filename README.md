@@ -3,7 +3,9 @@
 A snakemake pipeline that receives as input variant calls from several tools and build several data and plots for the
 pandora paper, the main one being the ROC plot. See the pandora paper for more details.
 
-The version used in the pandora paper has tag `pandora_paper_tag1`.
+The version used in the pandora paper review has tag `pandora_paper_update_31_03_2021`.
+
+The version used in the pandora paper submission has tag `pandora_paper_tag1`.
 
 # Running
 
