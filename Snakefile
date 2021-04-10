@@ -214,4 +214,4 @@ include: str(rules_dir / "recall.smk")
 include: str(rules_dir / "precision.smk")
 include: str(rules_dir / "plot.smk")
 
-localrules: make_empty_depth_file, bwa_index
+localrules: make_empty_depth_file, bwa_index, gzip_vcf_file, index_gzipped_vcf_file
