@@ -214,8 +214,4 @@ include: str(rules_dir / "recall.smk")
 include: str(rules_dir / "precision.smk")
 include: str(rules_dir / "plot.smk")
 
-localrules: make_empty_depth_file, bwa_index, gzip_vcf_file, index_gzipped_vcf_file,
-    concat_all_nb_of_records_removed_with_mapq_sam_records_filter_files_for_precision,
-    concat_all_recall_per_sample_no_gt_conf_filter,
-    merge_precision_and_recall_dfs, aggregate_recall_per_number_of_samples,
-    concat_all_plot_data, concat_all_precision_per_sample_no_gt_conf_filter
+localrules: make_empty_depth_file, bwa_index
