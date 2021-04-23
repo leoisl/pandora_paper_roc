@@ -12,6 +12,12 @@ import re
 import intervaltree
 import seaborn as sns
 sns.set()
+import json
+
+def dump_dict(dictionary, filename):
+    json_str = json.dumps(dictionary)
+    with open(f"{filename}.json","w") as fout:
+        fout.write(json_str)
 
 
 # In[2]:
@@ -104,8 +110,8 @@ for pv_allele_seq_id in pv_allele_seq_id_to_genes.keys():
     
 pv_id_to_genes_found_by_pandora = {}
 for pv_id in pv_ids:
-    pv_id_to_genes_found_by_pandora[pv_id] =         pv_allele_seq_id_to_genes_found_by_pandora.get((pv_id, 0), set()).union( 
-        pv_allele_seq_id_to_genes_found_by_pandora.get((pv_id, 1), set()))
+    pv_id_to_genes_found_by_pandora[pv_id] =         list(pv_allele_seq_id_to_genes_found_by_pandora.get((pv_id, 0), set()).union( 
+        pv_allele_seq_id_to_genes_found_by_pandora.get((pv_id, 1), set())))
 pv_id_to_genes_found_by_pandora
 
 pv_id_to_nb_of_genes_found_by_pandora = {}
@@ -122,13 +128,19 @@ pv_id_to_nb_of_genes_found_by_pandora_df
 # In[9]:
 
 
+dump_dict(pv_id_to_genes_found_by_pandora, "pv_id_to_genes_found_by_pandora")
+
+
+# In[10]:
+
+
 pv_ids_to_nb_of_genes_summary = pv_id_to_nb_of_genes_found_by_pandora_df[["PANGENOME_VARIATION_ID", "NB_OF_GENES"]].groupby("NB_OF_GENES").count()
 plot = pv_ids_to_nb_of_genes_summary.plot(kind="bar")
 fig = plot.get_figure()
 fig.savefig("pandora_nb_of_genes_for_panvars.png")
 
 
-# In[10]:
+# In[11]:
 
 
 variation_found_nbofsamples = variation_found_nbofsamples.merge(pv_id_to_nb_of_genes_found_by_pandora_df)
@@ -137,7 +149,7 @@ variation_found_nbofsamples["NOT_FOUND_BY_PANDORA_AND_NOT_IN_VCF_REF"] = ((varia
 variation_found_nbofsamples
 
 
-# In[11]:
+# In[12]:
 
 
 df = variation_found_nbofsamples[["NB_OF_SAMPLES", "FOUND", "NOT_FOUND_BY_PANDORA_BUT_IN_VCF_REF", "NOT_FOUND_BY_PANDORA_AND_NOT_IN_VCF_REF"]].groupby("NB_OF_SAMPLES").sum()
