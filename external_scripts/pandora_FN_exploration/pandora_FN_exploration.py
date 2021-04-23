@@ -10,6 +10,8 @@ from evaluate.report import Report, PrecisionReport, RecallReport
 from collections import defaultdict, namedtuple
 import re
 import intervaltree
+import seaborn as sns
+sns.set()
 
 
 # In[2]:
@@ -17,10 +19,9 @@ import intervaltree
 
 ##################################################################################################################
 # configs
-reports_tsv_glob_path = "/home/leandro/git/pandora_paper_roc/external_scripts/pandora_FN_exploration/data/hps/nobackup/iqbal/leandro/pdrv/out_20_way/pandora_paper_roc/analysis_output_pandora_paper_tag1/recall/reports/*/100x/pandora_nanopore_withdenovo/coverage_filter_0/strand_bias_filter_0.0/gaps_filter_1.0/gt_conf_percentile_0/*.tsv"
+reports_tsv_glob_path = "/hps/nobackup/iqbal/leandro/pdrv/out_20_way/pandora_paper_roc/analysis_output_pandora_paper_tag1/recall/reports/*/100x/pandora_nanopore_withdenovo/coverage_filter_0/strand_bias_filter_0.0/gaps_filter_1.0/gt_conf_percentile_0/*.tsv"
 samples = ['063_STEC', 'Escherichia_coli_MINF_1D', 'Escherichia_coli_MINF_9A', 'Escherichia_coli_MSB1_4E', 'Escherichia_coli_MSB1_7A', 'Escherichia_coli_MSB1_8G', 'H131800734', 'CFT073', 'Escherichia_coli_MINF_7C', 'Escherichia_coli_MSB1_1A', 'Escherichia_coli_MSB1_4I', 'Escherichia_coli_MSB1_7C', 'Escherichia_coli_MSB1_9D', 'ST38', 'Escherichia_coli_MINF_1A', 'Escherichia_coli_MINF_8D', 'Escherichia_coli_MSB1_3B', 'Escherichia_coli_MSB1_6C', 'Escherichia_coli_MSB1_8B', 'Escherichia_coli_MSB2_1A']
-samples = ['063_STEC', 'CFT073']  # TODO: remove
-gene_localisation_dir="/home/leandro/git/pandora_paper_roc/external_scripts/pandora_FN_exploration/data/hps/nobackup/iqbal/leandro/pdrv/out_20_way/pandora_gene_distance/gene_distance_pandora_paper_tag1/genes_from_truth_or_ref/pandora_nanopore_100x_withdenovo"
+gene_localisation_dir="/hps/nobackup/iqbal/leandro/pdrv/out_20_way/pandora_gene_distance/gene_distance_pandora_paper_tag1/genes_from_truth_or_ref/pandora_nanopore_100x_withdenovo"
 ##################################################################################################################
 
 
@@ -90,10 +91,10 @@ pv_allele_seq_id_to_genes
 # In[8]:
 
 
-pv_allele_seq_id_to_gene_found_by_pandora = {}
+pv_allele_seq_id_to_genes_found_by_pandora = {}
 for pv_allele_seq_id, gene_list in pv_allele_seq_id_to_genes.items():
-    pv_allele_seq_id_to_gene_found_by_pandora[pv_allele_seq_id] = int(len(gene_list) > 0)
-pv_allele_seq_id_to_gene_found_by_pandora
+    pv_allele_seq_id_to_genes_found_by_pandora[pv_allele_seq_id] = set(gene_list)
+pv_allele_seq_id_to_genes_found_by_pandora
 
 
 pv_ids = set()
@@ -101,46 +102,46 @@ for pv_allele_seq_id in pv_allele_seq_id_to_genes.keys():
     pv_ids.add(pv_allele_seq_id[0])
 
     
-pv_id_to_gene_found_by_pandora = {}
+pv_id_to_genes_found_by_pandora = {}
 for pv_id in pv_ids:
-    pv_id_to_gene_found_by_pandora[pv_id] = int(
-        pv_allele_seq_id_to_gene_found_by_pandora.get((pv_id, 0), 0) + 
-        pv_allele_seq_id_to_gene_found_by_pandora.get((pv_id, 1), 0) == 2
-    )
+    pv_id_to_genes_found_by_pandora[pv_id] =         pv_allele_seq_id_to_genes_found_by_pandora.get((pv_id, 0), set()).union( 
+        pv_allele_seq_id_to_genes_found_by_pandora.get((pv_id, 1), set()))
+pv_id_to_genes_found_by_pandora
 
+pv_id_to_nb_of_genes_found_by_pandora = {}
+for pv_id, genes in pv_id_to_genes_found_by_pandora.items():
+    pv_id_to_nb_of_genes_found_by_pandora[pv_id] = len(genes)
+pv_id_to_nb_of_genes_found_by_pandora
     
-pv_id_to_gene_found_by_pandora_df = pd.DataFrame(data=pv_id_to_gene_found_by_pandora.items(),
-                                                 columns=["PANGENOME_VARIATION_ID", "FOUND_IN_VCF_REF"])
-pv_id_to_gene_found_by_pandora_df
+pv_id_to_nb_of_genes_found_by_pandora_df = pd.DataFrame(data=pv_id_to_nb_of_genes_found_by_pandora.items(),
+                                                 columns=["PANGENOME_VARIATION_ID", "NB_OF_GENES"])
+pv_id_to_nb_of_genes_found_by_pandora_df["FOUND_IN_VCF_REF"] = (pv_id_to_nb_of_genes_found_by_pandora_df["NB_OF_GENES"] > 0).astype(int)
+pv_id_to_nb_of_genes_found_by_pandora_df
 
 
 # In[9]:
 
 
-variation_found_nbofsamples = variation_found_nbofsamples.merge(pv_id_to_gene_found_by_pandora_df)
-variation_found_nbofsamples
+pv_ids_to_nb_of_genes_summary = pv_id_to_nb_of_genes_found_by_pandora_df[["PANGENOME_VARIATION_ID", "NB_OF_GENES"]].groupby("NB_OF_GENES").count()
+plot = pv_ids_to_nb_of_genes_summary.plot(kind="bar")
+fig = plot.get_figure()
+fig.savefig("pandora_nb_of_genes_for_panvars.png")
 
 
 # In[10]:
 
 
-found_nbofsamples = variation_found_nbofsamples[["NB_OF_SAMPLES", "FOUND", "FOUND_IN_VCF_REF"]]
-total_found_nbofsamples = found_nbofsamples.groupby(by="NB_OF_SAMPLES", as_index=False).sum()
-total_count_nbofsamples = found_nbofsamples[["NB_OF_SAMPLES", "FOUND"]].groupby(by="NB_OF_SAMPLES", as_index=False).count()
-total_count_nbofsamples.rename(columns={"FOUND": "COUNT"}, inplace=True)
-total_found_nbofsamples = total_found_nbofsamples.merge(total_count_nbofsamples, on="NB_OF_SAMPLES")
-total_found_nbofsamples["NOT_FOUND_BUT_PRESENT_IN_VCF_REF"] = total_found_nbofsamples["FOUND"] - total_found_nbofsamples["FOUND_IN_VCF_REF"]
-total_found_nbofsamples["NOT_FOUND"] = total_found_nbofsamples["COUNT"] - total_found_nbofsamples["FOUND_IN_VCF_REF"]
-total_found_nbofsamples
+variation_found_nbofsamples = variation_found_nbofsamples.merge(pv_id_to_nb_of_genes_found_by_pandora_df)
+variation_found_nbofsamples["NOT_FOUND_BY_PANDORA_BUT_IN_VCF_REF"] = ((variation_found_nbofsamples["FOUND"]==0) & (variation_found_nbofsamples["FOUND_IN_VCF_REF"]==1)).astype(int)
+variation_found_nbofsamples["NOT_FOUND_BY_PANDORA_AND_NOT_IN_VCF_REF"] = ((variation_found_nbofsamples["FOUND"]==0) & (variation_found_nbofsamples["FOUND_IN_VCF_REF"]==0)).astype(int)
+variation_found_nbofsamples
 
 
-# In[12]:
+# In[11]:
 
 
-import seaborn as sns
-sns.set()
-df = total_found_nbofsamples[["NB_OF_SAMPLES", "FOUND", "NOT_FOUND_BUT_PRESENT_IN_VCF_REF", "NOT_FOUND"]]
-plot = df.plot(kind='bar', x="NB_OF_SAMPLES", stacked=True)
+df = variation_found_nbofsamples[["NB_OF_SAMPLES", "FOUND", "NOT_FOUND_BY_PANDORA_BUT_IN_VCF_REF", "NOT_FOUND_BY_PANDORA_AND_NOT_IN_VCF_REF"]].groupby("NB_OF_SAMPLES").sum()
+plot = df.plot(kind='bar', stacked=True)
 fig = plot.get_figure()
 fig.savefig("pandora_FN.png")
 
