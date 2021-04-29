@@ -22,7 +22,7 @@ def dump_dict(dictionary, filename):
         fout.write(json_str)
 
 
-# In[62]:
+# In[2]:
 
 
 ##################################################################################################################
@@ -33,6 +33,7 @@ samples = ['063_STEC', 'Escherichia_coli_MINF_1D', 'Escherichia_coli_MINF_9A', '
 gene_localisation_dir="/hps/nobackup/iqbal/leandro/pdrv/out_20_way/pandora_gene_distance/gene_distance_pandora_paper_tag1/genes_from_truth_or_ref/pandora_nanopore_100x_withdenovo"
 sample_data_dir="/hps/nobackup/iqbal/leandro/pdrv/data/samples/*"
 probesets_dir="/hps/nobackup/iqbal/leandro/pdrv/out_20_way/pangenome_variations/output_pangenome_variations_pandora_paper_tag1/truth_probesets"
+pandora_multisample_vcf_ref="/hps/nobackup/iqbal/leandro/pdrv/out_20_way/pandora_workflow/pandora_output_pandora_paper_tag1/nanopore/100x/random/compare_withdenovo/pandora_multisample.vcf_ref.fa"
 nb_of_threads = 96
 ##################################################################################################################
 
@@ -75,7 +76,7 @@ variation_found_nbofsamples.reset_index(inplace=True)
 variation_found_nbofsamples
 
 
-# In[33]:
+# In[6]:
 
 
 # get a df with the info needed for the pvs
@@ -99,7 +100,7 @@ pvs_df.to_csv("pvs_df.csv")
 pvs_df
 
 
-# In[28]:
+# In[7]:
 
 
 # create an index of probe seqs
@@ -113,7 +114,7 @@ for probeset_file in glob(f"{probesets_dir}/*/*.fa"):
 pv_id_sample_chrom_to_probe
 
 
-# In[34]:
+# In[8]:
 
 
 # improve pvs_df with probe seqs
@@ -125,7 +126,7 @@ pvs_df.to_csv("pvs_df.csv")
 pvs_df
 
 
-# In[7]:
+# In[9]:
 
 
 sample_to_chrom_to_intervaltree = defaultdict(lambda: defaultdict(lambda: intervaltree.IntervalTree()))
@@ -140,7 +141,7 @@ for sample in samples:
 sample_to_chrom_to_intervaltree
 
 
-# In[8]:
+# In[10]:
 
 
 # These plots show that gene annotation is fine
@@ -175,7 +176,7 @@ genes_in_each_pos_df.to_csv("genes_in_each_pos_df.csv")
 genes_in_each_pos_df
 
 
-# In[9]:
+# In[11]:
 
 
 plot = sns.FacetGrid(genes_in_each_pos_df, col="desc", col_wrap=8)
@@ -185,11 +186,11 @@ for ax in plot.axes.flatten():
 plot.savefig("gene_frequency_distribution.png")
 
 
-# In[46]:
+# In[12]:
 
 
 gene_to_sequence = {}
-with open("data/pandora_multisample.vcf_ref.fa") as fin:
+with open(pandora_multisample_vcf_ref) as fin:
     for line in fin:
         line = line.strip()
         if line[0] == ">":
@@ -200,7 +201,7 @@ with open("data/pandora_multisample.vcf_ref.fa") as fin:
 gene_to_sequence
 
 
-# In[66]:
+# In[13]:
 
 
 # choose genes that barely match the probe
@@ -252,6 +253,4 @@ for pv_id, genes in pv_ids_and_genes:
     pv_to_genes[pv_id] = list(genes)  # set is not serializable
 dump_dict(pv_to_genes, "pv_to_genes")
 pv_to_genes
-
-
 
