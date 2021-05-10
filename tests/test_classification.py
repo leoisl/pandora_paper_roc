@@ -40,7 +40,7 @@ class TestClassification:
         md = ""
         mapq = 0
         pos = 0
-        query_name = "INTERVAL=[11,21);"
+        query_name = "IV=[11,21);"
         ref_name = "*"
         sequence = "AAAAAAAAAAACGGCTCGCATAGACACGACGACGACACGTACGATCGATCAGTCAT"
         sam_string = f"{query_name}\t{flag}\t{ref_name}\t{pos}\t{mapq}\t{cigar}\t*\t0\t0\t{sequence}\t*\tAS:i:0\tXS:i:0"
@@ -59,7 +59,7 @@ class TestClassification:
         md = "MD:Z:47"
         mapq = 60
         pos = 1
-        query_name = "INTERVAL=[11,21);"
+        query_name = "IV=[11,21);"
         sequence = "AAAAAAAAAAACGGCTCGCATAGACACGACGACGACACGTACGATCGATCAGTCAT"
         sam_string = f"{query_name}\t{flag}\t{ref_name}\t{pos}\t{mapq}\t{cigar}\t*\t0\t0\t{sequence}\t*\t{nm}\t{md}\tAS:i:0\tXS:i:0"
         record = pysam.AlignedSegment.fromstring(sam_string, header)
@@ -77,7 +77,7 @@ class TestClassification:
         md = "MD:Z:45"
         mapq = 60
         pos = 1
-        query_name = "INTERVAL=[11,21);"
+        query_name = "IV=[11,21);"
         sequence = "AAAAAAAAAAACGGCTCGCATAGACACGACGACGACACGTACGATCGATCAGTCAT"
         sam_string = f"{query_name}\t{flag}\t{ref_name}\t{pos}\t{mapq}\t{cigar}\t*\t0\t0\t{sequence}\t*\t{nm}\t{md}\tAS:i:0\tXS:i:0"
         record = pysam.AlignedSegment.fromstring(sam_string, header)
@@ -97,7 +97,7 @@ class TestClassification:
         md = "MD:Z:44"
         mapq = 60
         pos = 1
-        query_name = "INTERVAL=[11,21);"
+        query_name = "IV=[11,21);"
         sequence = "AAAAAAAAAAACGGCTCGCATAGACACGACGACGACACGTACGATCGATCAGTCAT"
         sam_string = f"{query_name}\t{flag}\t{ref_name}\t{pos}\t{mapq}\t{cigar}\t*\t0\t0\t{sequence}\t*\t{nm}\t{md}\tAS:i:0\tXS:i:0"
         record = pysam.AlignedSegment.fromstring(sam_string, header)
@@ -117,7 +117,7 @@ class TestClassification:
         md = "MD:Z:42"
         mapq = 60
         pos = 1
-        query_name = "INTERVAL=[11,21);"
+        query_name = "IV=[11,21);"
         sequence = "AAAAAAAAAAACGGCTCGCATAGACACGACGACGACACGTACGATCGATCAGTCAT"
         sam_string = f"{query_name}\t{flag}\t{ref_name}\t{pos}\t{mapq}\t{cigar}\t*\t0\t0\t{sequence}\t*\t{nm}\t{md}\tAS:i:0\tXS:i:0"
         record = pysam.AlignedSegment.fromstring(sam_string, header)
@@ -135,7 +135,7 @@ class TestClassification:
         md = "MD:Z:35"
         mapq = 60
         pos = 1
-        query_name = "INTERVAL=[11,21);"
+        query_name = "IV=[11,21);"
         sequence = "AAAAAAAAAAACGGCTCGCATAGACACGACGACGACACGTACGATCGATCAGTCAT"
         sam_string = f"{query_name}\t{flag}\t{ref_name}\t{pos}\t{mapq}\t{cigar}\t*\t0\t0\t{sequence}\t*\t{nm}\t{md}\tAS:i:0\tXS:i:0"
         record = pysam.AlignedSegment.fromstring(sam_string, header)
@@ -153,7 +153,7 @@ class TestClassification:
         md = "MD:Z:33"
         mapq = 60
         pos = 1
-        query_name = "INTERVAL=[11,21);"
+        query_name = "IV=[11,21);"
         sequence = "AAAAAAAAAAACGGCTCGCATAGACACGACGACGACACGTACGATCGATCAGTCAT"
         sam_string = f"{query_name}\t{flag}\t{ref_name}\t{pos}\t{mapq}\t{cigar}\t*\t0\t0\t{sequence}\t*\t{nm}\t{md}\tAS:i:0\tXS:i:0"
         record = pysam.AlignedSegment.fromstring(sam_string, header)
@@ -171,7 +171,7 @@ class TestClassification:
         md = "MD:Z:33"
         mapq = 60
         pos = 6
-        query_name = "INTERVAL=[23,33);"
+        query_name = "IV=[23,33);"
         sequence = (
             "AAAAAAAAAAAAAAAAAAAAAAACGGCTCGCATAGACACGACGACGACACGTACGATCGATCAGTCAT"
         )
@@ -191,7 +191,7 @@ class TestClassification:
         md = "MD:Z:32"
         mapq = 60
         pos = 6
-        query_name = "INTERVAL=[23,33);"
+        query_name = "IV=[23,33);"
         sequence = (
             "AAAAAAAAAAAAAAAAAAAAAAACGGCTCGCATAGACACGACGACGACACGTACGATCGATCAGTCAT"
         )
@@ -213,7 +213,7 @@ class TestClassification:
         md = "MD:Z:30"
         mapq = 60
         pos = 6
-        query_name = "INTERVAL=[23,33);"
+        query_name = "IV=[23,33);"
         sequence = (
             "AAAAAAAAAAAAAAAAAAAAAAACGGCTCGCATAGACACGACGACGACACGTACGATCGATCAGTCAT"
         )
@@ -233,7 +233,7 @@ class TestClassification:
         md = "MD:Z:22"
         mapq = 60
         pos = 6
-        query_name = "INTERVAL=[23,33);"
+        query_name = "IV=[23,33);"
         sequence = (
             "AAAAAAAAAAAAAAAAAAAAAAACGGCTCGCATAGACACGACGACGACACGTACGATCGATCAGTCAT"
         )
@@ -260,7 +260,7 @@ class TestRecallClassification:
         md = "MD:Z:11A44"
         mapq = 60
         pos = 6
-        query_name = "INTERVAL=[11,12);"
+        query_name = "IV=[11,12);"
         sequence = "AAAAAAAAAAACGGCTCGCATAGACACGACGACGACACGTACGATCGATCAGTCAT"
         sam_string = f"{query_name}\t{flag}\t{ref_name}\t{pos}\t{mapq}\t{cigar}\t*\t0\t0\t{sequence}\t*\t{nm}\t{md}\tAS:i:0\tXS:i:0"
         record = pysam.AlignedSegment.fromstring(sam_string, header)
@@ -281,7 +281,7 @@ class TestRecallClassification:
         md = "MD:Z:10C45"
         mapq = 60
         pos = 6
-        query_name = "INTERVAL=[11,12);"
+        query_name = "IV=[11,12);"
         sequence = "AAAAAAAAAAACGGCTCGCATAGACACGACGACGACACGTACGATCGATCAGTCAT"
         sam_string = f"{query_name}\t{flag}\t{ref_name}\t{pos}\t{mapq}\t{cigar}\t*\t0\t0\t{sequence}\t*\t{nm}\t{md}\tAS:i:0\tXS:i:0"
         record = pysam.AlignedSegment.fromstring(sam_string, header)
@@ -302,7 +302,7 @@ class TestRecallClassification:
         md = "MD:Z:12C43"
         mapq = 60
         pos = 6
-        query_name = "INTERVAL=[11,12);"
+        query_name = "IV=[11,12);"
         sequence = "AAAAAAAAAAACGGCTCGCATAGACACGACGACGACACGTACGATCGATCAGTCAT"
         sam_string = f"{query_name}\t{flag}\t{ref_name}\t{pos}\t{mapq}\t{cigar}\t*\t0\t0\t{sequence}\t*\t{nm}\t{md}\tAS:i:0\tXS:i:0"
         record = pysam.AlignedSegment.fromstring(sam_string, header)
@@ -323,7 +323,7 @@ class TestRecallClassification:
         md = "MD:Z:33"
         mapq = 60
         pos = 6
-        query_name = "INTERVAL=[23,33);"
+        query_name = "IV=[23,33);"
         sequence = (
             "AAAAAAAAAAAAAAAAAAAAAAACGGCTCGCATAGACACGACGACGACACGTACGATCGATCAGTCAT"
         )
@@ -346,7 +346,7 @@ class TestRecallClassification:
         md = "MD:Z:56"
         mapq = 60
         pos = 6
-        query_name = "INTERVAL=[12,12);"
+        query_name = "IV=[12,12);"
         sequence = "AAAAAAAAAAACGGCTCGCATAGACACGACGACGACACGTACGATCGATCAGTCAT"
         sam_string = f"{query_name}\t{flag}\t{ref_name}\t{pos}\t{mapq}\t{cigar}\t*\t0\t0\t{sequence}\t*\t{nm}\t{md}\tAS:i:0\tXS:i:0"
         record = pysam.AlignedSegment.fromstring(sam_string, header)
@@ -367,7 +367,7 @@ class TestRecallClassification:
         md = "MD:Z:11T44"
         mapq = 60
         pos = 6
-        query_name = "INTERVAL=[12,12);"
+        query_name = "IV=[12,12);"
         sequence = "AAAAAAAAAAACGGCTCGCATAGACACGACGACGACACGTACGATCGATCAGTCAT"
         sam_string = f"{query_name}\t{flag}\t{ref_name}\t{pos}\t{mapq}\t{cigar}\t*\t0\t0\t{sequence}\t*\t{nm}\t{md}\tAS:i:0\tXS:i:0"
         record = pysam.AlignedSegment.fromstring(sam_string, header)
@@ -388,7 +388,7 @@ class TestRecallClassification:
         md = "MD:Z:12T43"
         mapq = 60
         pos = 6
-        query_name = "INTERVAL=[12,12);"
+        query_name = "IV=[12,12);"
         sequence = "AAAAAAAAAAACGGCTCGCATAGACACGACGACGACACGTACGATCGATCAGTCAT"
         sam_string = f"{query_name}\t{flag}\t{ref_name}\t{pos}\t{mapq}\t{cigar}\t*\t0\t0\t{sequence}\t*\t{nm}\t{md}\tAS:i:0\tXS:i:0"
         record = pysam.AlignedSegment.fromstring(sam_string, header)
@@ -409,7 +409,7 @@ class TestRecallClassification:
         md = "MD:Z:11A44"
         mapq = 60
         pos = 1
-        query_name = "INTERVAL=[11,21);"
+        query_name = "IV=[11,21);"
         sequence = "AAAAAAAAAAACGGCTCGCATAGACACGACGACGACACGTACGATCGATCAGTCAT"
         sam_string = f"{query_name}\t{flag}\t{ref_name}\t{pos}\t{mapq}\t{cigar}\t*\t0\t0\t{sequence}\t*\t{nm}\t{md}\tAS:i:0\tXS:i:0"
         record = pysam.AlignedSegment.fromstring(sam_string, header)
@@ -430,7 +430,7 @@ class TestRecallClassification:
         md = "MD:Z:10T45"
         mapq = 60
         pos = 1
-        query_name = "INTERVAL=[11,21);"
+        query_name = "IV=[11,21);"
         sequence = "AAAAAAAAAAACGGCTCGCATAGACACGACGACGACACGTACGATCGATCAGTCAT"
         sam_string = f"{query_name}\t{flag}\t{ref_name}\t{pos}\t{mapq}\t{cigar}\t*\t0\t0\t{sequence}\t*\t{nm}\t{md}\tAS:i:0\tXS:i:0"
         record = pysam.AlignedSegment.fromstring(sam_string, header)
@@ -451,7 +451,7 @@ class TestRecallClassification:
         md = "MD:Z:20C35"
         mapq = 60
         pos = 1
-        query_name = "INTERVAL=[11,21);"
+        query_name = "IV=[11,21);"
         sequence = "AAAAAAAAAAACGGCTCGCATAGACACGACGACGACACGTACGATCGATCAGTCAT"
         sam_string = f"{query_name}\t{flag}\t{ref_name}\t{pos}\t{mapq}\t{cigar}\t*\t0\t0\t{sequence}\t*\t{nm}\t{md}\tAS:i:0\tXS:i:0"
         record = pysam.AlignedSegment.fromstring(sam_string, header)
@@ -472,7 +472,7 @@ class TestRecallClassification:
         md = "MD:Z:21C34"
         mapq = 60
         pos = 1
-        query_name = "INTERVAL=[11,21);"
+        query_name = "IV=[11,21);"
         sequence = "AAAAAAAAAAACGGCTCGCATAGACACGACGACGACACGTACGATCGATCAGTCAT"
         sam_string = f"{query_name}\t{flag}\t{ref_name}\t{pos}\t{mapq}\t{cigar}\t*\t0\t0\t{sequence}\t*\t{nm}\t{md}\tAS:i:0\tXS:i:0"
         record = pysam.AlignedSegment.fromstring(sam_string, header)
@@ -493,7 +493,7 @@ class TestRecallClassification:
         md = "MD:Z:12^G44"
         mapq = 60
         pos = 1
-        query_name = "INTERVAL=[11,21);"
+        query_name = "IV=[11,21);"
         sequence = "AAAAAAAAAAACGGCTCGCATAGACACGACGACGACACGTACGATCGATCAGTCAT"
         sam_string = f"{query_name}\t{flag}\t{ref_name}\t{pos}\t{mapq}\t{cigar}\t*\t0\t0\t{sequence}\t*\t{nm}\t{md}\tAS:i:0\tXS:i:0"
         record = pysam.AlignedSegment.fromstring(sam_string, header)
@@ -514,7 +514,7 @@ class TestRecallClassification:
         md = "MD:Z:55"
         mapq = 60
         pos = 1
-        query_name = "INTERVAL=[11,21);"
+        query_name = "IV=[11,21);"
         sequence = "AAAAAAAAAAACGGCTCGCATAGACACGACGACGACACGTACGATCGATCAGTCAT"
         sam_string = f"{query_name}\t{flag}\t{ref_name}\t{pos}\t{mapq}\t{cigar}\t*\t0\t0\t{sequence}\t*\t{nm}\t{md}\tAS:i:0\tXS:i:0"
         record = pysam.AlignedSegment.fromstring(sam_string, header)
@@ -535,7 +535,7 @@ class TestRecallClassification:
         md = "MD:Z:20^C36"
         mapq = 60
         pos = 1
-        query_name = "INTERVAL=[11,21);"
+        query_name = "IV=[11,21);"
         sequence = "AAAAAAAAAAACGGCTCGCATAGACACGACGACGACACGTACGATCGATCAGTCAT"
         sam_string = f"{query_name}\t{flag}\t{ref_name}\t{pos}\t{mapq}\t{cigar}\t*\t0\t0\t{sequence}\t*\t{nm}\t{md}\tAS:i:0\tXS:i:0"
         record = pysam.AlignedSegment.fromstring(sam_string, header)
@@ -556,7 +556,7 @@ class TestRecallClassification:
         md = "MD:Z:21^G35"
         mapq = 60
         pos = 1
-        query_name = "INTERVAL=[11,21);"
+        query_name = "IV=[11,21);"
         sequence = "AAAAAAAAAAACGGCTCGCATAGACACGACGACGACACGTACGATCGATCAGTCAT"
         sam_string = f"{query_name}\t{flag}\t{ref_name}\t{pos}\t{mapq}\t{cigar}\t*\t0\t0\t{sequence}\t*\t{nm}\t{md}\tAS:i:0\tXS:i:0"
         record = pysam.AlignedSegment.fromstring(sam_string, header)
@@ -577,7 +577,7 @@ class TestRecallClassification:
         md = "MD:Z:55"
         mapq = 60
         pos = 1
-        query_name = "INTERVAL=[11,21);"
+        query_name = "IV=[11,21);"
         sequence = "AAAAAAAAAAACGGCTCGCATAGACACGACGACGACACGTACGATCGATCAGTCAT"
         sam_string = f"{query_name}\t{flag}\t{ref_name}\t{pos}\t{mapq}\t{cigar}\t*\t0\t0\t{sequence}\t*\t{nm}\t{md}\tAS:i:0\tXS:i:0"
         record = pysam.AlignedSegment.fromstring(sam_string, header)
@@ -692,7 +692,7 @@ class TestPrecisionClassification:
         md = "MD:Z:11A44"
         mapq = 60
         pos = 6
-        query_name = "INTERVAL=[11,12);"
+        query_name = "IV=[11,12);"
         sequence = "AAAAAAAAAAACGGCTCGCATAGACACGACGACGACACGTACGATCGATCAGTCAT"
         sam_string = f"{query_name}\t{flag}\t{ref_name}\t{pos}\t{mapq}\t{cigar}\t*\t0\t0\t{sequence}\t*\t{nm}\t{md}\tAS:i:0\tXS:i:0"
         record = pysam.AlignedSegment.fromstring(sam_string, header)
@@ -715,7 +715,7 @@ class TestPrecisionClassification:
         md = "MD:Z:10C45"
         mapq = 60
         pos = 6
-        query_name = "INTERVAL=[11,12);"
+        query_name = "IV=[11,12);"
         sequence = "AAAAAAAAAAACGGCTCGCATAGACACGACGACGACACGTACGATCGATCAGTCAT"
         sam_string = f"{query_name}\t{flag}\t{ref_name}\t{pos}\t{mapq}\t{cigar}\t*\t0\t0\t{sequence}\t*\t{nm}\t{md}\tAS:i:0\tXS:i:0"
         record = pysam.AlignedSegment.fromstring(sam_string, header)
@@ -738,7 +738,7 @@ class TestPrecisionClassification:
         md = "MD:Z:12C43"
         mapq = 60
         pos = 6
-        query_name = "INTERVAL=[11,12);"
+        query_name = "IV=[11,12);"
         sequence = "AAAAAAAAAAACGGCTCGCATAGACACGACGACGACACGTACGATCGATCAGTCAT"
         sam_string = f"{query_name}\t{flag}\t{ref_name}\t{pos}\t{mapq}\t{cigar}\t*\t0\t0\t{sequence}\t*\t{nm}\t{md}\tAS:i:0\tXS:i:0"
         record = pysam.AlignedSegment.fromstring(sam_string, header)
@@ -761,7 +761,7 @@ class TestPrecisionClassification:
         md = "MD:Z:33"
         mapq = 60
         pos = 6
-        query_name = "INTERVAL=[23,33);"
+        query_name = "IV=[23,33);"
         sequence = (
             "AAAAAAAAAAAAAAAAAAAAAAACGGCTCGCATAGACACGACGACGACACGTACGATCGATCAGTCAT"
         )
@@ -786,7 +786,7 @@ class TestPrecisionClassification:
         md = "MD:Z:56"
         mapq = 60
         pos = 6
-        query_name = "INTERVAL=[12,12);"
+        query_name = "IV=[12,12);"
         sequence = "AAAAAAAAAAACGGCTCGCATAGACACGACGACGACACGTACGATCGATCAGTCAT"
         sam_string = f"{query_name}\t{flag}\t{ref_name}\t{pos}\t{mapq}\t{cigar}\t*\t0\t0\t{sequence}\t*\t{nm}\t{md}\tAS:i:0\tXS:i:0"
         record = pysam.AlignedSegment.fromstring(sam_string, header)
@@ -809,7 +809,7 @@ class TestPrecisionClassification:
         md = "MD:Z:11T44"
         mapq = 60
         pos = 6
-        query_name = "INTERVAL=[12,12);"
+        query_name = "IV=[12,12);"
         sequence = "AAAAAAAAAAACGGCTCGCATAGACACGACGACGACACGTACGATCGATCAGTCAT"
         sam_string = f"{query_name}\t{flag}\t{ref_name}\t{pos}\t{mapq}\t{cigar}\t*\t0\t0\t{sequence}\t*\t{nm}\t{md}\tAS:i:0\tXS:i:0"
         record = pysam.AlignedSegment.fromstring(sam_string, header)
@@ -832,7 +832,7 @@ class TestPrecisionClassification:
         md = "MD:Z:12T43"
         mapq = 60
         pos = 6
-        query_name = "INTERVAL=[12,12);"
+        query_name = "IV=[12,12);"
         sequence = "AAAAAAAAAAACGGCTCGCATAGACACGACGACGACACGTACGATCGATCAGTCAT"
         sam_string = f"{query_name}\t{flag}\t{ref_name}\t{pos}\t{mapq}\t{cigar}\t*\t0\t0\t{sequence}\t*\t{nm}\t{md}\tAS:i:0\tXS:i:0"
         record = pysam.AlignedSegment.fromstring(sam_string, header)
@@ -855,7 +855,7 @@ class TestPrecisionClassification:
         md = "MD:Z:11A44"
         mapq = 60
         pos = 1
-        query_name = "INTERVAL=[11,21);"
+        query_name = "IV=[11,21);"
         sequence = "AAAAAAAAAAACGGCTCGCATAGACACGACGACGACACGTACGATCGATCAGTCAT"
         sam_string = f"{query_name}\t{flag}\t{ref_name}\t{pos}\t{mapq}\t{cigar}\t*\t0\t0\t{sequence}\t*\t{nm}\t{md}\tAS:i:0\tXS:i:0"
         record = pysam.AlignedSegment.fromstring(sam_string, header)
@@ -878,7 +878,7 @@ class TestPrecisionClassification:
         md = "MD:Z:10T45"
         mapq = 60
         pos = 1
-        query_name = "INTERVAL=[11,21);"
+        query_name = "IV=[11,21);"
         sequence = "AAAAAAAAAAACGGCTCGCATAGACACGACGACGACACGTACGATCGATCAGTCAT"
         sam_string = f"{query_name}\t{flag}\t{ref_name}\t{pos}\t{mapq}\t{cigar}\t*\t0\t0\t{sequence}\t*\t{nm}\t{md}\tAS:i:0\tXS:i:0"
         record = pysam.AlignedSegment.fromstring(sam_string, header)
@@ -901,7 +901,7 @@ class TestPrecisionClassification:
         md = "MD:Z:20C35"
         mapq = 60
         pos = 1
-        query_name = "INTERVAL=[11,21);"
+        query_name = "IV=[11,21);"
         sequence = "AAAAAAAAAAACGGCTCGCATAGACACGACGACGACACGTACGATCGATCAGTCAT"
         sam_string = f"{query_name}\t{flag}\t{ref_name}\t{pos}\t{mapq}\t{cigar}\t*\t0\t0\t{sequence}\t*\t{nm}\t{md}\tAS:i:0\tXS:i:0"
         record = pysam.AlignedSegment.fromstring(sam_string, header)
@@ -924,7 +924,7 @@ class TestPrecisionClassification:
         md = "MD:Z:21C34"
         mapq = 60
         pos = 1
-        query_name = "INTERVAL=[11,21);"
+        query_name = "IV=[11,21);"
         sequence = "AAAAAAAAAAACGGCTCGCATAGACACGACGACGACACGTACGATCGATCAGTCAT"
         sam_string = f"{query_name}\t{flag}\t{ref_name}\t{pos}\t{mapq}\t{cigar}\t*\t0\t0\t{sequence}\t*\t{nm}\t{md}\tAS:i:0\tXS:i:0"
         record = pysam.AlignedSegment.fromstring(sam_string, header)
@@ -947,7 +947,7 @@ class TestPrecisionClassification:
         md = "MD:Z:12^G44"
         mapq = 60
         pos = 1
-        query_name = "INTERVAL=[11,21);"
+        query_name = "IV=[11,21);"
         sequence = "AAAAAAAAAAACGGCTCGCATAGACACGACGACGACACGTACGATCGATCAGTCAT"
         sam_string = f"{query_name}\t{flag}\t{ref_name}\t{pos}\t{mapq}\t{cigar}\t*\t0\t0\t{sequence}\t*\t{nm}\t{md}\tAS:i:0\tXS:i:0"
         record = pysam.AlignedSegment.fromstring(sam_string, header)
@@ -970,7 +970,7 @@ class TestPrecisionClassification:
         md = "MD:Z:55"
         mapq = 60
         pos = 1
-        query_name = "INTERVAL=[11,21);"
+        query_name = "IV=[11,21);"
         sequence = "AAAAAAAAAAACGGCTCGCATAGACACGACGACGACACGTACGATCGATCAGTCAT"
         sam_string = f"{query_name}\t{flag}\t{ref_name}\t{pos}\t{mapq}\t{cigar}\t*\t0\t0\t{sequence}\t*\t{nm}\t{md}\tAS:i:0\tXS:i:0"
         record = pysam.AlignedSegment.fromstring(sam_string, header)
@@ -993,7 +993,7 @@ class TestPrecisionClassification:
         md = "MD:Z:20^C36"
         mapq = 60
         pos = 1
-        query_name = "INTERVAL=[11,21);"
+        query_name = "IV=[11,21);"
         sequence = "AAAAAAAAAAACGGCTCGCATAGACACGACGACGACACGTACGATCGATCAGTCAT"
         sam_string = f"{query_name}\t{flag}\t{ref_name}\t{pos}\t{mapq}\t{cigar}\t*\t0\t0\t{sequence}\t*\t{nm}\t{md}\tAS:i:0\tXS:i:0"
         record = pysam.AlignedSegment.fromstring(sam_string, header)
@@ -1016,7 +1016,7 @@ class TestPrecisionClassification:
         md = "MD:Z:21^G35"
         mapq = 60
         pos = 1
-        query_name = "INTERVAL=[11,21);"
+        query_name = "IV=[11,21);"
         sequence = "AAAAAAAAAAACGGCTCGCATAGACACGACGACGACACGTACGATCGATCAGTCAT"
         sam_string = f"{query_name}\t{flag}\t{ref_name}\t{pos}\t{mapq}\t{cigar}\t*\t0\t0\t{sequence}\t*\t{nm}\t{md}\tAS:i:0\tXS:i:0"
         record = pysam.AlignedSegment.fromstring(sam_string, header)
@@ -1039,7 +1039,7 @@ class TestPrecisionClassification:
         md = "MD:Z:55"
         mapq = 60
         pos = 1
-        query_name = "INTERVAL=[11,21);"
+        query_name = "IV=[11,21);"
         sequence = "AAAAAAAAAAACGGCTCGCATAGACACGACGACGACACGTACGATCGATCAGTCAT"
         sam_string = f"{query_name}\t{flag}\t{ref_name}\t{pos}\t{mapq}\t{cigar}\t*\t0\t0\t{sequence}\t*\t{nm}\t{md}\tAS:i:0\tXS:i:0"
         record = pysam.AlignedSegment.fromstring(sam_string, header)
@@ -1062,7 +1062,7 @@ class TestPrecisionClassification:
         md = "MD:Z:12A2AGC38"
         mapq = 60
         pos = 1
-        query_name = "INTERVAL=[11,21);"
+        query_name = "IV=[11,21);"
         sequence = "AAAAAAAAAAACGGCTCGCATAGACACGACGACGACACGTACGATCGATCAGTCAT"
         sam_string = f"{query_name}\t{flag}\t{ref_name}\t{pos}\t{mapq}\t{cigar}\t*\t0\t0\t{sequence}\t*\t{nm}\t{md}\tAS:i:0\tXS:i:0"
         record = pysam.AlignedSegment.fromstring(sam_string, header)
@@ -1085,7 +1085,7 @@ class TestPrecisionClassification:
         md = "MD:Z:15G3^T36"
         mapq = 60
         pos = 1
-        query_name = "INTERVAL=[11,21);"
+        query_name = "IV=[11,21);"
         sequence = "AAAAAAAAAAACGGCTCGCATAGACACGACGACGACACGTACGATCGATCAGTCAT"
         sam_string = f"{query_name}\t{flag}\t{ref_name}\t{pos}\t{mapq}\t{cigar}\t*\t0\t0\t{sequence}\t*\t{nm}\t{md}\tAS:i:0\tXS:i:0"
         record = pysam.AlignedSegment.fromstring(sam_string, header)

@@ -196,14 +196,14 @@ class TestPrecisionReporter:
 
     def test_fromFiles_TwoFilesReturnsValidRecallReport(self):
         contents_1 = """sample	query_probe_header	ref_probe_header	classification
-CFT073	>CHROM=1;POS=1246;INTERVAL=[20,30);PANGENOME_VARIATION_ID=1;NUMBER_OF_ALLELES=1;ALLELE_ID=1;NUMBER_OF_DIFFERENT_ALLELE_SEQUENCES=1;ALLELE_SEQUENCE_ID=1;	>GT_CONF=1;	unmapped
-CFT073	>CHROM=1;POS=1248;INTERVAL=[30,40);PANGENOME_VARIATION_ID=2;NUMBER_OF_ALLELES=2;ALLELE_ID=2;NUMBER_OF_DIFFERENT_ALLELE_SEQUENCES=2;ALLELE_SEQUENCE_ID=2;	>CHROM=GC00005358_3;SAMPLE=CFT073;POS=1;INTERVAL=[0,17);SVTYPE=PH_SNPs;MEAN_FWD_COVG=3;MEAN_REV_COVG=6;GT_CONF=60.1133;	primary_correct
-CFT073	>CHROM=1;POS=1252;INTERVAL=[40,50);PANGENOME_VARIATION_ID=3;NUMBER_OF_ALLELES=3;ALLELE_ID=3;NUMBER_OF_DIFFERENT_ALLELE_SEQUENCES=3;ALLELE_SEQUENCE_ID=3;	>GT_CONF=3;	unmapped
+CFT073	>CHROM=1;POS=1246;IV=[20,30);PVID=1;NB_ALL=1;ALL_ID=1;NB_DIFF_ALL_SEQ=1;ALL_SEQ_ID=1;	>GT_CONF=1;	unmapped
+CFT073	>CHROM=1;POS=1248;IV=[30,40);PVID=2;NB_ALL=2;ALL_ID=2;NB_DIFF_ALL_SEQ=2;ALL_SEQ_ID=2;	>CHROM=GC00005358_3;SAMPLE=CFT073;POS=1;IV=[0,17);SVTYPE=PH_SNPs;MEAN_FWD_COVG=3;MEAN_REV_COVG=6;GT_CONF=60.1133;	primary_correct
+CFT073	>CHROM=1;POS=1252;IV=[40,50);PVID=3;NB_ALL=3;ALL_ID=3;NB_DIFF_ALL_SEQ=3;ALL_SEQ_ID=3;	>GT_CONF=3;	unmapped
 """
         contents_2 = """sample	query_probe_header	ref_probe_header	classification
-CFT073	>CHROM=1;POS=1260;INTERVAL=[50,60);PANGENOME_VARIATION_ID=4;NUMBER_OF_ALLELES=4;ALLELE_ID=4;NUMBER_OF_DIFFERENT_ALLELE_SEQUENCES=4;ALLELE_SEQUENCE_ID=4;	>CHROM=GC00000578_3;SAMPLE=CFT073;POS=165;INTERVAL=[25,29);SVTYPE=PH_SNPs;MEAN_FWD_COVG=3;MEAN_REV_COVG=3;GT_CONF=3.22199;	primary_incorrect
-CFT073	>CHROM=1;POS=1262;INTERVAL=[60,70);PANGENOME_VARIATION_ID=5;NUMBER_OF_ALLELES=5;ALLELE_ID=5;NUMBER_OF_DIFFERENT_ALLELE_SEQUENCES=5;ALLELE_SEQUENCE_ID=5;	>GT_CONF=5;	unmapped
-CFT073	>CHROM=1;POS=1281;INTERVAL=[70,80);PANGENOME_VARIATION_ID=6;NUMBER_OF_ALLELES=6;ALLELE_ID=6;NUMBER_OF_DIFFERENT_ALLELE_SEQUENCES=6;ALLELE_SEQUENCE_ID=6;	>GT_CONF=6;	unmapped
+CFT073	>CHROM=1;POS=1260;IV=[50,60);PVID=4;NB_ALL=4;ALL_ID=4;NB_DIFF_ALL_SEQ=4;ALL_SEQ_ID=4;	>CHROM=GC00000578_3;SAMPLE=CFT073;POS=165;IV=[25,29);SVTYPE=PH_SNPs;MEAN_FWD_COVG=3;MEAN_REV_COVG=3;GT_CONF=3.22199;	primary_incorrect
+CFT073	>CHROM=1;POS=1262;IV=[60,70);PVID=5;NB_ALL=5;ALL_ID=5;NB_DIFF_ALL_SEQ=5;ALL_SEQ_ID=5;	>GT_CONF=5;	unmapped
+CFT073	>CHROM=1;POS=1281;IV=[70,80);PVID=6;NB_ALL=6;ALL_ID=6;NB_DIFF_ALL_SEQ=6;ALL_SEQ_ID=6;	>GT_CONF=6;	unmapped
 """
         path_1 = create_tmp_file(contents_1)
         path_2 = create_tmp_file(contents_2)
@@ -228,14 +228,14 @@ CFT073	>CHROM=1;POS=1281;INTERVAL=[70,80);PANGENOME_VARIATION_ID=6;NUMBER_OF_ALL
 class TestRecallReport:
     def test_fromFiles_TwoFilesReturnsValidRecallReport(self):
         contents_1 = """sample	query_probe_header	ref_probe_header	classification
-CFT073	>CHROM=1;POS=1246;INTERVAL=[20,30);PANGENOME_VARIATION_ID=1;NUMBER_OF_ALLELES=1;ALLELE_ID=1;NUMBER_OF_DIFFERENT_ALLELE_SEQUENCES=1;ALLELE_SEQUENCE_ID=1;	>GT_CONF=1;	unmapped
-CFT073	>CHROM=1;POS=1248;INTERVAL=[30,40);PANGENOME_VARIATION_ID=2;NUMBER_OF_ALLELES=2;ALLELE_ID=2;NUMBER_OF_DIFFERENT_ALLELE_SEQUENCES=2;ALLELE_SEQUENCE_ID=2;	>CHROM=GC00005358_3;SAMPLE=CFT073;POS=1;INTERVAL=[0,17);SVTYPE=PH_SNPs;MEAN_FWD_COVG=3;MEAN_REV_COVG=6;GT_CONF=60.1133;	primary_correct
-CFT073	>CHROM=1;POS=1252;INTERVAL=[40,50);PANGENOME_VARIATION_ID=3;NUMBER_OF_ALLELES=3;ALLELE_ID=3;NUMBER_OF_DIFFERENT_ALLELE_SEQUENCES=3;ALLELE_SEQUENCE_ID=3;	>GT_CONF=3;	unmapped
+CFT073	>CHROM=1;POS=1246;IV=[20,30);PVID=1;NB_ALL=1;ALL_ID=1;NB_DIFF_ALL_SEQ=1;ALL_SEQ_ID=1;	>GT_CONF=1;	unmapped
+CFT073	>CHROM=1;POS=1248;IV=[30,40);PVID=2;NB_ALL=2;ALL_ID=2;NB_DIFF_ALL_SEQ=2;ALL_SEQ_ID=2;	>CHROM=GC00005358_3;SAMPLE=CFT073;POS=1;IV=[0,17);SVTYPE=PH_SNPs;MEAN_FWD_COVG=3;MEAN_REV_COVG=6;GT_CONF=60.1133;	primary_correct
+CFT073	>CHROM=1;POS=1252;IV=[40,50);PVID=3;NB_ALL=3;ALL_ID=3;NB_DIFF_ALL_SEQ=3;ALL_SEQ_ID=3;	>GT_CONF=3;	unmapped
 """
         contents_2 = """sample	query_probe_header	ref_probe_header	classification
-CFT073	>CHROM=1;POS=1260;INTERVAL=[50,60);PANGENOME_VARIATION_ID=4;NUMBER_OF_ALLELES=4;ALLELE_ID=4;NUMBER_OF_DIFFERENT_ALLELE_SEQUENCES=4;ALLELE_SEQUENCE_ID=4;	>CHROM=GC00000578_3;SAMPLE=CFT073;POS=165;INTERVAL=[25,29);SVTYPE=PH_SNPs;MEAN_FWD_COVG=3;MEAN_REV_COVG=3;GT_CONF=3.22199;	primary_incorrect
-CFT073	>CHROM=1;POS=1262;INTERVAL=[60,70);PANGENOME_VARIATION_ID=5;NUMBER_OF_ALLELES=5;ALLELE_ID=5;NUMBER_OF_DIFFERENT_ALLELE_SEQUENCES=5;ALLELE_SEQUENCE_ID=5;	>GT_CONF=5;	unmapped
-CFT073	>CHROM=1;POS=1281;INTERVAL=[70,80);PANGENOME_VARIATION_ID=6;NUMBER_OF_ALLELES=6;ALLELE_ID=6;NUMBER_OF_DIFFERENT_ALLELE_SEQUENCES=6;ALLELE_SEQUENCE_ID=6;	>GT_CONF=6;	unmapped
+CFT073	>CHROM=1;POS=1260;IV=[50,60);PVID=4;NB_ALL=4;ALL_ID=4;NB_DIFF_ALL_SEQ=4;ALL_SEQ_ID=4;	>CHROM=GC00000578_3;SAMPLE=CFT073;POS=165;IV=[25,29);SVTYPE=PH_SNPs;MEAN_FWD_COVG=3;MEAN_REV_COVG=3;GT_CONF=3.22199;	primary_incorrect
+CFT073	>CHROM=1;POS=1262;IV=[60,70);PVID=5;NB_ALL=5;ALL_ID=5;NB_DIFF_ALL_SEQ=5;ALL_SEQ_ID=5;	>GT_CONF=5;	unmapped
+CFT073	>CHROM=1;POS=1281;IV=[70,80);PVID=6;NB_ALL=6;ALL_ID=6;NB_DIFF_ALL_SEQ=6;ALL_SEQ_ID=6;	>GT_CONF=6;	unmapped
 """
         path_1 = create_tmp_file(contents_1)
         path_2 = create_tmp_file(contents_2)
@@ -257,19 +257,19 @@ CFT073	>CHROM=1;POS=1281;INTERVAL=[70,80);PANGENOME_VARIATION_ID=6;NUMBER_OF_ALL
 
     def test_init(self):
         contents_1 = """sample	query_probe_header	ref_probe_header	classification
-CFT073	>CHROM=1;POS=1246;INTERVAL=[20,30);PANGENOME_VARIATION_ID=1;NUMBER_OF_ALLELES=1;ALLELE_ID=1;NUMBER_OF_DIFFERENT_ALLELE_SEQUENCES=1;ALLELE_SEQUENCE_ID=1;NB_OF_SAMPLES=10;	>GT_CONF=1;	unmapped
-CFT073	>CHROM=1;POS=1248;INTERVAL=[30,40);PANGENOME_VARIATION_ID=2;NUMBER_OF_ALLELES=2;ALLELE_ID=2;NUMBER_OF_DIFFERENT_ALLELE_SEQUENCES=2;ALLELE_SEQUENCE_ID=2;NB_OF_SAMPLES=20;	>CHROM=GC00005358_3;SAMPLE=CFT073;POS=1;INTERVAL=[0,17);SVTYPE=PH_SNPs;MEAN_FWD_COVG=3;MEAN_REV_COVG=6;GT_CONF=60.1133;	primary_correct
-CFT073	>CHROM=1;POS=1252;INTERVAL=[40,50);PANGENOME_VARIATION_ID=3;NUMBER_OF_ALLELES=3;ALLELE_ID=3;NUMBER_OF_DIFFERENT_ALLELE_SEQUENCES=3;ALLELE_SEQUENCE_ID=3;NB_OF_SAMPLES=30;	>GT_CONF=3;	unmapped
+CFT073	>CHROM=1;POS=1246;IV=[20,30);PVID=1;NB_ALL=1;ALL_ID=1;NB_DIFF_ALL_SEQ=1;ALL_SEQ_ID=1;NB_OF_SAMPLES=10;	>GT_CONF=1;	unmapped
+CFT073	>CHROM=1;POS=1248;IV=[30,40);PVID=2;NB_ALL=2;ALL_ID=2;NB_DIFF_ALL_SEQ=2;ALL_SEQ_ID=2;NB_OF_SAMPLES=20;	>CHROM=GC00005358_3;SAMPLE=CFT073;POS=1;IV=[0,17);SVTYPE=PH_SNPs;MEAN_FWD_COVG=3;MEAN_REV_COVG=6;GT_CONF=60.1133;	primary_correct
+CFT073	>CHROM=1;POS=1252;IV=[40,50);PVID=3;NB_ALL=3;ALL_ID=3;NB_DIFF_ALL_SEQ=3;ALL_SEQ_ID=3;NB_OF_SAMPLES=30;	>GT_CONF=3;	unmapped
 """
         contents_1_input = StringIO(contents_1)
         dataframes = [pd.read_csv(contents_1_input, sep="\t", keep_default_na=False)]
         report = RecallReport(dataframes)
         actual_df = report.report
         expected_df = pd.read_csv(StringIO(
-"""sample	query_probe_header	ref_probe_header	classification	GT_CONF	PANGENOME_VARIATION_ID	NUMBER_OF_ALLELES	ALLELE_ID	NUMBER_OF_DIFFERENT_ALLELE_SEQUENCES	ALLELE_SEQUENCE_ID	NB_OF_SAMPLES	good_eval
-CFT073	>CHROM=1;POS=1246;INTERVAL=[20,30);PANGENOME_VARIATION_ID=1;NUMBER_OF_ALLELES=1;ALLELE_ID=1;NUMBER_OF_DIFFERENT_ALLELE_SEQUENCES=1;ALLELE_SEQUENCE_ID=1;NB_OF_SAMPLES=10;	>GT_CONF=1;	unmapped	1.0	1	1	1	1	1	10	False
-CFT073	>CHROM=1;POS=1248;INTERVAL=[30,40);PANGENOME_VARIATION_ID=2;NUMBER_OF_ALLELES=2;ALLELE_ID=2;NUMBER_OF_DIFFERENT_ALLELE_SEQUENCES=2;ALLELE_SEQUENCE_ID=2;NB_OF_SAMPLES=20;	>CHROM=GC00005358_3;SAMPLE=CFT073;POS=1;INTERVAL=[0,17);SVTYPE=PH_SNPs;MEAN_FWD_COVG=3;MEAN_REV_COVG=6;GT_CONF=60.1133;	primary_correct	60.1133	2	2	2	2	2	20	True
-CFT073	>CHROM=1;POS=1252;INTERVAL=[40,50);PANGENOME_VARIATION_ID=3;NUMBER_OF_ALLELES=3;ALLELE_ID=3;NUMBER_OF_DIFFERENT_ALLELE_SEQUENCES=3;ALLELE_SEQUENCE_ID=3;NB_OF_SAMPLES=30;	>GT_CONF=3;	unmapped	3.0	3	3	3	3	3	30	False
+"""sample	query_probe_header	ref_probe_header	classification	GT_CONF	PVID	NB_ALL	ALL_ID	NB_DIFF_ALL_SEQ	ALL_SEQ_ID	NB_OF_SAMPLES	good_eval
+CFT073	>CHROM=1;POS=1246;IV=[20,30);PVID=1;NB_ALL=1;ALL_ID=1;NB_DIFF_ALL_SEQ=1;ALL_SEQ_ID=1;NB_OF_SAMPLES=10;	>GT_CONF=1;	unmapped	1.0	1	1	1	1	1	10	False
+CFT073	>CHROM=1;POS=1248;IV=[30,40);PVID=2;NB_ALL=2;ALL_ID=2;NB_DIFF_ALL_SEQ=2;ALL_SEQ_ID=2;NB_OF_SAMPLES=20;	>CHROM=GC00005358_3;SAMPLE=CFT073;POS=1;IV=[0,17);SVTYPE=PH_SNPs;MEAN_FWD_COVG=3;MEAN_REV_COVG=6;GT_CONF=60.1133;	primary_correct	60.1133	2	2	2	2	2	20	True
+CFT073	>CHROM=1;POS=1252;IV=[40,50);PVID=3;NB_ALL=3;ALL_ID=3;NB_DIFF_ALL_SEQ=3;ALL_SEQ_ID=3;NB_OF_SAMPLES=30;	>GT_CONF=3;	unmapped	3.0	3	3	3	3	3	30	False
 """), sep="\t")
 
         assert actual_df.equals(expected_df)
@@ -470,7 +470,7 @@ CFT073	>CHROM=1;POS=1252;INTERVAL=[40,50);PANGENOME_VARIATION_ID=3;NUMBER_OF_ALL
     @patch.object(RecallReport, RecallReport._create_helper_columns.__name__)
     def test____get_id_to_nb_of_allele_sequences_found(self, *mocks):
         contents = StringIO(
-"""sample,query_probe_header,PANGENOME_VARIATION_ID,ALLELE_SEQUENCE_ID,good_eval
+"""sample,query_probe_header,PVID,ALL_SEQ_ID,good_eval
 S1,0,2,0,True
 S2,1,0,2,False
 S3,2,1,1,True
@@ -492,19 +492,19 @@ S1,16,3,1,False
         report = RecallReport([pd.read_csv(contents)], False)
         actual=report._get_id_to_nb_of_allele_sequences_found()
         expected=pd.read_csv(StringIO(
-"""PANGENOME_VARIATION_ID,NB_OF_ALLELE_SEQUENCE_ID_FOUND
+"""PVID,NB_OF_ALL_SEQ_ID_FOUND
 0,1
 1,2
 2,4
 3,0
-"""), index_col="PANGENOME_VARIATION_ID")
+"""), index_col="PVID")
 
         assert actual.equals(expected)
 
     @patch.object(RecallReport, RecallReport._create_helper_columns.__name__)
     def test____get_id_to_nb_of_different_allele_sequences(self, *mocks):
         contents = StringIO(
-"""sample,query_probe_header,PANGENOME_VARIATION_ID,NUMBER_OF_DIFFERENT_ALLELE_SEQUENCES,good_eval
+"""sample,query_probe_header,PVID,NB_DIFF_ALL_SEQ,good_eval
 S1,0,2,10,True
 S2,1,0,1,False
 S3,2,1,3,True
@@ -526,19 +526,19 @@ S1,16,3,2,False
         report = RecallReport([pd.read_csv(contents)], False)
         actual = report._get_id_to_nb_of_different_allele_sequences()
         expected = pd.read_csv(StringIO(
-"""PANGENOME_VARIATION_ID,NUMBER_OF_DIFFERENT_ALLELE_SEQUENCES
+"""PVID,NB_DIFF_ALL_SEQ
 0,1
 1,3
 2,10
 3,2
-"""), index_col="PANGENOME_VARIATION_ID")
+"""), index_col="PVID")
 
         assert actual.equals(expected)
 
     @patch.object(RecallReport, RecallReport._create_helper_columns.__name__)
     def test____get_id_to_nb_of_samples(self, *mocks):
         contents = StringIO(
-            """sample,query_probe_header,PANGENOME_VARIATION_ID,NB_OF_SAMPLES
+            """sample,query_probe_header,PVID,NB_OF_SAMPLES
             S1,0,2,3
             S2,1,0,4
             S3,2,1,10
@@ -546,11 +546,11 @@ S1,16,3,2,False
         report = RecallReport([pd.read_csv(contents)], False)
         actual = report._get_id_to_nb_of_samples()
         expected = pd.read_csv(StringIO(
-            """PANGENOME_VARIATION_ID,NB_OF_SAMPLES
+            """PVID,NB_OF_SAMPLES
             0,4
             1,10
             2,3
-            """), index_col="PANGENOME_VARIATION_ID")
+            """), index_col="PVID")
 
         assert actual.equals(expected)
 
@@ -559,7 +559,7 @@ S1,16,3,2,False
     @patch.object(RecallReport, RecallReport._create_helper_columns.__name__)
     def test___get_proportion_of_allele_seqs_found_for_each_variant(self, *mocks):
         contents = StringIO(
-"""sample,query_probe_header,PANGENOME_VARIATION_ID,ALLELE_SEQUENCE_ID,NUMBER_OF_DIFFERENT_ALLELE_SEQUENCES,good_eval,ALLELE_ID,NUMBER_OF_ALLELES
+"""sample,query_probe_header,PVID,ALL_SEQ_ID,NB_DIFF_ALL_SEQ,good_eval,ALL_ID,NB_ALL
 S1,1,2,0,10,True,0,0
 S2,2,0,2,1,False,0,0
 S3,3,1,1,3,True,0,0
@@ -593,7 +593,7 @@ S1,17,3,1,2,False,0,0
     @patch.object(RecallReport, RecallReport._create_helper_columns.__name__)
     def test___get_proportion_of_allele_seqs_found_for_each_variant_with_nb_of_samples(self, *mocks):
         contents = StringIO(
-            """sample,query_probe_header,PANGENOME_VARIATION_ID,ALLELE_SEQUENCE_ID,NUMBER_OF_DIFFERENT_ALLELE_SEQUENCES,good_eval,ALLELE_ID,NUMBER_OF_ALLELES,NB_OF_SAMPLES
+            """sample,query_probe_header,PVID,ALL_SEQ_ID,NB_DIFF_ALL_SEQ,good_eval,ALL_ID,NB_ALL,NB_OF_SAMPLES
             S1,1,2,0,10,True,0,0,20
             S2,2,0,2,1,False,0,0,1
             S3,3,1,1,3,True,0,0,10
@@ -617,32 +617,32 @@ S1,17,3,1,2,False,0,0
         # non binary
         actual = report.get_proportion_of_allele_seqs_found_for_each_variant_with_nb_of_samples(binary=False)
         expected = pd.read_csv(StringIO(
-            """PANGENOME_VARIATION_ID,proportion_of_allele_seqs_found,NB_OF_SAMPLES
+            """PVID,proportion_of_allele_seqs_found,NB_OF_SAMPLES
             0,1.0,1
             1,0.6666666666666666,10
             2,0.4,20
             3,0.0,30
             """
-        ), index_col="PANGENOME_VARIATION_ID")
+        ), index_col="PVID")
         assert actual.equals(expected)
 
         # binary
         actual = report.get_proportion_of_allele_seqs_found_for_each_variant_with_nb_of_samples(binary=True)
         expected = pd.read_csv(StringIO(
-            """PANGENOME_VARIATION_ID,proportion_of_allele_seqs_found_binary,NB_OF_SAMPLES
+            """PVID,proportion_of_allele_seqs_found_binary,NB_OF_SAMPLES
             0,1,1
             1,0,10
             2,0,20
             3,0,30
             """
-        ), index_col="PANGENOME_VARIATION_ID")
+        ), index_col="PVID")
         assert actual.equals(expected)
 
 
     @patch.object(RecallReport, RecallReport._create_helper_columns.__name__)
     def test___get_proportion_of_alleles_found_for_each_variant_with_nb_of_samples(self, *mocks):
         contents = StringIO(
-            """sample,query_probe_header,PANGENOME_VARIATION_ID,ALLELE_SEQUENCE_ID,NUMBER_OF_DIFFERENT_ALLELE_SEQUENCES,good_eval,ALLELE_ID,NUMBER_OF_ALLELES,NB_OF_SAMPLES
+            """sample,query_probe_header,PVID,ALL_SEQ_ID,NB_DIFF_ALL_SEQ,good_eval,ALL_ID,NB_ALL,NB_OF_SAMPLES
             S1,1,2,0,10,True,4,5,20
             S2,2,0,2,1,False,0,1,1
             S3,3,1,1,3,True,5,10,10
@@ -665,20 +665,20 @@ S1,17,3,1,2,False,0,0
 
         actual = report.get_proportion_of_alleles_found_for_each_variant_with_nb_of_samples()
         expected = pd.read_csv(StringIO(
-            """PANGENOME_VARIATION_ID,proportion_of_alleles_found,NB_OF_SAMPLES
+            """PVID,proportion_of_alleles_found,NB_OF_SAMPLES
             0,1.0,1
             1,0.2,10
             2,0.8,20
             3,0.0,30
             """
-        ), index_col="PANGENOME_VARIATION_ID")
+        ), index_col="PVID")
         assert actual.equals(expected)
 
 
     @patch.object(RecallReport, RecallReport._create_helper_columns.__name__)
     def test___get_proportion_of_allele_seqs_found_for_each_variant___duplicated_evaluation_is_disregarded(self, *mocks):
         contents = StringIO(
-            """sample,query_probe_header,PANGENOME_VARIATION_ID,ALLELE_SEQUENCE_ID,NUMBER_OF_DIFFERENT_ALLELE_SEQUENCES,good_eval,ALLELE_ID,NUMBER_OF_ALLELES
+            """sample,query_probe_header,PVID,ALL_SEQ_ID,NB_DIFF_ALL_SEQ,good_eval,ALL_ID,NB_ALL
             S1,1,0,0,5,True,0,0
             S1,2,0,1,5,True,0,0
             S1,3,0,0,5,True,0,0
@@ -694,7 +694,7 @@ S1,17,3,1,2,False,0,0
     @patch.object(RecallReport, RecallReport._create_helper_columns.__name__)
     def test___get_proportion_of_alleles_found_for_each_variant(self, *mocks):
         contents = StringIO(
-"""sample,query_probe_header,PANGENOME_VARIATION_ID,ALLELE_ID,NUMBER_OF_ALLELES,good_eval,ALLELE_SEQUENCE_ID,NUMBER_OF_DIFFERENT_ALLELE_SEQUENCES
+"""sample,query_probe_header,PVID,ALL_ID,NB_ALL,good_eval,ALL_SEQ_ID,NB_DIFF_ALL_SEQ
 S1,0,2,0,10,True,0,0
 S2,1,0,2,1,False,0,0
 S3,2,1,1,3,True,0,0
@@ -723,7 +723,7 @@ S1,16,3,1,2,False,0,0
     @patch.object(RecallReport, RecallReport._create_helper_columns.__name__)
     def test___get_proportion_of_alleles_found_for_each_variant___duplicated_evaluation_is_disregarded(self, *mocks):
         contents = StringIO(
-            """sample,query_probe_header,PANGENOME_VARIATION_ID,ALLELE_ID,NUMBER_OF_ALLELES,good_eval,ALLELE_SEQUENCE_ID,NUMBER_OF_DIFFERENT_ALLELE_SEQUENCES
+            """sample,query_probe_header,PVID,ALL_ID,NB_ALL,good_eval,ALL_SEQ_ID,NB_DIFF_ALL_SEQ
             S1,1,0,0,5,True,0,0
             S1,2,0,1,5,True,0,0
             S1,3,0,0,5,True,0,0

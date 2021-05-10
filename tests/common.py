@@ -81,7 +81,7 @@ def create_partially_mapped_sam_record() -> pysam.AlignedSegment:
     md = "MD:Z:30"
     mapq = 60
     pos = 6
-    query_name = "INTERVAL=[23,33);"
+    query_name = "IV=[23,33);"
     sequence = "AAAAAAAAAAAAAAAAAAAAAAACGGCTCGCATAGACACGACGACGACACGTACGATCGATCAGTCAT"
     sam_string = f"{query_name}\t{flag}\t{ref_name}\t{pos}\t{mapq}\t{cigar}\t*\t0\t0\t{sequence}\t*\t{nm}\t{md}\tAS:i:0\tXS:i:0"
     record = pysam.AlignedSegment.fromstring(sam_string, header)
@@ -288,11 +288,11 @@ def create_recall_report_row(
         "ref_probe_header": str(vcf_probe_header),
         "classification": classification.value,
         "good_eval": classification.value in ["primary_correct", "secondary_correct", "supplementary_correct"],
-        "PANGENOME_VARIATION_ID": None,
-        "NUMBER_OF_ALLELES": None,
-        "ALLELE_ID": None,
-        "NUMBER_OF_DIFFERENT_ALLELE_SEQUENCES": None,
-        "ALLELE_SEQUENCE_ID": None,
+        "PVID": None,
+        "NB_ALL": None,
+        "ALL_ID": None,
+        "NB_DIFF_ALL_SEQ": None,
+        "ALL_SEQ_ID": None,
         "NB_OF_SAMPLES": None,
     }
     if with_gt_conf:
