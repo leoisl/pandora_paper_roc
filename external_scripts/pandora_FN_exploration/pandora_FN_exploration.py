@@ -55,7 +55,7 @@ recall_report = RecallReport.from_files(reports_filepaths,
 recall_report.report
 
 
-# In[4]:
+# In[52]:
 
 
 # get a df with the info needed for the pvs
@@ -72,6 +72,19 @@ for header in recall_report.report["query_probe_header"]:
 pvs_df = pd.DataFrame(data={"chrom": chroms_array, "sample": samples_array, "pos": positions, "pv_id": pv_ids_array})
 pvs_df.to_csv("pvs_df.csv", index=False)
 pvs_df
+
+
+# In[53]:
+
+
+pvs_df_leah = pd.DataFrame(data={
+    "chrom": chroms_array,
+    "sample": samples_array,
+    "pos": positions,
+    "pv_id": pv_ids_array,
+    "eval": recall_report.report["good_eval"]})
+pvs_df_leah.to_csv("pvs_df_leah.csv", index=False)
+pvs_df_leah
 
 
 # In[5]:
@@ -157,10 +170,10 @@ pv_to_gene_stats_df.to_csv("pv_to_gene_stats_df.csv", index=False)
 pv_to_gene_stats_df
 
 
-# In[38]:
+# In[51]:
 
 
-pv_ids_to_nb_of_genes_summary = pv_id_to_nb_of_genes_found_by_pandora_df[["PVID", "NB_OF_GENES"]].groupby("NB_OF_GENES").count()
+pv_ids_to_nb_of_genes_summary = pv_to_gene_stats_df[["PVID", "NB_OF_GENES"]].groupby("NB_OF_GENES").count()
 plot = pv_ids_to_nb_of_genes_summary.plot(kind="bar")
 fig = plot.get_figure()
 fig.savefig("pandora_nb_of_genes_for_panvars.png")
