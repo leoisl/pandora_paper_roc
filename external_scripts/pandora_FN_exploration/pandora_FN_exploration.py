@@ -4,8 +4,6 @@
 # In[1]:
 
 
-# TODO: RELATIVE POSITION OF PANVARS INSIDE IDENTIFIED GENES
-
 import pandas as pd
 from glob import glob
 from evaluate.report import Report, PrecisionReport, RecallReport
@@ -15,11 +13,16 @@ import intervaltree
 import seaborn as sns
 sns.set()
 import json
+import pickle
 
-def dump_dict(dictionary, filename):
+def dump_object_to_json(dictionary, filename):
     json_str = json.dumps(dictionary)
     with open(f"{filename}.json","w") as fout:
         fout.write(json_str)
+
+def dump_object(obj, filename):
+    with open(f"{filename}.pickle","w") as fout:
+        pickle.dump(obj, fout)
 
 
 # In[2]:
@@ -28,105 +31,63 @@ def dump_dict(dictionary, filename):
 ##################################################################################################################
 # configs
 # cluster
-reports_tsv_glob_path = "/hps/nobackup/iqbal/leandro/pdrv/out_20_way/pandora_paper_roc/analysis_output_pandora_paper_tag1/recall/reports/*/100x/pandora_nanopore_withdenovo/coverage_filter_0/strand_bias_filter_0.0/gaps_filter_1.0/gt_conf_percentile_0/*.tsv"
+reports_tsv_glob_path = "/hps/nobackup/iqbal/leandro/pdrv2/paper_pandora2020_analyses/out_20_way/pandora_paper_roc/analysis_output_pandora_paper_tag1/recall/reports/*/100x/pandora_nanopore_withdenovo/coverage_filter_0/strand_bias_filter_0.0/gaps_filter_1.0/gt_conf_percentile_0/*.tsv"
 samples = ['063_STEC', 'Escherichia_coli_MINF_1D', 'Escherichia_coli_MINF_9A', 'Escherichia_coli_MSB1_4E', 'Escherichia_coli_MSB1_7A', 'Escherichia_coli_MSB1_8G', 'H131800734', 'CFT073', 'Escherichia_coli_MINF_7C', 'Escherichia_coli_MSB1_1A', 'Escherichia_coli_MSB1_4I', 'Escherichia_coli_MSB1_7C', 'Escherichia_coli_MSB1_9D', 'ST38', 'Escherichia_coli_MINF_1A', 'Escherichia_coli_MINF_8D', 'Escherichia_coli_MSB1_3B', 'Escherichia_coli_MSB1_6C', 'Escherichia_coli_MSB1_8B', 'Escherichia_coli_MSB2_1A']
-gene_localisation_dir="/hps/nobackup/iqbal/leandro/pdrv/out_20_way/pandora_gene_distance/gene_distance_pandora_paper_tag1/genes_from_truth_or_ref/pandora_nanopore_100x_withdenovo"
-sample_data_dir="/hps/nobackup/iqbal/leandro/pdrv/data/samples/*"
-probesets_dir="/hps/nobackup/iqbal/leandro/pdrv/out_20_way/pangenome_variations/output_pangenome_variations_pandora_paper_tag1/truth_probesets"
-pandora_multisample_vcf_ref="/hps/nobackup/iqbal/leandro/pdrv/out_20_way/pandora_workflow/pandora_output_pandora_paper_tag1/nanopore/100x/random/compare_withdenovo/pandora_multisample.vcf_ref.fa"
-nb_of_threads = 96
+gene_localisation_dir="/hps/nobackup/iqbal/leandro/pdrv2/paper_pandora2020_analyses/out_20_way/pandora_gene_distance/gene_distance_vcf_completed_with_prg/genes_from_truth_or_ref/pandora_vcf_ref_nanopore_100x_with_prg"
+pandora_multisample_vcf_ref="/hps/nobackup/iqbal/leandro/pdrv2/paper_pandora2020_analyses/out_20_way/pandora_workflow/pandora_output_pandora_paper_tag1/nanopore/100x/random/compare_withdenovo/pandora_multisample.vcf_ref.fa"
 ##################################################################################################################
 
 
 # In[3]:
 
 
-# get all refs first
-from Bio import SeqIO
-from collections import defaultdict
-from glob import glob
-from pathlib import Path
-ref_to_chrom_to_seq = defaultdict(lambda: defaultdict(str))
-refs = glob(f"{sample_data_dir}/*.ref.fa")
-for ref in refs:
-    for record in SeqIO.parse(ref, "fasta"):
-        ref = Path(ref).name.replace(".ref.fa", "")
-        ref_to_chrom_to_seq[ref][record.id] = record.seq
-ref_to_chrom_to_seq
-
-
-# In[4]:
-
-
 # get the report
+def keep_report(filepath):
+    for sample in samples:
+        if sample in filepath:
+            return True
+    return False
+
 reports_filepaths = glob(reports_tsv_glob_path)
+reports_filepaths = [filepath for filepath in reports_filepaths if keep_report(filepath)]
 recall_report = RecallReport.from_files(reports_filepaths,
                                         concatenate_dfs_one_by_one_keeping_only_best_mappings=True)
 recall_report.report
 
 
-# In[5]:
-
-
-variation_found_nbofsamples = recall_report.get_proportion_of_allele_seqs_found_for_each_variant_with_nb_of_samples(
-    binary=True
-)
-variation_found_nbofsamples.rename(columns={"proportion_of_allele_seqs_found_binary": "FOUND"}, inplace=True)
-variation_found_nbofsamples.reset_index(inplace=True)
-variation_found_nbofsamples
-
-
-# In[6]:
+# In[52]:
 
 
 # get a df with the info needed for the pvs
 chroms_array = []
 samples_array = []
-positions_fw_array = []
-positions_rc_array = []
+positions = []
 pv_ids_array = []
 for header in recall_report.report["query_probe_header"]:
-    chrom, sample, pos, pv_id, allele_seq_id = re.findall("CHROM=(.+?);SAMPLE=(.+?);POS=(.+?);.*;PANGENOME_VARIATION_ID=(.+?);.*;ALLELE_SEQUENCE_ID=(.+?);", header)[0]
+    chrom, sample, pv_id, pos = re.findall("CHROM=(.+?);SAMPLE=(.+?);.*;PVID=(.+?);.*;OR_POS=(.+?);.*", header)[0]
     chroms_array.append(chrom)
     samples_array.append(sample)
-    pos_fw = int(pos)
-    positions_fw_array.append(pos_fw)
-    chrom_len = len(ref_to_chrom_to_seq[sample][chrom])
-    pos_rc = chrom_len-pos_fw-1
-    positions_rc_array.append(pos_rc)
     pv_ids_array.append(int(pv_id))
-pvs_df = pd.DataFrame(data={"chrom": chroms_array, "sample": samples_array, "pos_fw": positions_fw_array, "pos_rc": positions_rc_array, "pv_id": pv_ids_array})
-pvs_df.to_csv("pvs_df.csv")
+    positions.append(int(pos))
+pvs_df = pd.DataFrame(data={"chrom": chroms_array, "sample": samples_array, "pos": positions, "pv_id": pv_ids_array})
+pvs_df.to_csv("pvs_df.csv", index=False)
 pvs_df
 
 
-# In[7]:
+# In[53]:
 
 
-# create an index of probe seqs
-pv_id_sample_chrom_to_probe = {}
-for probeset_file in glob(f"{probesets_dir}/*/*.fa"):
-    for record in SeqIO.parse(probeset_file, "fasta"):
-        header = record.id 
-        chrom, sample, pos, pv_id, allele_seq_id = re.findall("CHROM=(.+?);SAMPLE=(.+?);POS=(.+?);.*;PANGENOME_VARIATION_ID=(.+?);.*;ALLELE_SEQUENCE_ID=(.+?);", header)[0]
-        key = (int(pv_id), sample, chrom)
-        pv_id_sample_chrom_to_probe[key] = record.seq
-pv_id_sample_chrom_to_probe
+pvs_df_leah = pd.DataFrame(data={
+    "chrom": chroms_array,
+    "sample": samples_array,
+    "pos": positions,
+    "pv_id": pv_ids_array,
+    "eval": recall_report.report["good_eval"]})
+pvs_df_leah.to_csv("pvs_df_leah.csv", index=False)
+pvs_df_leah
 
 
-# In[8]:
-
-
-# improve pvs_df with probe seqs
-probes=[]
-for index, (chrom, sample, pos_fw, pos_rc, pv_id) in pvs_df.iterrows():
-    probes.append(str(pv_id_sample_chrom_to_probe[(pv_id, sample, chrom)]))
-pvs_df["probes"]=probes
-pvs_df.to_csv("pvs_df.csv")
-pvs_df
-
-
-# In[9]:
+# In[5]:
 
 
 sample_to_chrom_to_intervaltree = defaultdict(lambda: defaultdict(lambda: intervaltree.IntervalTree()))
@@ -134,123 +95,109 @@ for sample in samples:
     filename = gene_localisation_dir+f"/{sample}.csv"
     with open(filename) as gene_localisation_fh:
         for line in gene_localisation_fh:
-            status,gene_name,ref_or_truth_id,contig,start,stop,sequence = line.split(",")
+            status,gene_name,ref_or_truth_id,contig,start,stop,sequence,strand = line.strip().split(",")
             if status=="Mapped":
                 start, stop = int(start), int(stop)
                 sample_to_chrom_to_intervaltree[ref_or_truth_id][contig][start:stop] = gene_name
+
 sample_to_chrom_to_intervaltree
 
 
-# In[10]:
+# In[6]:
 
 
-# These plots show that gene annotation is fine
-def get_df_of_how_many_genes_in_each_pos_of_chrom(sample, chrom):
-    nb_of_pos_with_x_genes = defaultdict(int)
-    for pos in range(len(ref_to_chrom_to_seq[sample][chrom])):
-        nb_of_genes_in_pos = len(sample_to_chrom_to_intervaltree[sample][chrom][pos])
-        nb_of_pos_with_x_genes[nb_of_genes_in_pos]+=1
-    
-    
-    counts = []
-    nbs_of_genes = []
-    for nb_of_genes, count in nb_of_pos_with_x_genes.items():
-        nbs_of_genes.append(nb_of_genes)
-        counts.append(count)
-    
-    chrom_desc = "chrom" if chrom=="0" else f"pl{chrom}"
-    sample = sample.replace("Escherichia_coli_", "")
-    desc = f"{sample} {chrom_desc}"
-    descs = [desc] * len(counts)
-    genes_in_each_pos_df = pd.DataFrame(data={'desc': descs, 'nb_of_genes': nbs_of_genes, 'count': counts})
-    return genes_in_each_pos_df
-
-dfs=[]
-for sample in sample_to_chrom_to_intervaltree:
-    chrom_to_intervaltree = sample_to_chrom_to_intervaltree[sample]
-    for chrom in chrom_to_intervaltree:
-        dfs.append(get_df_of_how_many_genes_in_each_pos_of_chrom(sample, chrom))
-        
-genes_in_each_pos_df = pd.concat(dfs, ignore_index=True)
-genes_in_each_pos_df.to_csv("genes_in_each_pos_df.csv")
-genes_in_each_pos_df
-
-
-# In[11]:
-
-
-plot = sns.FacetGrid(genes_in_each_pos_df, col="desc", col_wrap=8)
-plot.map(sns.barplot, "nb_of_genes", "count").set(yscale = 'log')
-for ax in plot.axes.flatten():
-    ax.tick_params(labelbottom=True)
-plot.savefig("gene_frequency_distribution.png")
-
-
-# In[12]:
-
-
-gene_to_sequence = {}
-with open(pandora_multisample_vcf_ref) as fin:
-    for line in fin:
-        line = line.strip()
-        if line[0] == ">":
-            gene=line[1:]
-        else:
-            seq=line
-            gene_to_sequence[gene] = seq
-gene_to_sequence
-
-
-# In[13]:
-
-
-# choose genes that barely match the probe
-
-import swalign
-from Bio.Seq import Seq
-
-# choose your own values here… 2 and -1 are common.
-match = 2
-mismatch = -1
-scoring = swalign.NucleotideScoringMatrix(match, mismatch)
-sw = swalign.LocalAlignment(scoring)  # you can also choose gap penalties, etc...
-
-def probe_and_gene_has_some_similarity(probe, gene):
-    alignment = sw.align(probe, gene)
-    score_fw = alignment.score
-    
-    probe_rc = str(Seq(probe).reverse_complement())
-    alignment = sw.align(probe_rc, gene)
-    score_rc = alignment.score
-    
-    score = max(score_fw, score_rc)
-    score_threshold = len(probe) * match * 0.5  # at least 50% matches  
-    return score > score_threshold
-        
-
-def find_genes(chrom, sample, pos_fw, pos_rc, pv_id, probe):
+def find_genes(chrom, sample, pos):
     genes = set()
-    for pos in [pos_fw, pos_rc]:
-        for gene in sample_to_chrom_to_intervaltree[sample][chrom][pos]:
-            gene = gene.data
-            gene_seq = gene_to_sequence[gene]
-            if probe_and_gene_has_some_similarity(probe, gene_seq):
-                genes.add(gene)
-    return pv_id, genes
+    for gene in sample_to_chrom_to_intervaltree[sample][chrom][pos]:
+        genes.add(gene.data)
+    return genes
 
+pv_to_genes = defaultdict(set)
+for chrom, sample, pos, pv_id in zip(pvs_df["chrom"], pvs_df["sample"], pvs_df["pos"], pvs_df["pv_id"]):
+    pv_to_genes[pv_id].update(find_genes(chrom, sample, pos))
 
-params = []
-for chrom, sample, pos_fw, pos_rc, pv_id, probe in zip(pvs_df["chrom"], pvs_df["sample"], pvs_df["pos_fw"], pvs_df["pos_rc"], pvs_df["pv_id"], pvs_df["probes"]):
-    params.append((chrom, sample, pos_fw, pos_rc, pv_id, probe))
+for pv in pv_to_genes:
+    pv_to_genes[pv] = list(pv_to_genes[pv])
 
-import multiprocessing
-with multiprocessing.Pool(processes=nb_of_threads) as pool:
-    pv_ids_and_genes = pool.starmap(find_genes, params)
+dump_object_to_json(pv_to_genes, "pv_to_genes")
 
-
-pv_to_genes = {}
-for pv_id, genes in pv_ids_and_genes:
-    pv_to_genes[pv_id] = list(genes)  # set is not serializable
-dump_dict(pv_to_genes, "pv_to_genes")
 pv_to_genes
+
+
+# In[7]:
+
+
+variation_found_nbofsamples = recall_report.get_proportion_of_allele_seqs_found_for_each_variant_with_nb_of_samples(
+    binary=True
+)
+variation_found_nbofsamples.rename(columns={"proportion_of_allele_seqs_found_binary": "FOUND"}, inplace=True)
+variation_found_nbofsamples.reset_index(inplace=True)
+variation_found_nbofsamples.to_csv("variation_found_nbofsamples.csv", index=False)
+variation_found_nbofsamples
+
+
+# In[18]:
+
+
+pv_to_nb_of_genes_found_by_pandora = {}
+for pv, genes in pv_to_genes.items():
+    pv_to_nb_of_genes_found_by_pandora[pv] = len(list(filter(
+        lambda gene: "_not_in_VCF_ref_only_in_PRG" not in gene, genes)))
+    
+pv_to_gene_stats_df = pd.DataFrame(data=pv_to_nb_of_genes_found_by_pandora.items(),
+                                                 columns=["PVID", "NB_OF_GENES"])
+pv_to_gene_stats_df["FOUND_IN_VCF_REF"] = (pv_to_gene_stats_df["NB_OF_GENES"] > 0).astype(int)
+
+pv_to_gene_stats_df
+
+
+# In[36]:
+
+
+import numpy as np
+
+pv_to_nb_of_genes_only_in_PRG = {}
+for pv, genes in pv_to_genes.items():
+    pv_to_nb_of_genes_only_in_PRG[pv] = len(list(filter(
+        lambda gene: "_not_in_VCF_ref_only_in_PRG" in gene, genes)))
+  
+pv_to_gene_stats_df["HAS_GENES_IN_PRG_ONLY"] = (np.array(list(pv_to_nb_of_genes_only_in_PRG.values())) > 0).astype(int)
+
+pv_to_gene_stats_df["NOT_FOUND_IN_VCF_REF_BUT_IN_PRG"] = ((pv_to_gene_stats_df["FOUND_IN_VCF_REF"]==0) & (pv_to_gene_stats_df["HAS_GENES_IN_PRG_ONLY"]==1)).astype(int)
+
+pv_to_gene_stats_df.to_csv("pv_to_gene_stats_df.csv", index=False)
+
+pv_to_gene_stats_df
+
+
+# In[51]:
+
+
+pv_ids_to_nb_of_genes_summary = pv_to_gene_stats_df[["PVID", "NB_OF_GENES"]].groupby("NB_OF_GENES").count()
+plot = pv_ids_to_nb_of_genes_summary.plot(kind="bar")
+fig = plot.get_figure()
+fig.savefig("pandora_nb_of_genes_for_panvars.png")
+
+
+# In[43]:
+
+
+variation_found_nbofsamples = variation_found_nbofsamples.merge(pv_to_gene_stats_df)
+variation_found_nbofsamples
+variation_found_nbofsamples["VARIATION_NOT_FOUND_BUT_LOCI_IS_FOUND"] =     ((variation_found_nbofsamples["FOUND"]==0) & (variation_found_nbofsamples["FOUND_IN_VCF_REF"]==1)).astype(int)
+variation_found_nbofsamples["VARIATION_AND_LOCI_NOT_FOUND_BUT_LOCI_IN_PRG"] =     ((variation_found_nbofsamples["FOUND"]==0) & (variation_found_nbofsamples["FOUND_IN_VCF_REF"]==0) &      (variation_found_nbofsamples["NOT_FOUND_IN_VCF_REF_BUT_IN_PRG"]==1)).astype(int)
+variation_found_nbofsamples["VARIATION_NOT_FOUND_AND_LOCI_NOT_IN_PRG"] =     ((variation_found_nbofsamples["FOUND"]==0) & (variation_found_nbofsamples["FOUND_IN_VCF_REF"]==0) &      (variation_found_nbofsamples["NOT_FOUND_IN_VCF_REF_BUT_IN_PRG"]==0)).astype(int)
+variation_found_nbofsamples.to_csv("variation_found_nbofsamples.csv", index=False)
+variation_found_nbofsamples
+
+
+# In[49]:
+
+
+df = variation_found_nbofsamples[["NB_OF_SAMPLES", "FOUND", "VARIATION_NOT_FOUND_BUT_LOCI_IS_FOUND", "VARIATION_AND_LOCI_NOT_FOUND_BUT_LOCI_IN_PRG", "VARIATION_NOT_FOUND_AND_LOCI_NOT_IN_PRG"]].groupby("NB_OF_SAMPLES").sum()
+sns.set(rc={'figure.figsize':(20,10)})
+plot = df.plot(kind='bar', stacked=True)
+plot.set(xlabel='Number of samples', ylabel='Number of pangenome variations')
+fig = plot.get_figure()
+fig.savefig("pandora_FN.png")
 

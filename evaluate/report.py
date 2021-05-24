@@ -65,15 +65,15 @@ class Report:
     def _create_gt_conf_column_from(self, probe_header: str) -> None:
         self._create_field_from_header("GT_CONF", probe_header, float, 0.0)
     def _create_pangenome_variation_id_column_from(self, probe_header: str) -> None:
-        self._create_field_from_header("PANGENOME_VARIATION_ID", probe_header, int, None)
+        self._create_field_from_header("PVID", probe_header, int, None)
     def _create_number_of_alleles_column_from(self, probe_header: str) -> None:
-        self._create_field_from_header("NUMBER_OF_ALLELES", probe_header, int, None)
+        self._create_field_from_header("NB_ALL", probe_header, int, None)
     def _create_allele_id_column_from(self, probe_header: str) -> None:
-        self._create_field_from_header("ALLELE_ID", probe_header, int, None)
+        self._create_field_from_header("ALL_ID", probe_header, int, None)
     def _create_number_of_different_allele_sequences_column_from(self, probe_header: str) -> None:
-        self._create_field_from_header("NUMBER_OF_DIFFERENT_ALLELE_SEQUENCES", probe_header, int, None)
+        self._create_field_from_header("NB_DIFF_ALL_SEQ", probe_header, int, None)
     def _create_allele_sequence_id_column_from(self, probe_header: str) -> None:
-        self._create_field_from_header("ALLELE_SEQUENCE_ID", probe_header, int, None)
+        self._create_field_from_header("ALL_SEQ_ID", probe_header, int, None)
     def _create_nb_of_samples_column_from(self, probe_header: str) -> None:
         self._create_field_from_header("NB_OF_SAMPLES", probe_header, int, None)
 
@@ -143,7 +143,7 @@ class RecallReport(Report):
     def get_number_of_truth_probes(self):
         return len(self.report["query_probe_header"].unique())
     def get_number_of_variants(self) -> int:
-        return len(self.report["PANGENOME_VARIATION_ID"].unique())
+        return len(self.report["PVID"].unique())
 
 
     def _concatenate_dfs_one_by_one_keeping_only_best_mappings(self, dfs: Iterable[pd.DataFrame]) -> None:
@@ -169,10 +169,10 @@ class RecallReport(Report):
 
 
     def _get_id_to_nb_of_found_objects(self, object_to_find: str) -> pd.DataFrame:
-        id_to_objects_found = self.report[["PANGENOME_VARIATION_ID", object_to_find, "good_eval"]].copy(deep=True)
+        id_to_objects_found = self.report[["PVID", object_to_find, "good_eval"]].copy(deep=True)
         id_to_objects_found.drop_duplicates(inplace=True, ignore_index=True)
         nb_objects_found_column_name = f"NB_OF_{object_to_find}_FOUND"
-        id_to_objects_found = id_to_objects_found.groupby(by="PANGENOME_VARIATION_ID")\
+        id_to_objects_found = id_to_objects_found.groupby(by="PVID")\
             .sum()\
             .rename(columns={"good_eval": nb_objects_found_column_name})
         id_to_objects_found = id_to_objects_found[[nb_objects_found_column_name]].copy(deep=True)
@@ -180,25 +180,25 @@ class RecallReport(Report):
         assert len(id_to_objects_found) == self.get_number_of_variants()
         return id_to_objects_found
     def _get_id_to_nb_of_allele_sequences_found(self) -> pd.DataFrame:
-        return self._get_id_to_nb_of_found_objects(object_to_find="ALLELE_SEQUENCE_ID")
+        return self._get_id_to_nb_of_found_objects(object_to_find="ALL_SEQ_ID")
     def _get_id_to_nb_of_alleles_found(self) -> pd.DataFrame:
-        return self._get_id_to_nb_of_found_objects(object_to_find="ALLELE_ID")
+        return self._get_id_to_nb_of_found_objects(object_to_find="ALL_ID")
 
 
 
     def _get_id_to_total_nb_of_objects(self, field_containing_total_nb_of_objects: str) -> pd.DataFrame:
-        id_to_total = self.report[["PANGENOME_VARIATION_ID", field_containing_total_nb_of_objects]].copy(deep=True)
+        id_to_total = self.report[["PVID", field_containing_total_nb_of_objects]].copy(deep=True)
         id_to_total.drop_duplicates(inplace=True, ignore_index=True)
-        id_to_total.sort_values(by="PANGENOME_VARIATION_ID", inplace=True)
-        id_to_total.set_index("PANGENOME_VARIATION_ID", inplace=True)
+        id_to_total.sort_values(by="PVID", inplace=True)
+        id_to_total.set_index("PVID", inplace=True)
         assert len(id_to_total) == self.get_number_of_variants()
         return id_to_total
     def _get_id_to_nb_of_different_allele_sequences(self) -> pd.DataFrame:
         return self._get_id_to_total_nb_of_objects(
-            field_containing_total_nb_of_objects="NUMBER_OF_DIFFERENT_ALLELE_SEQUENCES")
+            field_containing_total_nb_of_objects="NB_DIFF_ALL_SEQ")
     def _get_id_to_nb_of_alleles(self) -> pd.DataFrame:
         return self._get_id_to_total_nb_of_objects(
-            field_containing_total_nb_of_objects="NUMBER_OF_ALLELES")
+            field_containing_total_nb_of_objects="NB_ALL")
     def _get_id_to_nb_of_samples(self) -> pd.DataFrame:
         return self._get_id_to_total_nb_of_objects(
             field_containing_total_nb_of_objects="NB_OF_SAMPLES")
@@ -210,7 +210,7 @@ class RecallReport(Report):
         allele_seqs_merged_data = id_to_nb_of_allele_sequences_found.merge(
             id_to_nb_of_different_allele_sequences, left_index=True, right_index=True)
         allele_seqs_merged_data["proportion_of_allele_seqs_found"] = \
-            allele_seqs_merged_data["NB_OF_ALLELE_SEQUENCE_ID_FOUND"] / allele_seqs_merged_data["NUMBER_OF_DIFFERENT_ALLELE_SEQUENCES"]
+            allele_seqs_merged_data["NB_OF_ALL_SEQ_ID_FOUND"] / allele_seqs_merged_data["NB_DIFF_ALL_SEQ"]
         allele_seqs_merged_data["proportion_of_allele_seqs_found_binary"] = \
             allele_seqs_merged_data["proportion_of_allele_seqs_found"].apply(
                 lambda proportion: int(math.isclose(proportion, 1.0)))
@@ -219,7 +219,7 @@ class RecallReport(Report):
         alleles_merged_data = id_to_nb_of_alleles_found.merge(
             id_to_nb_of_alleles, left_index=True, right_index=True)
         alleles_merged_data["proportion_of_alleles_found"] = \
-            alleles_merged_data["NB_OF_ALLELE_ID_FOUND"] / alleles_merged_data["NUMBER_OF_ALLELES"]
+            alleles_merged_data["NB_OF_ALL_ID_FOUND"] / alleles_merged_data["NB_ALL"]
 
         merged_data = allele_seqs_merged_data.merge(alleles_merged_data, left_index=True, right_index=True)
         return merged_data

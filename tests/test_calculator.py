@@ -211,7 +211,7 @@ class TestRecallCalculator:
     @patch.object(RecallReport, RecallReport.get_proportion_of_allele_seqs_found_for_each_variant_with_nb_of_samples.__name__,
                   return_value=
     pd.read_csv(StringIO(
-        """PANGENOME_VARIATION_ID,proportion_of_allele_seqs_found_binary,NB_OF_SAMPLES
+        """PVID,proportion_of_allele_seqs_found_binary,NB_OF_SAMPLES
         0,1,3
         1,0,5
         2,0,7
@@ -220,7 +220,7 @@ class TestRecallCalculator:
         5,1,3
         6,0,5
         """
-    ), index_col="PANGENOME_VARIATION_ID"))
+    ), index_col="PVID"))
     @patch.object(RecallReport, RecallReport._create_helper_columns.__name__)
     @patch.object(RecallReport, RecallReport.assure_there_are_no_duplicated_evaluation.__name__)
     def test___get_recall_allele_seqs_vs_nb_of_samples_report(self, *mocks):
@@ -244,7 +244,7 @@ class TestRecallCalculator:
     @patch.object(RecallReport, RecallReport.get_proportion_of_alleles_found_for_each_variant_with_nb_of_samples.__name__,
                   return_value=
     pd.read_csv(StringIO(
-        """PANGENOME_VARIATION_ID,proportion_of_alleles_found,NB_OF_SAMPLES
+        """PVID,proportion_of_alleles_found,NB_OF_SAMPLES
         0,1.0,3
         1,0.8,5
         2,0.6,7
@@ -253,7 +253,7 @@ class TestRecallCalculator:
         5,0.9,3
         6,0.0,5
         """
-    ), index_col="PANGENOME_VARIATION_ID"))
+    ), index_col="PVID"))
     @patch.object(RecallReport, RecallReport._create_helper_columns.__name__)
     @patch.object(RecallReport, RecallReport.assure_there_are_no_duplicated_evaluation.__name__)
     def test___get_recall_alleles_vs_nb_of_samples_report(self, *mocks):
@@ -277,7 +277,7 @@ class TestRecallCalculator:
     @patch.object(RecallReport, RecallReport.get_proportion_of_allele_seqs_found_for_each_variant_with_nb_of_samples.__name__,
                   return_value=
     pd.read_csv(StringIO(
-        """PANGENOME_VARIATION_ID,proportion_of_allele_seqs_found_binary,NB_OF_SAMPLES
+        """PVID,proportion_of_allele_seqs_found_binary,NB_OF_SAMPLES
         0,1,3
         1,0,5
         2,0,7
@@ -286,7 +286,7 @@ class TestRecallCalculator:
         5,1,3
         6,0,5
         """
-    ), index_col="PANGENOME_VARIATION_ID"))
+    ), index_col="PVID"))
     @patch.object(RecallReport, RecallReport._create_helper_columns.__name__)
     @patch.object(RecallReport, RecallReport.assure_there_are_no_duplicated_evaluation.__name__)
     def test___get_recall_allele_seqs_vs_nb_of_samples_report___return_only_the_samples_given_in_parameter(self, *mocks):
