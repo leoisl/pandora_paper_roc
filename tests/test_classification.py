@@ -67,6 +67,42 @@ class TestClassification:
 
         assert classification._whole_query_probe_maps()
 
+    def test_wholeProbeMaps_doesNotMapInTheForwardStrand(self):
+        ref_name = "reference"
+        ref_length = 55
+        header = create_sam_header(ref_name, ref_length)
+        flag = 0
+        cigar = "29S27M"
+        nm = "NM:i:0"
+        md = "MD:Z:27"
+        mapq = 60
+        pos = 1
+        query_name = "IV=[11,21);"
+        sequence = "AAAAAAAAAAACGGCTCGCATAGACACGACGACGACACGTACGATCGATCAGTCAT"
+        sam_string = f"{query_name}\t{flag}\t{ref_name}\t{pos}\t{mapq}\t{cigar}\t*\t0\t0\t{sequence}\t*\t{nm}\t{md}\tAS:i:0\tXS:i:0"
+        record = pysam.AlignedSegment.fromstring(sam_string, header)
+        classification = Classification(record=record)
+
+        assert not classification._whole_query_probe_maps()
+
+    def test_wholeProbeMaps_probeCompletelyMapsOnReverseStrandReturnsTrue(self):
+        ref_name = "reference"
+        ref_length = 55
+        header = create_sam_header(ref_name, ref_length)
+        flag = 16
+        cigar = "29S27M"
+        nm = "NM:i:0"
+        md = "MD:Z:27"
+        mapq = 60
+        pos = 1
+        query_name = "IV=[11,21);"
+        sequence = "AAAAAAAAAAACGGCTCGCATAGACACGACGACGACACGTACGATCGATCAGTCAT"
+        sam_string = f"{query_name}\t{flag}\t{ref_name}\t{pos}\t{mapq}\t{cigar}\t*\t0\t0\t{sequence}\t*\t{nm}\t{md}\tAS:i:0\tXS:i:0"
+        record = pysam.AlignedSegment.fromstring(sam_string, header)
+        classification = Classification(record=record)
+
+        assert classification._whole_query_probe_maps()
+
     def test_wholeProbeMaps_probeStartsAtFirstAlignmentPositionMapsReturnsTrue(self):
         ref_name = "reference"
         ref_length = 55
@@ -91,7 +127,7 @@ class TestClassification:
         ref_name = "reference"
         ref_length = 55
         header = create_sam_header(ref_name, ref_length)
-        flag = 16
+        flag = 0
         cigar = "12S44M"
         nm = "NM:i:0"
         md = "MD:Z:44"
@@ -1097,3 +1133,4 @@ class TestPrecisionClassification:
         expected = 8 / 11
         actual = classification.assessment()
         assert actual == expected
+

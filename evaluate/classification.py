@@ -50,17 +50,11 @@ class Classification:
             self.record.get_aligned_pairs(matches_only=matches_only, with_seq=with_seq)
         )
 
-    def query_alignment_start(self, rev_comp) -> int:
-        if rev_comp:
-            return self.record.query_length - self.record.query_alignment_end
-        else:
-            return self.record.query_alignment_start
+    def query_alignment_start(self) -> int:
+        return self.record.query_alignment_start
 
-    def query_alignment_end(self, rev_comp) -> int:
-        if rev_comp:
-            return self.record.query_length - self.record.query_alignment_start
-        else:
-            return self.record.query_alignment_end
+    def query_alignment_end(self) -> int:
+        return self.record.query_alignment_end
 
     def _whole_query_probe_maps(self) -> bool:
         if self.is_unmapped:
@@ -68,9 +62,9 @@ class Classification:
 
         query_interval = self.query_probe.get_interval(self.record.is_reverse)
         query_starts_before_alignment = (
-            query_interval.start < self.query_alignment_start(self.record.is_reverse)
+            query_interval.start < self.query_alignment_start()
         )
-        query_ends_after_alignment = query_interval.end > self.query_alignment_end(self.record.is_reverse)
+        query_ends_after_alignment = query_interval.end > self.query_alignment_end()
 
         if query_starts_before_alignment or query_ends_after_alignment:
             return False
@@ -98,10 +92,6 @@ class Classification:
         else:
             query_start = max(0, self.query_probe.get_interval(self.record.is_reverse).start - 1)
             query_stop = self.query_probe.get_interval(self.record.is_reverse).end + 1
-
-        print(f"self.query_probe.header.interval = {self.query_probe.header.interval}")
-        print(f"self.record.is_reverse = {self.record.is_reverse}")
-        print(f"self.query_probe.get_interval(self.record.is_reverse) = {self.query_probe.get_interval(self.record.is_reverse)}")
 
         probe_aligned_pairs = self.get_aligned_pairs(with_seq=True)
         return probe_aligned_pairs.get_pairs_in_query_interval(
@@ -162,7 +152,7 @@ class RecallClassification(Classification):
 class PrecisionClassification(Classification):
     def assessment(self) -> float:
         query_probe_does_not_map_completely = (
-            self.is_unmapped or not self._whole_query_probe_maps()
+            self.is_unmapped
         )
 
         if query_probe_does_not_map_completely:
