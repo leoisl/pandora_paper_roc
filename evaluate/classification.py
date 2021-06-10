@@ -99,6 +99,10 @@ class Classification:
             query_start = max(0, self.query_probe.get_interval(self.record.is_reverse).start - 1)
             query_stop = self.query_probe.get_interval(self.record.is_reverse).end + 1
 
+        print(f"self.query_probe.header.interval = {self.query_probe.header.interval}")
+        print(f"self.record.is_reverse = {self.record.is_reverse}")
+        print(f"self.query_probe.get_interval(self.record.is_reverse) = {self.query_probe.get_interval(self.record.is_reverse)}")
+
         probe_aligned_pairs = self.get_aligned_pairs(with_seq=True)
         return probe_aligned_pairs.get_pairs_in_query_interval(
             Interval(query_start, query_stop)
