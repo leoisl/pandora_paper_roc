@@ -462,7 +462,7 @@ class TestProbe:
     def test_interval(self):
         probe = Probe(header=ProbeHeader(interval=ProbeInterval(4, 6)))
 
-        actual = probe.interval
+        actual = probe.get_interval(False)
         expected = ProbeInterval(4, 6)
 
         assert actual == expected

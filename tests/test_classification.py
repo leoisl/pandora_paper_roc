@@ -91,7 +91,7 @@ class TestClassification:
         ref_name = "reference"
         ref_length = 55
         header = create_sam_header(ref_name, ref_length)
-        flag = 0
+        flag = 16
         cigar = "12S44M"
         nm = "NM:i:0"
         md = "MD:Z:44"

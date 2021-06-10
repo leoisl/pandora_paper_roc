@@ -207,14 +207,17 @@ class Probe:
 
     @property
     def core_sequence(self) -> str:
-        return self.full_sequence[slice(*self.interval)]
+        return self.full_sequence[slice(*self.get_interval(False))]
 
-    @property
-    def interval(self) -> ProbeInterval:
-        return self.header.interval
+    def get_interval(self, rev_comp) -> ProbeInterval:
+        if rev_comp:
+            rev_comp_interval = (len(self.full_sequence)-1-self.header.interval[1], len(self.full_sequence)-1-self.header.interval[0])
+            return ProbeInterval(*rev_comp_interval)
+        else:
+            return self.header.interval
 
     def get_interval_or_default_interval_if_none(self) -> ProbeInterval:
-        return self.interval if self.interval is not None else ProbeInterval()
+        return self.get_interval(False) if self.get_interval(False) is not None else ProbeInterval()
 
     @property
     def gt_conf(self) -> float:
@@ -230,7 +233,7 @@ class Probe:
 
     @property
     def is_deletion(self) -> bool:
-        return len(self.interval) == 0
+        return len(self.get_interval(False)) == 0
 
     @staticmethod
     def from_string(string: str) -> "Probe":

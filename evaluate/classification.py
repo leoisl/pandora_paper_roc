@@ -50,23 +50,27 @@ class Classification:
             self.record.get_aligned_pairs(matches_only=matches_only, with_seq=with_seq)
         )
 
-    @property
-    def query_alignment_start(self) -> int:
-        return self.record.query_alignment_start
+    def query_alignment_start(self, rev_comp) -> int:
+        if rev_comp:
+            return self.record.query_length - 1 - self.record.query_alignment_end
+        else:
+            return self.record.query_alignment_start
 
-    @property
-    def query_alignment_end(self) -> int:
-        return self.record.query_alignment_end
+    def query_alignment_end(self, rev_comp) -> int:
+        if rev_comp:
+            return self.record.query_length - 1 - self.record.query_alignment_start
+        else:
+            return self.record.query_alignment_end
 
     def _whole_query_probe_maps(self) -> bool:
         if self.is_unmapped:
             return False
 
-        query_interval = self.query_probe.interval
+        query_interval = self.query_probe.get_interval(self.record.is_reverse)
         query_starts_before_alignment = (
-            query_interval.start < self.query_alignment_start
+            query_interval.start < self.query_alignment_start(self.record.is_reverse)
         )
-        query_ends_after_alignment = query_interval.end > self.query_alignment_end
+        query_ends_after_alignment = query_interval.end > self.query_alignment_end(self.record.is_reverse)
 
         if query_starts_before_alignment or query_ends_after_alignment:
             return False
@@ -89,13 +93,13 @@ class Classification:
 
     def get_probe_aligned_pairs(self) -> AlignedPairs:
         if not self.query_probe.is_deletion:
-            query_start = self.query_probe.interval.start
-            query_stop = self.query_probe.interval.end
+            query_start = self.query_probe.get_interval(self.record.is_reverse).start
+            query_stop = self.query_probe.get_interval(self.record.is_reverse).end
         else:
-            query_start = max(0, self.query_probe.interval.start - 1)
-            query_stop = self.query_probe.interval.end + 1
+            query_start = max(0, self.query_probe.get_interval(self.record.is_reverse).start - 1)
+            query_stop = self.query_probe.get_interval(self.record.is_reverse).end + 1
 
-        probe_aligned_pairs = AlignedPairs(self.get_aligned_pairs(with_seq=True))
+        probe_aligned_pairs = self.get_aligned_pairs(with_seq=True)
         return probe_aligned_pairs.get_pairs_in_query_interval(
             Interval(query_start, query_stop)
         )
