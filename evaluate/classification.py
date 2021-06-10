@@ -52,13 +52,13 @@ class Classification:
 
     def query_alignment_start(self, rev_comp) -> int:
         if rev_comp:
-            return self.record.query_length - 1 - self.record.query_alignment_end
+            return self.record.query_length - self.record.query_alignment_end
         else:
             return self.record.query_alignment_start
 
     def query_alignment_end(self, rev_comp) -> int:
         if rev_comp:
-            return self.record.query_length - 1 - self.record.query_alignment_start
+            return self.record.query_length - self.record.query_alignment_start
         else:
             return self.record.query_alignment_end
 

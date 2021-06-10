@@ -211,7 +211,7 @@ class Probe:
 
     def get_interval(self, rev_comp) -> ProbeInterval:
         if rev_comp:
-            rev_comp_interval = (len(self.full_sequence)-1-self.header.interval[1], len(self.full_sequence)-1-self.header.interval[0])
+            rev_comp_interval = (len(self.full_sequence)-self.header.interval[1], len(self.full_sequence)-self.header.interval[0])
             return ProbeInterval(*rev_comp_interval)
         else:
             return self.header.interval
