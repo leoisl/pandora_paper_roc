@@ -153,11 +153,8 @@ class RecallClassification(Classification):
 
 class PrecisionClassification(Classification):
     def assessment(self) -> float:
-        query_probe_does_not_map_completely = (
-            self.is_unmapped
-        )
-
-        if query_probe_does_not_map_completely:
+        query_probe_does_not_map = self.is_unmapped
+        if query_probe_does_not_map:
             assessment = 0.0
         else:
             assessment = self._get_query_probe_mapping_score()
