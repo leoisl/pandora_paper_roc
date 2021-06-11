@@ -467,6 +467,46 @@ class TestProbe:
 
         assert actual == expected
 
+    def test_interval_in_RC(self):
+        probe = Probe(header=ProbeHeader(interval=ProbeInterval(4, 6)), full_sequence="AAAAAAAAAAAAAAAAAAAA")
+
+        actual = probe.get_interval(True)
+        expected = ProbeInterval(14, 16)
+
+        assert actual == expected
+
+    def test_interval_in_RC_left_edge(self):
+        probe = Probe(header=ProbeHeader(interval=ProbeInterval(0, 1)), full_sequence="AAAAA")
+
+        actual = probe.get_interval(True)
+        expected = ProbeInterval(4, 5)
+
+        assert actual == expected
+
+    def test_interval_in_RC_left_edge_longer(self):
+        probe = Probe(header=ProbeHeader(interval=ProbeInterval(0, 3)), full_sequence="AAAAA")
+
+        actual = probe.get_interval(True)
+        expected = ProbeInterval(2, 5)
+
+        assert actual == expected
+
+    def test_interval_in_RC_right_edge(self):
+        probe = Probe(header=ProbeHeader(interval=ProbeInterval(4, 5)), full_sequence="AAAAA")
+
+        actual = probe.get_interval(True)
+        expected = ProbeInterval(0, 1)
+
+        assert actual == expected
+
+    def test_interval_in_RC_right_edge_longer(self):
+        probe = Probe(header=ProbeHeader(interval=ProbeInterval(2, 5)), full_sequence="AAAAA")
+
+        actual = probe.get_interval(True)
+        expected = ProbeInterval(0, 3)
+
+        assert actual == expected
+
     def test___get_interval_or_default_interval_if_none___valid_interval(self):
         probe = Probe(header=ProbeHeader(interval=ProbeInterval(4, 6)))
 
