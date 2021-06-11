@@ -709,12 +709,12 @@ class TestPrecisionClassification:
 
         assert actual == expected
 
-    def test_assessment_recordWithCoreProbeOnlyPartiallyMappedReturnsZero(self):
+    def test_assessment_recordWithCoreProbeOnlyPartiallyMappedReturnsPartialMapping(self):
         record = create_partially_mapped_sam_record()
         classification = PrecisionClassification(record=record)
 
         actual = classification.assessment()
-        expected = 0.0
+        expected = 0.7
 
         assert actual == expected
 
