@@ -62,7 +62,7 @@ class Classification:
         if self.is_unmapped:
             return False
 
-        query_interval = self.query_probe.interval
+        query_interval = self.query_probe.get_interval(self.record.is_reverse)
         query_starts_before_alignment = (
             query_interval.start < self.query_alignment_start
         )
@@ -89,13 +89,13 @@ class Classification:
 
     def get_probe_aligned_pairs(self) -> AlignedPairs:
         if not self.query_probe.is_deletion:
-            query_start = self.query_probe.interval.start
-            query_stop = self.query_probe.interval.end
+            query_start = self.query_probe.get_interval(self.record.is_reverse).start
+            query_stop = self.query_probe.get_interval(self.record.is_reverse).end
         else:
-            query_start = max(0, self.query_probe.interval.start - 1)
-            query_stop = self.query_probe.interval.end + 1
+            query_start = max(0, self.query_probe.get_interval(self.record.is_reverse).start - 1)
+            query_stop = self.query_probe.get_interval(self.record.is_reverse).end + 1
 
-        probe_aligned_pairs = AlignedPairs(self.get_aligned_pairs(with_seq=True))
+        probe_aligned_pairs = self.get_aligned_pairs(with_seq=True)
         return probe_aligned_pairs.get_pairs_in_query_interval(
             Interval(query_start, query_stop)
         )
@@ -153,11 +153,8 @@ class RecallClassification(Classification):
 
 class PrecisionClassification(Classification):
     def assessment(self) -> float:
-        query_probe_does_not_map_completely = (
-            self.is_unmapped or not self._whole_query_probe_maps()
-        )
-
-        if query_probe_does_not_map_completely:
+        query_probe_does_not_map = self.is_unmapped
+        if query_probe_does_not_map:
             assessment = 0.0
         else:
             assessment = self._get_query_probe_mapping_score()

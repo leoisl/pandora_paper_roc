@@ -1,14 +1,5 @@
 from tests.common import create_sam_header
-from tests.common import (
-    create_unmapped_sam_record,
-    create_partially_mapped_sam_record,
-    create_incorrect_secondary_sam_record,
-    create_correct_secondary_sam_record,
-    create_incorrect_supplementary_sam_record,
-    create_correct_supplementary_sam_record,
-    create_correct_primary_sam_record,
-    create_incorrect_primary_sam_record,
-)
+from tests.common import *
 from evaluate.classification import *
 import pytest
 
@@ -67,6 +58,42 @@ class TestClassification:
 
         assert classification._whole_query_probe_maps()
 
+    def test_wholeProbeMaps_doesNotMapInTheForwardStrand(self):
+        ref_name = "reference"
+        ref_length = 55
+        header = create_sam_header(ref_name, ref_length)
+        flag = 0
+        cigar = "29S27M"
+        nm = "NM:i:0"
+        md = "MD:Z:27"
+        mapq = 60
+        pos = 1
+        query_name = "IV=[11,21);"
+        sequence = "AAAAAAAAAAACGGCTCGCATAGACACGACGACGACACGTACGATCGATCAGTCAT"
+        sam_string = f"{query_name}\t{flag}\t{ref_name}\t{pos}\t{mapq}\t{cigar}\t*\t0\t0\t{sequence}\t*\t{nm}\t{md}\tAS:i:0\tXS:i:0"
+        record = pysam.AlignedSegment.fromstring(sam_string, header)
+        classification = Classification(record=record)
+
+        assert not classification._whole_query_probe_maps()
+
+    def test_wholeProbeMaps_probeCompletelyMapsOnReverseStrandReturnsTrue(self):
+        ref_name = "reference"
+        ref_length = 55
+        header = create_sam_header(ref_name, ref_length)
+        flag = 16
+        cigar = "29S27M"
+        nm = "NM:i:0"
+        md = "MD:Z:27"
+        mapq = 60
+        pos = 1
+        query_name = "IV=[11,21);"
+        sequence = "AAAAAAAAAAACGGCTCGCATAGACACGACGACGACACGTACGATCGATCAGTCAT"
+        sam_string = f"{query_name}\t{flag}\t{ref_name}\t{pos}\t{mapq}\t{cigar}\t*\t0\t0\t{sequence}\t*\t{nm}\t{md}\tAS:i:0\tXS:i:0"
+        record = pysam.AlignedSegment.fromstring(sam_string, header)
+        classification = Classification(record=record)
+
+        assert classification._whole_query_probe_maps()
+
     def test_wholeProbeMaps_probeStartsAtFirstAlignmentPositionMapsReturnsTrue(self):
         ref_name = "reference"
         ref_length = 55
@@ -79,6 +106,42 @@ class TestClassification:
         pos = 1
         query_name = "IV=[11,21);"
         sequence = "AAAAAAAAAAACGGCTCGCATAGACACGACGACGACACGTACGATCGATCAGTCAT"
+        sam_string = f"{query_name}\t{flag}\t{ref_name}\t{pos}\t{mapq}\t{cigar}\t*\t0\t0\t{sequence}\t*\t{nm}\t{md}\tAS:i:0\tXS:i:0"
+        record = pysam.AlignedSegment.fromstring(sam_string, header)
+        classification = Classification(record=record)
+
+        assert classification._whole_query_probe_maps()
+
+    def test_wholeProbeMaps_justAlleleMapsNothingElseMaps(self):
+        ref_name = "reference"
+        ref_length = 55
+        header = create_sam_header(ref_name, ref_length)
+        flag = 0
+        cigar = "5S1M50S"
+        nm = "NM:i:0"
+        md = "MD:Z:1"
+        mapq = 60
+        pos = 1
+        query_name = "IV=[5,6);"
+        sequence = "AAAAAAAAAAACGGCTCGCATAGACACGACGACGACACGTACGATCGATCAGTCAT"
+        sam_string = f"{query_name}\t{flag}\t{ref_name}\t{pos}\t{mapq}\t{cigar}\t*\t0\t0\t{sequence}\t*\t{nm}\t{md}\tAS:i:0\tXS:i:0"
+        record = pysam.AlignedSegment.fromstring(sam_string, header)
+        classification = Classification(record=record)
+
+        assert classification._whole_query_probe_maps()
+
+    def test_wholeProbeMaps_justAlleleMapsNothingElseMapsOnReverseComplement(self):
+        ref_name = "reference"
+        ref_length = 55
+        header = create_sam_header(ref_name, ref_length)
+        flag = 16
+        cigar = "50S1M5S"
+        nm = "NM:i:0"
+        md = "MD:Z:1"
+        mapq = 60
+        pos = 1
+        query_name = "IV=[5,6);"
+        sequence = "`AAAAAAAAAAACGGCTCGCATAGACACGACGACGACACGTACGATCGATCAGTCAT`"
         sam_string = f"{query_name}\t{flag}\t{ref_name}\t{pos}\t{mapq}\t{cigar}\t*\t0\t0\t{sequence}\t*\t{nm}\t{md}\tAS:i:0\tXS:i:0"
         record = pysam.AlignedSegment.fromstring(sam_string, header)
         classification = Classification(record=record)
@@ -673,12 +736,21 @@ class TestPrecisionClassification:
 
         assert actual == expected
 
-    def test_assessment_recordWithCoreProbeOnlyPartiallyMappedReturnsZero(self):
+    def test_assessment_recordWithCoreProbeOnlyPartiallyMappedReturnsPartialMapping(self):
         record = create_partially_mapped_sam_record()
         classification = PrecisionClassification(record=record)
 
         actual = classification.assessment()
-        expected = 0.0
+        expected = 0.7
+
+        assert actual == expected
+
+    def test_assessment_recordWithCoreProbeOnlyPartiallyMappedReturnsPartialMappingInRC(self):
+        record = create_partially_mapped_sam_record_in_RC()
+        classification = PrecisionClassification(record=record)
+
+        actual = classification.assessment()
+        expected = 0.5
 
         assert actual == expected
 
@@ -775,6 +847,57 @@ class TestPrecisionClassification:
         expected = 1.0
         actual = classification.assessment()
         assert actual == expected
+
+    def test_assessment_probesMatchPerfectlyInRC(self):
+        ref_name = "reference"
+        ref_length = 59
+        header = create_sam_header(ref_name, ref_length)
+        flag = 16
+        cigar = "40S28M"
+        nm = "NM:i:0"
+        md = "MD:Z:28"
+        mapq = 60
+        pos = 6
+        query_name = "IV=[10,15);"
+        sequence = (
+            "AAAAAAAAAAAAAAAAAAAAAAACGGCTCGCATAGACACGACGACGACACGTACGATCGATCAGTCAT"
+        )
+        sam_string = f"{query_name}\t{flag}\t{ref_name}\t{pos}\t{mapq}\t{cigar}\t*\t0\t0\t{sequence}\t*\t{nm}\t{md}\tAS:i:0\tXS:i:0"
+        record = pysam.AlignedSegment.fromstring(sam_string, header)
+        probe = Probe(
+            header=ProbeHeader.from_string(query_name), full_sequence=sequence
+        )
+        classification = PrecisionClassification(record=record)
+
+        expected = 1.0
+        actual = classification.assessment()
+        assert actual == expected
+
+    def test_assessment_probesMatchPerfectlyInRCWithTotallyWrongFlanks(self):
+        ref_name = "reference"
+        ref_length = 59
+        header = create_sam_header(ref_name, ref_length)
+        flag = 16
+        cigar = "53S5M10S"
+        nm = "NM:i:0"
+        md = "MD:Z:4"
+        mapq = 60
+        pos = 6
+        query_name = "IV=[10,15);"
+        sequence = (
+            "AAAAAAAAAAAAAAAAAAAAAAACGGCTCGCATAGACACGACGACGACACGTACGATCGATCAGTCAT"
+        )
+        sam_string = f"{query_name}\t{flag}\t{ref_name}\t{pos}\t{mapq}\t{cigar}\t*\t0\t0\t{sequence}\t*\t{nm}\t{md}\tAS:i:0\tXS:i:0"
+        record = pysam.AlignedSegment.fromstring(sam_string, header)
+        probe = Probe(
+            header=ProbeHeader.from_string(query_name), full_sequence=sequence
+        )
+        classification = PrecisionClassification(record=record)
+
+        expected = 1.0
+        actual = classification.assessment()
+        assert actual == expected
+
 
     def test_assessment_probeIsDeletionBasesEitherSideMatch(self):
         ref_name = "reference"
@@ -1097,3 +1220,4 @@ class TestPrecisionClassification:
         expected = 8 / 11
         actual = classification.assessment()
         assert actual == expected
+

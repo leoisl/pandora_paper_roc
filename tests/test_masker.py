@@ -423,7 +423,7 @@ class TestPrecisionMasker:
 
 class TestRecallMasker:
     @patch.object(
-        Probe, "interval", return_value=ProbeInterval(3, 4), new_callable=PropertyMock
+        Probe, "get_interval", return_value=ProbeInterval(3, 4)
     )
     @patch.object(Probe, "chrom", return_value="chrom1", new_callable=PropertyMock)
     @patch.object(Probe, "pos", return_value=45, new_callable=PropertyMock)
@@ -436,7 +436,7 @@ class TestRecallMasker:
         assert actual == expected
 
     @patch.object(
-        Probe, "interval", return_value=ProbeInterval(3, 5), new_callable=PropertyMock
+        Probe, "get_interval", return_value=ProbeInterval(3, 5)
     )
     @patch.object(Probe, "chrom", return_value="chrom1", new_callable=PropertyMock)
     @patch.object(Probe, "pos", return_value=45, new_callable=PropertyMock)
@@ -449,7 +449,7 @@ class TestRecallMasker:
         assert actual == expected
 
     @patch.object(
-        Probe, "interval", return_value=ProbeInterval(3, 3), new_callable=PropertyMock
+        Probe, "get_interval", return_value=ProbeInterval(3, 3)
     )
     @patch.object(Probe, "chrom", return_value="chrom1", new_callable=PropertyMock)
     @patch.object(Probe, "pos", return_value=45, new_callable=PropertyMock)

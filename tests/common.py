@@ -87,6 +87,22 @@ def create_partially_mapped_sam_record() -> pysam.AlignedSegment:
     record = pysam.AlignedSegment.fromstring(sam_string, header)
     return record
 
+def create_partially_mapped_sam_record_in_RC() -> pysam.AlignedSegment:
+    ref_name = "reference"
+    ref_length = 59
+    header = create_sam_header(ref_name, ref_length)
+    flag = 16
+    cigar = "40M28S"
+    nm = "NM:i:0"
+    md = "MD:Z:40"
+    mapq = 60
+    pos = 6
+    query_name = "IV=[23,33);"
+    sequence = "AAAAAAAAAAAAAAAAAAAAAAACGGCTCGCATAGACACGACGACGACACGTACGATCGATCAGTCAT"
+    sam_string = f"{query_name}\t{flag}\t{ref_name}\t{pos}\t{mapq}\t{cigar}\t*\t0\t0\t{sequence}\t*\t{nm}\t{md}\tAS:i:0\tXS:i:0"
+    record = pysam.AlignedSegment.fromstring(sam_string, header)
+    return record
+
 
 def create_incorrect_secondary_sam_record() -> pysam.AlignedSegment:
     flag = 256

@@ -74,6 +74,6 @@ class RecallMasker(Masker):
     @staticmethod
     def get_interval_where_probe_aligns_to_truth(record: Classification) -> Interval:
         begin = record.query_probe.pos
-        end = begin + len(record.query_probe.interval)
+        end = begin + len(record.query_probe.get_interval(False))
         chrom = record.query_probe.chrom
         return Interval(begin, end, data=chrom)
