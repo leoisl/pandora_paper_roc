@@ -50,9 +50,11 @@ class Classification:
             self.record.get_aligned_pairs(matches_only=matches_only, with_seq=with_seq)
         )
 
+    @property
     def query_alignment_start(self) -> int:
         return self.record.query_alignment_start
 
+    @property
     def query_alignment_end(self) -> int:
         return self.record.query_alignment_end
 
@@ -62,9 +64,9 @@ class Classification:
 
         query_interval = self.query_probe.get_interval(self.record.is_reverse)
         query_starts_before_alignment = (
-            query_interval.start < self.query_alignment_start()
+            query_interval.start < self.query_alignment_start
         )
-        query_ends_after_alignment = query_interval.end > self.query_alignment_end()
+        query_ends_after_alignment = query_interval.end > self.query_alignment_end
 
         if query_starts_before_alignment or query_ends_after_alignment:
             return False
