@@ -20,7 +20,9 @@ class Masker(Filter):
         tree = IntervalTree()
         for region in bed:
             chrom, start, end = region.strip().split("\t")
-            tree.addi(int(start), int(end), chrom)
+            start = max(0, int(start) - 15)
+            end = int(end) + 15
+            tree.addi(start, end, chrom)
         return cls(tree=tree)
 
     def record_should_be_filtered_out(self, record: pysam.AlignedSegment) -> bool:
