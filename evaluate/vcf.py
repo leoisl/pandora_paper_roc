@@ -44,7 +44,7 @@ class VCF(ABC):
 
     @property
     @abstractmethod
-    def svtype(self) -> str:
+    def vc(self) -> str:
         pass
 
 
@@ -110,7 +110,7 @@ class PandoraVCF(VCF):
         return float(data_from_sample.get("GT_CONF"))
 
     @property
-    def svtype(self) -> str:
+    def vc(self) -> str:
         return self.variant.info["VC"]
 
     @property
@@ -172,7 +172,7 @@ class SnippyVCF(VCF):
         return float(self.variant.qual)
 
     @property
-    def svtype(self) -> str:
+    def vc(self) -> str:
         return self.variant.info["TYPE"][0]
 
     @property
@@ -202,7 +202,7 @@ class SamtoolsVCF(VCF):
         return float(self.variant.qual)
 
     @property
-    def svtype(self) -> str:
+    def vc(self) -> str:
         if "INDEL" in self.variant.info:
             return "INDEL"
         else:
@@ -233,7 +233,7 @@ class MedakaVCF(VCF):
         return float(self.variant.qual)
 
     @property
-    def svtype(self) -> str:
+    def vc(self) -> str:
         return "NA"
 
     @property
@@ -261,7 +261,7 @@ class NanopolishVCF(VCF):
         return float(self.variant.qual)
 
     @property
-    def svtype(self) -> str:
+    def vc(self) -> str:
         return "NA"
 
     @property

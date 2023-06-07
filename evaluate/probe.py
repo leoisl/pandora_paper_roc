@@ -66,7 +66,7 @@ class ProbeHeader:
             pos: int = None,
             ref_length: int = None,
             interval: ProbeInterval = None,
-            svtype: str = None,
+            vc: str = None,
             gt_conf: float = None,
             coverage: float = None,
             pangenome_variation_id: int = None,
@@ -84,7 +84,7 @@ class ProbeHeader:
         self.pos = pos
         self.ref_length = ref_length
         self.interval = interval
-        self.svtype = svtype
+        self.vc = vc
         self.gt_conf = gt_conf
         self.coverage = coverage
         self.pangenome_variation_id = pangenome_variation_id
@@ -104,7 +104,7 @@ class ProbeHeader:
                 and self.pos == other.pos
                 and self.ref_length == other.ref_length
                 and self.interval == other.interval
-                and self.svtype == other.svtype
+                and self.vc == other.vc
                 and self.gt_conf == other.gt_conf
                 and self.coverage == other.coverage
                 and self.pangenome_variation_id == other.pangenome_variation_id
@@ -139,7 +139,7 @@ class ProbeHeader:
         sample = parse_field_from_header("SAMPLE", string, str, None)
         pos = parse_field_from_header("POS", string, int, None)
         ref_length = parse_field_from_header("REF_LEN", string, int, None)
-        svtype = parse_field_from_header("VC", string, str, None)
+        vc = parse_field_from_header("VC", string, str, None)
         gt_conf = parse_field_from_header("GT_CONF", string, float, None)
         interval = ProbeInterval.from_string(
             parse_field_from_header("IV", string, str, None)
@@ -162,7 +162,7 @@ class ProbeHeader:
             pos=pos,
             ref_length=ref_length,
             interval=interval,
-            svtype=svtype,
+            vc=vc,
             gt_conf=gt_conf,
             coverage=coverage,
             pangenome_variation_id=pangenome_variation_id,
