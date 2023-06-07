@@ -56,7 +56,7 @@ class ProbeHeader:
         "ORIGINAL_STRAND": "OR_STRAND",
         "CONTIG_LENGTH": "CTG_LEN",
         "GT_CONF": "GT_CONF",
-        "SVTYPE": "SVTYPE",
+        "VC": "VC",
         "COVERAGE": "COVERAGE"}
 
     def __init__(
@@ -139,7 +139,7 @@ class ProbeHeader:
         sample = parse_field_from_header("SAMPLE", string, str, None)
         pos = parse_field_from_header("POS", string, int, None)
         ref_length = parse_field_from_header("REF_LEN", string, int, None)
-        svtype = parse_field_from_header("SVTYPE", string, str, None)
+        svtype = parse_field_from_header("VC", string, str, None)
         gt_conf = parse_field_from_header("GT_CONF", string, float, None)
         interval = ProbeInterval.from_string(
             parse_field_from_header("IV", string, str, None)

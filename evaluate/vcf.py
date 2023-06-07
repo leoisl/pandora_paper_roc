@@ -111,7 +111,7 @@ class PandoraVCF(VCF):
 
     @property
     def svtype(self) -> str:
-        return self.variant.info["SVTYPE"]
+        return self.variant.info["VC"]
 
     @property
     def coverage(self) -> int:
